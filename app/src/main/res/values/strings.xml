@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Cytoid Info Querier</string>
+    <string name="b30">B30</string>
+    <string name="playerName">玩家名称</string>
+    <string name="recordbackgroundimage">recordBackgroundImage</string>
+    <string name="copy">复制</string>
+    <string name="restart">重启</string>
+    <string name="save">保存</string>
+    <string name="query">查询</string>
+    <string name="profile">个人资料</string>
+    <string name="title_activity_crash">错误报告</string>
+    <string name="testCrash">Test Crash</string>
+</resources>

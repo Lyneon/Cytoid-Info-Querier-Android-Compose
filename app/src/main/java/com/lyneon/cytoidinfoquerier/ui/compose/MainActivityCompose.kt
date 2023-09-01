@@ -1,0 +1,142 @@
+package com.lyneon.cytoidinfoquerier.ui.compose
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.logic.dao.DataParser
+import com.lyneon.cytoidinfoquerier.logic.model.B30Records
+import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.tencent.bugly.crashreport.CrashReport
+import kotlin.concurrent.thread
+
+lateinit var b30Record: B30Records
+
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class
+)
+@Composable
+fun MainActivityCompose() {
+    val context = LocalContext.current
+    var playerName by remember { mutableStateOf("") }
+    var isQueryingFinished by remember { mutableStateOf(false) }
+
+    Column {
+        CenterAlignedTopAppBar(
+            title = { Text(text = stringResource(id = R.string.app_name)) },
+            navigationIcon = {
+                IconButton(
+                    onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = "个人资料")
+                }
+            },
+            actions = {
+                var menuIsExpanded by remember { mutableStateOf(false) }
+                IconButton(onClick = { menuIsExpanded = !menuIsExpanded }) {
+                    Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "选项菜单")
+                }
+                DropdownMenu(expanded = menuIsExpanded, onDismissRequest = { menuIsExpanded = false }) {
+                    DropdownMenuItem(
+                        leadingIcon = {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.baseline_bug_report_24),
+                                contentDescription = stringResource(id = R.string.testCrash)
+                            )
+                        },
+                        text = { Text(text = stringResource(id = R.string.testCrash)) },
+                        onClick = { CrashReport.testJavaCrash() })
+                }
+            }
+        )
+        Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
+            Row {
+                TextField(
+                    value = playerName,
+                    onValueChange = { playerName = it },
+                    label = { Text(text = stringResource(id = R.string.playerName)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        TextButton(
+                            onClick = {
+                                isQueryingFinished = false
+                                thread {
+                                    b30Record = NetRequest.getB30Records(
+                                        NetRequest.getB30RecordsString(
+                                            playerName,
+                                            30
+                                        )
+                                    )
+                                    isQueryingFinished = true
+                                }
+                            }
+                        ) {
+                            Text(text = stringResource(id = R.string.b30))
+                        }
+                    },
+                    singleLine = true
+                )
+            }
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Adaptive(200.dp),
+                contentPadding = PaddingValues(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalItemSpacing = 6.dp
+            ) {
+                if (isQueryingFinished && ::b30Record.isInitialized) {
+                    for (record in b30Record.data.profile.bestRecords) {
+                        item {
+                            Card {
+                                Column {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(record.chart.level.bundle.backgroundImage.thumbnail)
+                                            .crossfade(true)
+                                            .setHeader("User-Agent", "CytoidClient/2.1.1")
+                                            .build(),
+                                        contentDescription = record.chart.level.title,
+                                    )
+                                    Text(
+                                        text = DataParser.parseB30RecordToText(record),
+                                        Modifier.padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
