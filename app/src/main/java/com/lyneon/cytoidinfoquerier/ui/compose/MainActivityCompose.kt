@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -109,13 +111,14 @@ fun MainActivityCompose() {
                 )
             }
             LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Adaptive(200.dp),
+                columns = StaggeredGridCells.Adaptive(150.dp),
                 contentPadding = PaddingValues(top = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalItemSpacing = 6.dp
             ) {
                 if (isQueryingFinished && ::b30Record.isInitialized) {
-                    for (record in b30Record.data.profile.bestRecords) {
+                    for (i in 0 until b30Record.data.profile.bestRecords.size) {
+                        val record = b30Record.data.profile.bestRecords[i]
                         item {
                             Card {
                                 Column {
@@ -125,14 +128,15 @@ fun MainActivityCompose() {
                                             .crossfade(true)
                                             .setHeader("User-Agent", "CytoidClient/2.1.1")
                                             .build(),
-                                        contentDescription = record.chart.level.title,
+                                        contentDescription = record.chart.level.title
                                     )
                                     Text(
-                                        text = DataParser.parseB30RecordToText(record),
+                                        text = "${i+1}.${DataParser.parseB30RecordToText(record)}",
                                         Modifier.padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
                                     )
                                 }
                             }
+                            Spacer(modifier = Modifier.height(6.dp))
                         }
                     }
                 }
