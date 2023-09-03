@@ -1,6 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
 import android.content.res.Configuration
+import android.os.Looper
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,7 +44,10 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.dao.DataParser
 import com.lyneon.cytoidinfoquerier.logic.model.B30Records
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.tencent.bugly.crashreport.CrashReport
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import kotlin.concurrent.thread
 
 lateinit var b30Record: B30Records
@@ -77,6 +81,28 @@ fun MainActivityCompose() {
                     DropdownMenuItem(
                         leadingIcon = {
                             Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.baseline_public_24),
+                                contentDescription = stringResource(id = R.string.ping)
+                            )
+                        },
+                        text = { Text(text = stringResource(id = R.string.ping)) },
+                        onClick = {
+                            "ping start".showToast()
+                            thread {
+                                val responseCode = OkHttpClient().newCall(
+                                    Request.Builder().url("https://cytoid.io/")
+                                        .head()
+                                        .removeHeader("User-Agent")
+                                        .addHeader("User-Agent", "CytoidClient/2.1.1")
+                                        .build()
+                                ).execute().code
+                                Looper.prepare()
+                                "cytoid.io:$responseCode".showToast()
+                            }
+                        })
+                    DropdownMenuItem(
+                        leadingIcon = {
+                            Icon(
                                 imageVector = ImageVector.vectorResource(R.drawable.baseline_bug_report_24),
                                 contentDescription = stringResource(id = R.string.testCrash)
                             )
@@ -88,23 +114,35 @@ fun MainActivityCompose() {
         )
         Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
             Row {
+                var textFieldIsError by remember { mutableStateOf(false) }
                 TextField(
+                    isError = textFieldIsError,
                     value = playerName,
-                    onValueChange = { playerName = it },
+                    onValueChange = {
+                        playerName = it
+                        textFieldIsError = it.isEmpty()
+                    },
                     label = { Text(text = stringResource(id = R.string.playerName)) },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         TextButton(
                             onClick = {
-                                isQueryingFinished = false
-                                thread {
-                                    b30Record = NetRequest.getB30Records(
-                                        NetRequest.getB30RecordsString(
-                                            playerName,
-                                            30
+                                if (playerName.isEmpty()){
+                                    "Cytoid ID不能为空".showToast()
+                                    textFieldIsError = true
+                                }else{
+                                    textFieldIsError = false
+                                    "开始查询$playerName".showToast()
+                                    isQueryingFinished = false
+                                    thread {
+                                        b30Record = NetRequest.getB30Records(
+                                            NetRequest.getB30RecordsString(
+                                                playerName,
+                                                30
+                                            )
                                         )
-                                    )
-                                    isQueryingFinished = true
+                                        isQueryingFinished = true
+                                    }
                                 }
                             }
                         ) {
@@ -118,7 +156,7 @@ fun MainActivityCompose() {
                 columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
                     StaggeredGridCells.Fixed(2)
                 } else {
-                       StaggeredGridCells.Adaptive(160.dp)
+                    StaggeredGridCells.Adaptive(160.dp)
                 },
                 contentPadding = PaddingValues(top = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
