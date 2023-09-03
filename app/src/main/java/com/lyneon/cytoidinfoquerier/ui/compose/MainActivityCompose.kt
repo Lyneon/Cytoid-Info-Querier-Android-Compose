@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
+import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -69,7 +71,9 @@ fun MainActivityCompose() {
                 IconButton(onClick = { menuIsExpanded = !menuIsExpanded }) {
                     Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "选项菜单")
                 }
-                DropdownMenu(expanded = menuIsExpanded, onDismissRequest = { menuIsExpanded = false }) {
+                DropdownMenu(
+                    expanded = menuIsExpanded,
+                    onDismissRequest = { menuIsExpanded = false }) {
                     DropdownMenuItem(
                         leadingIcon = {
                             Icon(
@@ -111,7 +115,11 @@ fun MainActivityCompose() {
                 )
             }
             LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Adaptive(150.dp),
+                columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    StaggeredGridCells.Fixed(2)
+                } else {
+                       StaggeredGridCells.Adaptive(160.dp)
+                },
                 contentPadding = PaddingValues(top = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalItemSpacing = 6.dp
@@ -128,10 +136,11 @@ fun MainActivityCompose() {
                                             .crossfade(true)
                                             .setHeader("User-Agent", "CytoidClient/2.1.1")
                                             .build(),
-                                        contentDescription = record.chart.level.title
+                                        contentDescription = record.chart.level.title,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                     Text(
-                                        text = "${i+1}.${DataParser.parseB30RecordToText(record)}",
+                                        text = "${i + 1}.${DataParser.parseB30RecordToText(record)}",
                                         Modifier.padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
                                     )
                                 }

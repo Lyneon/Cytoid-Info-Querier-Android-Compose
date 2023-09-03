@@ -5,8 +5,8 @@ import android.app.Application
 import android.content.Context
 import com.tencent.bugly.crashreport.CrashReport
 
-class BaseApplication : Application(){
-    companion object{
+class BaseApplication : Application() {
+    companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
     }
