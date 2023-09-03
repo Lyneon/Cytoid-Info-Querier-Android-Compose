@@ -20,7 +20,6 @@
         <activity
             android:name=".ui.activity.CrashActivity"
             android:exported="false"
-            android:label="@string/title_activity_crash"
             android:theme="@style/Theme.CytoidInfoQuerierCompose" />
         <activity
             android:name=".ui.activity.MainActivity"
@@ -28,7 +27,6 @@
             android:theme="@style/Theme.CytoidInfoQuerierCompose">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

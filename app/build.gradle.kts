@@ -22,10 +22,7 @@ android {
         }
         ndk {
             abiFilters.run {
-                add("armeabi")
-                add("armeabi-v7a")
                 add("arm64-v8a")
-                add("x86")
                 add("x86_64")
             }
         }

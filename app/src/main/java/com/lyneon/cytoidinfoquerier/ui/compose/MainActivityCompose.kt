@@ -127,10 +127,10 @@ fun MainActivityCompose() {
                     trailingIcon = {
                         TextButton(
                             onClick = {
-                                if (playerName.isEmpty()){
+                                if (playerName.isEmpty()) {
                                     "Cytoid ID不能为空".showToast()
                                     textFieldIsError = true
-                                }else{
+                                } else {
                                     textFieldIsError = false
                                     "开始查询$playerName".showToast()
                                     isQueryingFinished = false
