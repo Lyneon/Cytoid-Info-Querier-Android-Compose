@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Looper
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 import com.tencent.bugly.crashreport.CrashReport
+import com.tencent.mmkv.MMKV
 import java.lang.Thread.UncaughtExceptionHandler
 
 class BaseApplication : Application() {
@@ -20,11 +21,13 @@ class BaseApplication : Application() {
         context = this
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler())
         CrashReport.initCrashReport(this, "e3dc58f371", true)
+        MMKV.initialize(this)
     }
 }
 
 class CrashHandler : UncaughtExceptionHandler {
     override fun uncaughtException(t: Thread, e: Throwable) {
+        e.printStackTrace()
         val intent = Intent()
         intent.setClass(BaseApplication.context, CrashActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)

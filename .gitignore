@@ -15,3 +15,4 @@
 local.properties
 /app/src/androidTest/java/com/lyneon/cytoidinfoquerier/
 /app/src/test/java/com/lyneon/cytoidinfoquerier/
+/.idea/deploymentTargetDropDown.xml

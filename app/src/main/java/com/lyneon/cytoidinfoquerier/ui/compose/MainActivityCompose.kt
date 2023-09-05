@@ -1,8 +1,11 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Looper
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,12 +35,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
@@ -45,9 +52,14 @@ import com.lyneon.cytoidinfoquerier.logic.dao.DataParser
 import com.lyneon.cytoidinfoquerier.logic.model.B30Records
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.tool.showToast
+import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.tencent.bugly.crashreport.CrashReport
+import com.tencent.mmkv.MMKV
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import kotlin.concurrent.thread
 
 lateinit var b30Record: B30Records
@@ -57,16 +69,20 @@ lateinit var b30Record: B30Records
 )
 @Composable
 fun MainActivityCompose() {
-    val context = LocalContext.current
+    val context = LocalContext.current as MainActivity
     var playerName by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
+    val mmkv = MMKV.defaultMMKV()
+    val externalCacheStorageDir = context.externalCacheDir
 
     Column {
         CenterAlignedTopAppBar(
             title = { Text(text = stringResource(id = R.string.app_name)) },
             navigationIcon = {
                 IconButton(
-                    onClick = { /*TODO*/ }) {
+                    onClick = {
+                        "还没做完，先贵阳一会".showToast()
+                    }) {
                     Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = "个人资料")
                 }
             },
@@ -132,16 +148,36 @@ fun MainActivityCompose() {
                                     textFieldIsError = true
                                 } else {
                                     textFieldIsError = false
-                                    "开始查询$playerName".showToast()
                                     isQueryingFinished = false
-                                    thread {
+                                    if (System.currentTimeMillis() - mmkv.decodeLong(
+                                            "LAST_QUERY_TIME_${playerName}",
+                                            -1
+                                        ) <= (6 * 60 * 60 * 1000)
+                                    ) {
+                                        "6小时内有查询记录，使用已缓存的数据".showToast()
                                         b30Record = NetRequest.getB30Records(
-                                            NetRequest.getB30RecordsString(
-                                                playerName,
-                                                30
-                                            )
+                                            mmkv.decodeString("b30RecordString_${playerName}")
+                                                ?: throw Exception()
                                         )
                                         isQueryingFinished = true
+                                    } else {
+                                        "开始查询$playerName".showToast()
+                                        thread {
+                                            val b30RecordString =
+                                                NetRequest.getB30RecordsString(playerName, 30)
+                                            b30Record = NetRequest.getB30Records(b30RecordString)
+                                            isQueryingFinished = true
+                                            mmkv.encode(
+                                                "LAST_QUERY_TIME_${playerName}",
+                                                System.currentTimeMillis()
+                                            )
+                                            mmkv.encode(
+                                                "b30RecordString_${playerName}",
+                                                b30RecordString
+                                            )
+                                            Looper.prepare()
+                                            "查询${playerName}完成，共查询到${b30Record.data.profile.bestRecords.size}条数据".showToast()
+                                        }
                                     }
                                 }
                             }
@@ -159,8 +195,7 @@ fun MainActivityCompose() {
                     StaggeredGridCells.Adaptive(160.dp)
                 },
                 contentPadding = PaddingValues(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalItemSpacing = 6.dp
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (isQueryingFinished && ::b30Record.isInitialized) {
                     for (i in 0 until b30Record.data.profile.bestRecords.size) {
@@ -168,15 +203,57 @@ fun MainActivityCompose() {
                         item {
                             Card {
                                 Column {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(record.chart.level.bundle.backgroundImage.thumbnail)
-                                            .crossfade(true)
-                                            .setHeader("User-Agent", "CytoidClient/2.1.1")
-                                            .build(),
-                                        contentDescription = record.chart.level.title,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                    if (File(
+                                            externalCacheStorageDir,
+                                            "backgroundImage_${record.chart.level.uid}"
+                                        ).exists() && File(
+                                            externalCacheStorageDir,
+                                            "backgroundImage_${record.chart.level.uid}"
+                                        ).isFile
+                                    ) {
+                                        val input = FileInputStream(
+                                            File(
+                                                externalCacheStorageDir,
+                                                "backgroundImage_${record.chart.level.uid}"
+                                            )
+                                        )
+                                        val bitmap = BitmapFactory.decodeStream(input)
+                                        Image(
+                                            painter = BitmapPainter(bitmap.asImageBitmap()),
+                                            contentDescription = record.chart.level.title,
+                                            contentScale = ContentScale.FillWidth
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(record.chart.level.bundle.backgroundImage.thumbnail)
+                                                .crossfade(true)
+                                                .setHeader("User-Agent", "CytoidClient/2.1.1")
+                                                .build(),
+                                            contentDescription = record.chart.level.title,
+                                            onSuccess = {
+                                                val imageFile = File(
+                                                    externalCacheStorageDir,
+                                                    "backgroundImage_${record.chart.level.uid}"
+                                                )
+                                                try {
+                                                    imageFile.createNewFile()
+                                                    val output = FileOutputStream(imageFile)
+                                                    it.result.drawable.toBitmap().compress(
+                                                        Bitmap.CompressFormat.PNG,
+                                                        100,
+                                                        output
+                                                    )
+                                                    output.flush()
+                                                    output.close()
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                    e.stackTraceToString().showToast()
+                                                }
+                                            },
+                                            contentScale = ContentScale.FillWidth
+                                        )
+                                    }
                                     Text(
                                         text = "${i + 1}.${DataParser.parseB30RecordToText(record)}",
                                         Modifier.padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
