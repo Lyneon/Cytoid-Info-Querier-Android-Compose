@@ -14,3 +14,8 @@ fun String.showDialog(
     activity: Activity,
     additionalParameters: AlertDialog.Builder.() -> AlertDialog.Builder
 ): AlertDialog = AlertDialog.Builder(activity).setMessage(this).additionalParameters().show()
+
+fun String.isValidCytoidID(): Boolean {
+    val regex = "^[a-z0-9_-]*$"
+    return this.matches(regex.toRegex())
+}

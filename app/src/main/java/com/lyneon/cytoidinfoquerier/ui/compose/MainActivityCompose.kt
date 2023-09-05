@@ -51,6 +51,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.dao.DataParser
 import com.lyneon.cytoidinfoquerier.logic.model.B30Records
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.tencent.bugly.crashreport.CrashReport
@@ -136,7 +137,7 @@ fun MainActivityCompose() {
                     value = playerName,
                     onValueChange = {
                         playerName = it
-                        textFieldIsError = it.isEmpty()
+                        textFieldIsError = it.isEmpty() or !it.isValidCytoidID()
                     },
                     label = { Text(text = stringResource(id = R.string.playerName)) },
                     modifier = Modifier.fillMaxWidth(),
@@ -145,6 +146,9 @@ fun MainActivityCompose() {
                             onClick = {
                                 if (playerName.isEmpty()) {
                                     "Cytoid ID不能为空".showToast()
+                                    textFieldIsError = true
+                                } else if (!playerName.isValidCytoidID()) {
+                                    "Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符".showToast()
                                     textFieldIsError = true
                                 } else {
                                     textFieldIsError = false
@@ -202,7 +206,8 @@ fun MainActivityCompose() {
                         val record = b30Record.data.profile.bestRecords[i]
                         item {
                             Card {
-                                Column {
+                                Column(
+                                ) {
                                     if (File(
                                             externalCacheStorageDir,
                                             "backgroundImage_${record.chart.level.uid}"
@@ -221,7 +226,8 @@ fun MainActivityCompose() {
                                         Image(
                                             painter = BitmapPainter(bitmap.asImageBitmap()),
                                             contentDescription = record.chart.level.title,
-                                            contentScale = ContentScale.FillWidth
+                                            contentScale = ContentScale.FillWidth,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     } else {
                                         AsyncImage(
@@ -230,6 +236,7 @@ fun MainActivityCompose() {
                                                 .crossfade(true)
                                                 .setHeader("User-Agent", "CytoidClient/2.1.1")
                                                 .build(),
+                                            modifier = Modifier.fillMaxWidth(),
                                             contentDescription = record.chart.level.title,
                                             onSuccess = {
                                                 val imageFile = File(
@@ -256,7 +263,9 @@ fun MainActivityCompose() {
                                     }
                                     Text(
                                         text = "${i + 1}.${DataParser.parseB30RecordToText(record)}",
-                                        Modifier.padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
+                                        Modifier
+                                            .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
+                                            .fillMaxWidth()
                                     )
                                 }
                             }

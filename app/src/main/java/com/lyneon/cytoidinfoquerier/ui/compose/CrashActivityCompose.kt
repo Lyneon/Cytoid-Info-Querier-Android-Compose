@@ -7,14 +7,16 @@ import android.content.Intent
 import android.os.Process
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,23 +37,25 @@ fun CrashActivityCompose(crashMessage: String) {
         CenterAlignedTopAppBar(
             title = { Text(text = stringResource(id = R.string.title_activity_crash)) },
             navigationIcon = {
-                IconButton(onClick = {
-                    val intent =
-                        context.packageManager.getLaunchIntentForPackage(context.packageName)
-                    if (intent != null) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        context.startActivity(intent)
+                    TextButton(onClick = {
+                        val intent =
+                            context.packageManager.getLaunchIntentForPackage(context.packageName)
+                        if (intent != null) {
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            context.startActivity(intent)
+                        }
+                        Process.killProcess(Process.myPid())
+                    }) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_menu_restart),
+                            contentDescription = stringResource(id = R.string.restart)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = stringResource(id = R.string.restart))
                     }
-                    Process.killProcess(Process.myPid())
-                }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.ic_menu_restart),
-                        contentDescription = stringResource(id = R.string.restart)
-                    )
-                }
             },
             actions = {
-                IconButton(onClick = {
+                TextButton(onClick = {
                     if (crashMessage.isNotEmpty()) {
                         val clipboardManager =
                             context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
@@ -64,6 +68,8 @@ fun CrashActivityCompose(crashMessage: String) {
                         Toast.makeText(context, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
                     }
                 }) {
+                    Text(text = stringResource(id = R.string.copy))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_menu_copy),
                         contentDescription = "复制"
