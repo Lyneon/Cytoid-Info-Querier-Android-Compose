@@ -167,20 +167,26 @@ fun MainActivityCompose() {
                                     } else {
                                         "开始查询$playerName".showToast()
                                         thread {
-                                            val b30RecordString =
-                                                NetRequest.getB30RecordsString(playerName, 30)
-                                            b30Record = NetRequest.getB30Records(b30RecordString)
-                                            isQueryingFinished = true
-                                            mmkv.encode(
-                                                "LAST_QUERY_TIME_${playerName}",
-                                                System.currentTimeMillis()
-                                            )
-                                            mmkv.encode(
-                                                "b30RecordString_${playerName}",
-                                                b30RecordString
-                                            )
-                                            Looper.prepare()
-                                            "查询${playerName}完成，共查询到${b30Record.data.profile.bestRecords.size}条数据".showToast()
+                                            try {
+                                                val b30RecordString =
+                                                    NetRequest.getB30RecordsString(playerName, 30)
+                                                b30Record = NetRequest.getB30Records(b30RecordString)
+                                                isQueryingFinished = true
+                                                mmkv.encode(
+                                                    "LAST_QUERY_TIME_${playerName}",
+                                                    System.currentTimeMillis()
+                                                )
+                                                mmkv.encode(
+                                                    "b30RecordString_${playerName}",
+                                                    b30RecordString
+                                                )
+                                                "查询${playerName}完成，共查询到${b30Record.data.profile.bestRecords.size}条数据".showToast()
+                                            }catch (e : Exception){
+                                                e.printStackTrace()
+                                                CrashReport.postCatchedException(e.cause,Thread.currentThread())
+                                                Looper.prepare()
+                                                "查询失败:${e.stackTraceToString()}".showToast()
+                                            }
                                         }
                                     }
                                 }
