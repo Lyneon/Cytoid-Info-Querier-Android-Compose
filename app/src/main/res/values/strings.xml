@@ -12,4 +12,5 @@
     <string name="testCrash">Test Crash</string>
     <string name="ping">ping cytoid.io</string>
     <string name="invalid_cytoidID">Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符</string>
+    <string name="empty_cytoidID">Cytoid ID不能为空</string>
 </resources>

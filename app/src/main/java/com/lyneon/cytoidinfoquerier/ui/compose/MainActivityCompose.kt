@@ -134,12 +134,14 @@ fun MainActivityCompose() {
         Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
             Column {
                 var textFieldIsError by remember { mutableStateOf(false) }
+                var textFieldIsEmpty by remember { mutableStateOf(false) }
                 TextField(
-                    isError = textFieldIsError,
+                    isError = textFieldIsError or textFieldIsEmpty,
                     value = playerName,
                     onValueChange = {
                         playerName = it
-                        textFieldIsError = it.isEmpty() or !it.isValidCytoidID()
+                        textFieldIsError = !it.isValidCytoidID()
+                        textFieldIsEmpty = it.isEmpty()
                     },
                     label = { Text(text = stringResource(id = R.string.playerName)) },
                     modifier = Modifier.fillMaxWidth(),
@@ -147,8 +149,8 @@ fun MainActivityCompose() {
                         TextButton(
                             onClick = {
                                 if (playerName.isEmpty()) {
-                                    "Cytoid ID不能为空".showToast()
-                                    textFieldIsError = true
+                                    context.resources.getString(R.string.empty_cytoidID).showToast()
+                                    textFieldIsEmpty = true
                                 } else if (!playerName.isValidCytoidID()) {
                                     context.resources.getString(R.string.invalid_cytoidID)
                                         .showToast()
@@ -206,7 +208,16 @@ fun MainActivityCompose() {
                     singleLine = true
                 )
                 AnimatedVisibility(visible = textFieldIsError) {
-                    Text(text = stringResource(id = R.string.invalid_cytoidID), color = Color.Red)
+                    Text(
+                        text = stringResource(id = R.string.invalid_cytoidID),
+                        color = Color.Red
+                    )
+                }
+                AnimatedVisibility(visible = textFieldIsEmpty) {
+                    Text(
+                        text = stringResource(id = R.string.empty_cytoidID),
+                        color = Color.Red
+                    )
                 }
             }
             LazyVerticalStaggeredGrid(
