@@ -4,18 +4,19 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Looper
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.AccountCircle
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -130,7 +132,7 @@ fun MainActivityCompose() {
             }
         )
         Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
-            Row {
+            Column {
                 var textFieldIsError by remember { mutableStateOf(false) }
                 TextField(
                     isError = textFieldIsError,
@@ -148,7 +150,8 @@ fun MainActivityCompose() {
                                     "Cytoid ID不能为空".showToast()
                                     textFieldIsError = true
                                 } else if (!playerName.isValidCytoidID()) {
-                                    "Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符".showToast()
+                                    context.resources.getString(R.string.invalid_cytoidID)
+                                        .showToast()
                                     textFieldIsError = true
                                 } else {
                                     textFieldIsError = false
@@ -170,7 +173,8 @@ fun MainActivityCompose() {
                                             try {
                                                 val b30RecordString =
                                                     NetRequest.getB30RecordsString(playerName, 30)
-                                                b30Record = NetRequest.getB30Records(b30RecordString)
+                                                b30Record =
+                                                    NetRequest.getB30Records(b30RecordString)
                                                 isQueryingFinished = true
                                                 mmkv.encode(
                                                     "LAST_QUERY_TIME_${playerName}",
@@ -180,10 +184,14 @@ fun MainActivityCompose() {
                                                     "b30RecordString_${playerName}",
                                                     b30RecordString
                                                 )
+                                                Looper.prepare()
                                                 "查询${playerName}完成，共查询到${b30Record.data.profile.bestRecords.size}条数据".showToast()
-                                            }catch (e : Exception){
+                                            } catch (e: Exception) {
                                                 e.printStackTrace()
-                                                CrashReport.postCatchedException(e.cause,Thread.currentThread())
+                                                CrashReport.postCatchedException(
+                                                    e.cause,
+                                                    Thread.currentThread()
+                                                )
                                                 Looper.prepare()
                                                 "查询失败:${e.stackTraceToString()}".showToast()
                                             }
@@ -197,6 +205,9 @@ fun MainActivityCompose() {
                     },
                     singleLine = true
                 )
+                AnimatedVisibility(visible = textFieldIsError) {
+                    Text(text = stringResource(id = R.string.invalid_cytoidID), color = Color.Red)
+                }
             }
             LazyVerticalStaggeredGrid(
                 columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -208,12 +219,11 @@ fun MainActivityCompose() {
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (isQueryingFinished && ::b30Record.isInitialized) {
-                    for (i in 0 until b30Record.data.profile.bestRecords.size) {
-                        val record = b30Record.data.profile.bestRecords[i]
-                        item {
+                    if (b30Record.data.profile.bestRecords.size == 1) {
+                        val record = b30Record.data.profile.bestRecords[0]
+                        item(span = StaggeredGridItemSpan.FullLine) {
                             Card {
-                                Column(
-                                ) {
+                                Column {
                                     if (File(
                                             externalCacheStorageDir,
                                             "backgroundImage_${record.chart.level.uid}"
@@ -268,7 +278,7 @@ fun MainActivityCompose() {
                                         )
                                     }
                                     Text(
-                                        text = "${i + 1}.${DataParser.parseB30RecordToText(record)}",
+                                        text = "1.${DataParser.parseB30RecordToText(record)}",
                                         Modifier
                                             .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
                                             .fillMaxWidth()
@@ -276,6 +286,80 @@ fun MainActivityCompose() {
                                 }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    } else {
+                        for (i in 0 until b30Record.data.profile.bestRecords.size) {
+                            val record = b30Record.data.profile.bestRecords[i]
+                            item {
+                                Card {
+                                    Column {
+                                        if (File(
+                                                externalCacheStorageDir,
+                                                "backgroundImage_${record.chart.level.uid}"
+                                            ).exists() && File(
+                                                externalCacheStorageDir,
+                                                "backgroundImage_${record.chart.level.uid}"
+                                            ).isFile
+                                        ) {
+                                            val input = FileInputStream(
+                                                File(
+                                                    externalCacheStorageDir,
+                                                    "backgroundImage_${record.chart.level.uid}"
+                                                )
+                                            )
+                                            val bitmap = BitmapFactory.decodeStream(input)
+                                            Image(
+                                                painter = BitmapPainter(bitmap.asImageBitmap()),
+                                                contentDescription = record.chart.level.title,
+                                                contentScale = ContentScale.FillWidth,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        } else {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(context)
+                                                    .data(record.chart.level.bundle.backgroundImage.thumbnail)
+                                                    .crossfade(true)
+                                                    .setHeader("User-Agent", "CytoidClient/2.1.1")
+                                                    .build(),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                contentDescription = record.chart.level.title,
+                                                onSuccess = {
+                                                    val imageFile = File(
+                                                        externalCacheStorageDir,
+                                                        "backgroundImage_${record.chart.level.uid}"
+                                                    )
+                                                    try {
+                                                        imageFile.createNewFile()
+                                                        val output = FileOutputStream(imageFile)
+                                                        it.result.drawable.toBitmap().compress(
+                                                            Bitmap.CompressFormat.PNG,
+                                                            100,
+                                                            output
+                                                        )
+                                                        output.flush()
+                                                        output.close()
+                                                    } catch (e: Exception) {
+                                                        e.printStackTrace()
+                                                        e.stackTraceToString().showToast()
+                                                    }
+                                                },
+                                                contentScale = ContentScale.FillWidth
+                                            )
+                                        }
+                                        Text(
+                                            text = "${i + 1}.${
+                                                DataParser.parseB30RecordToText(
+                                                    record
+                                                )
+                                            }",
+                                            Modifier
+                                                .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
+                                                .fillMaxWidth()
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
                         }
                     }
                 }
