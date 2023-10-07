@@ -2,11 +2,9 @@ package com.lyneon.cytoidinfoquerier.tool
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URL
-import kotlin.concurrent.thread
 
 fun URL.toBitmap():Bitmap {
     val client = OkHttpClient()

@@ -1,8 +1,5 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.os.Process
 import android.widget.Toast
@@ -25,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 
 
@@ -57,14 +55,7 @@ fun CrashActivityCompose(crashMessage: String) {
             actions = {
                 TextButton(onClick = {
                     if (crashMessage.isNotEmpty()) {
-                        val clipboardManager =
-                            context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboardManager.setPrimaryClip(
-                            ClipData.newPlainText(
-                                "errorMessage",
-                                crashMessage
-                            )
-                        )
+                        crashMessage.saveIntoClipboard("errorMessage")
                         Toast.makeText(context, "已复制到剪贴板", Toast.LENGTH_SHORT).show()
                     }
                 }) {

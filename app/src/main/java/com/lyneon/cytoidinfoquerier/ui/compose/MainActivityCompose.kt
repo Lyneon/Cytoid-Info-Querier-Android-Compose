@@ -4,10 +4,12 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Looper
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -51,9 +55,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.dao.DataParser
-import com.lyneon.cytoidinfoquerier.logic.model.B30Records
+import com.lyneon.cytoidinfoquerier.logic.model.GQLQueryResponseData
+import com.lyneon.cytoidinfoquerier.logic.model.Profile
+import com.lyneon.cytoidinfoquerier.logic.model.ProfileData
+import com.lyneon.cytoidinfoquerier.logic.model.QueryOrder
+import com.lyneon.cytoidinfoquerier.logic.model.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.tencent.bugly.crashreport.CrashReport
@@ -65,7 +74,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import kotlin.concurrent.thread
 
-lateinit var b30Record: B30Records
+lateinit var profile: GQLQueryResponseData<ProfileData>
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class
@@ -73,7 +82,7 @@ lateinit var b30Record: B30Records
 @Composable
 fun MainActivityCompose() {
     val context = LocalContext.current as MainActivity
-    var playerName by remember { mutableStateOf("") }
+    var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
     val mmkv = MMKV.defaultMMKV()
     val externalCacheStorageDir = context.externalCacheDir
@@ -128,6 +137,34 @@ fun MainActivityCompose() {
                         },
                         text = { Text(text = stringResource(id = R.string.testCrash)) },
                         onClick = { CrashReport.testJavaCrash() })
+                    DropdownMenuItem(text = { Text(text = "Test") }, onClick = {
+                        "Test start".showToast()
+                        thread {
+                            try {
+                                val profileJSONString = NetRequest.getGQLResponseJSONString(
+                                    Profile.getGQLQueryString(
+                                        cytoidID,
+                                        1,
+                                        RecordQuerySort.Date,
+                                        QueryOrder.DESC,
+                                        1
+                                    )
+                                )
+                                profileJSONString.saveIntoClipboard()
+                                val profile =
+                                    NetRequest.convertGQLResponseJSONStringToObject<ProfileData>(
+                                        profileJSONString
+                                    )
+                                Log.i("Test", profile.toString())
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                e.stackTraceToString().saveIntoClipboard()
+                            } finally {
+                                Looper.prepare()
+                                "Test finished".showToast()
+                            }
+                        }
+                    })
                 }
             }
         )
@@ -137,9 +174,9 @@ fun MainActivityCompose() {
                 var textFieldIsEmpty by remember { mutableStateOf(false) }
                 TextField(
                     isError = textFieldIsError or textFieldIsEmpty,
-                    value = playerName,
+                    value = cytoidID,
                     onValueChange = {
-                        playerName = it
+                        cytoidID = it
                         textFieldIsError = !it.isValidCytoidID()
                         textFieldIsEmpty = it.isEmpty()
                     },
@@ -148,10 +185,10 @@ fun MainActivityCompose() {
                     trailingIcon = {
                         TextButton(
                             onClick = {
-                                if (playerName.isEmpty()) {
+                                if (cytoidID.isEmpty()) {
                                     context.resources.getString(R.string.empty_cytoidID).showToast()
                                     textFieldIsEmpty = true
-                                } else if (!playerName.isValidCytoidID()) {
+                                } else if (!cytoidID.isValidCytoidID()) {
                                     context.resources.getString(R.string.invalid_cytoidID)
                                         .showToast()
                                     textFieldIsError = true
@@ -159,35 +196,42 @@ fun MainActivityCompose() {
                                     textFieldIsError = false
                                     isQueryingFinished = false
                                     if (System.currentTimeMillis() - mmkv.decodeLong(
-                                            "LAST_QUERY_TIME_${playerName}",
+                                            "lastQueryProfileTime_${cytoidID}",
                                             -1
                                         ) <= (6 * 60 * 60 * 1000)
                                     ) {
                                         "6小时内有查询记录，使用已缓存的数据".showToast()
-                                        b30Record = NetRequest.getB30Records(
-                                            mmkv.decodeString("b30RecordString_${playerName}")
+                                        profile = NetRequest.convertGQLResponseJSONStringToObject(
+                                            mmkv.decodeString("profileString_${cytoidID}")
                                                 ?: throw Exception()
                                         )
                                         isQueryingFinished = true
                                     } else {
-                                        "开始查询$playerName".showToast()
+                                        "开始查询$cytoidID".showToast()
                                         thread {
                                             try {
-                                                val b30RecordString =
-                                                    NetRequest.getB30RecordsString(playerName, 30)
-                                                b30Record =
-                                                    NetRequest.getB30Records(b30RecordString)
+                                                val profileString =
+                                                    NetRequest.getGQLResponseJSONString(
+                                                        Profile.getGQLQueryString(
+                                                            cytoidID,
+                                                            bestRecordsLimit = 30
+                                                        )
+                                                    )
+                                                profile =
+                                                    NetRequest.convertGQLResponseJSONStringToObject(
+                                                        profileString
+                                                    )
                                                 isQueryingFinished = true
                                                 mmkv.encode(
-                                                    "LAST_QUERY_TIME_${playerName}",
+                                                    "lastQueryProfileTime_${cytoidID}",
                                                     System.currentTimeMillis()
                                                 )
                                                 mmkv.encode(
-                                                    "b30RecordString_${playerName}",
-                                                    b30RecordString
+                                                    "profileString_${cytoidID}",
+                                                    profileString
                                                 )
                                                 Looper.prepare()
-                                                "查询${playerName}完成，共查询到${b30Record.data.profile.bestRecords.size}条数据".showToast()
+                                                "查询${cytoidID}完成，共查询到${profile.data.profile.bestRecords.size}条数据".showToast()
                                             } catch (e: Exception) {
                                                 e.printStackTrace()
                                                 CrashReport.postCatchedException(
@@ -229,10 +273,10 @@ fun MainActivityCompose() {
                 contentPadding = PaddingValues(top = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                if (isQueryingFinished && ::b30Record.isInitialized) {
-                    if (b30Record.data.profile.bestRecords.size == 1) {
-                        val record = b30Record.data.profile.bestRecords[0]
-                        item(span = StaggeredGridItemSpan.FullLine) {
+                if (isQueryingFinished && ::profile.isInitialized) {
+                    for (i in 0 until profile.data.profile.bestRecords.size) {
+                        val record = profile.data.profile.bestRecords[i]
+                        item(span = if (profile.data.profile.bestRecords.size == 1) StaggeredGridItemSpan.FullLine else StaggeredGridItemSpan.SingleLane) {
                             Card {
                                 Column {
                                     if (File(
@@ -257,80 +301,20 @@ fun MainActivityCompose() {
                                             modifier = Modifier.fillMaxWidth()
                                         )
                                     } else {
-                                        AsyncImage(
-                                            model = ImageRequest.Builder(context)
-                                                .data(record.chart.level.bundle.backgroundImage.thumbnail)
-                                                .crossfade(true)
-                                                .setHeader("User-Agent", "CytoidClient/2.1.1")
-                                                .build(),
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentDescription = record.chart.level.title,
-                                            onSuccess = {
-                                                val imageFile = File(
-                                                    externalCacheStorageDir,
-                                                    "backgroundImage_${record.chart.level.uid}"
-                                                )
-                                                try {
-                                                    imageFile.createNewFile()
-                                                    val output = FileOutputStream(imageFile)
-                                                    it.result.drawable.toBitmap().compress(
-                                                        Bitmap.CompressFormat.PNG,
-                                                        100,
-                                                        output
-                                                    )
-                                                    output.flush()
-                                                    output.close()
-                                                } catch (e: Exception) {
-                                                    e.printStackTrace()
-                                                    e.stackTraceToString().showToast()
-                                                }
-                                            },
-                                            contentScale = ContentScale.FillWidth
-                                        )
-                                    }
-                                    Text(
-                                        text = "1.${DataParser.parseB30RecordToText(record)}",
-                                        Modifier
-                                            .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
-                                            .fillMaxWidth()
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                        }
-                    } else {
-                        for (i in 0 until b30Record.data.profile.bestRecords.size) {
-                            val record = b30Record.data.profile.bestRecords[i]
-                            item {
-                                Card {
-                                    Column {
-                                        if (File(
-                                                externalCacheStorageDir,
-                                                "backgroundImage_${record.chart.level.uid}"
-                                            ).exists() && File(
-                                                externalCacheStorageDir,
-                                                "backgroundImage_${record.chart.level.uid}"
-                                            ).isFile
-                                        ) {
-                                            val input = FileInputStream(
-                                                File(
-                                                    externalCacheStorageDir,
-                                                    "backgroundImage_${record.chart.level.uid}"
+                                        Box {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.align(
+                                                    Alignment.Center
                                                 )
                                             )
-                                            val bitmap = BitmapFactory.decodeStream(input)
-                                            Image(
-                                                painter = BitmapPainter(bitmap.asImageBitmap()),
-                                                contentDescription = record.chart.level.title,
-                                                contentScale = ContentScale.FillWidth,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        } else {
                                             AsyncImage(
                                                 model = ImageRequest.Builder(context)
                                                     .data(record.chart.level.bundle.backgroundImage.thumbnail)
                                                     .crossfade(true)
-                                                    .setHeader("User-Agent", "CytoidClient/2.1.1")
+                                                    .setHeader(
+                                                        "User-Agent",
+                                                        "CytoidClient/2.1.1"
+                                                    )
                                                     .build(),
                                                 modifier = Modifier.fillMaxWidth(),
                                                 contentDescription = record.chart.level.title,
@@ -357,20 +341,18 @@ fun MainActivityCompose() {
                                                 contentScale = ContentScale.FillWidth
                                             )
                                         }
-                                        Text(
-                                            text = "${i + 1}.${
-                                                DataParser.parseB30RecordToText(
-                                                    record
-                                                )
-                                            }",
-                                            Modifier
-                                                .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
-                                                .fillMaxWidth()
-                                        )
                                     }
+                                    Text(
+                                        text = "${i + 1}.${
+                                            DataParser.parseProfileUserRecordToText(record)
+                                        }",
+                                        Modifier
+                                            .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
+                                            .fillMaxWidth()
+                                    )
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
                             }
+                            Spacer(modifier = Modifier.height(6.dp))
                         }
                     }
                 }
