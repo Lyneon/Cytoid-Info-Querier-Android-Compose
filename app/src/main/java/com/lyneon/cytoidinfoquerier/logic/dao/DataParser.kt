@@ -2,7 +2,7 @@ package com.lyneon.cytoidinfoquerier.logic.dao
 
 import com.lyneon.cytoidinfoquerier.logic.model.Profile
 import com.lyneon.cytoidinfoquerier.tool.DateParser
-import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToString
+import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToBeijingTimeString
 import com.lyneon.cytoidinfoquerier.tool.fix
 
 object DataParser {
@@ -20,6 +20,6 @@ object DataParser {
             appendLine("单曲Rating：${record.rating}")
             appendLine(record.details.toString())
             appendLine()
-            append(DateParser.parseISO8601Date(record.date).formatToString())
+            append(DateParser.parseISO8601Date(record.date).formatToBeijingTimeString())
         }.toString()
 }

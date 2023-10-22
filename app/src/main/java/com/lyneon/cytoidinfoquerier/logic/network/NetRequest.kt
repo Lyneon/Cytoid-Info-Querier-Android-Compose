@@ -35,7 +35,7 @@ object NetRequest {
 
     }
 
-    fun <QueryType> getGQLObject(GQLQueryString: String) : QueryType=
+    fun <QueryType> getGQLObject(GQLQueryString: String): QueryType =
         json.decodeFromString<GQLQueryResponseData<QueryType>>(
             getGQLResponseJSONString(GQLQueryString)
         ).data

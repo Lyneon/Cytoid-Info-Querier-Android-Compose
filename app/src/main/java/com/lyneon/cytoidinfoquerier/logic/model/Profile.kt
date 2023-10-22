@@ -109,6 +109,7 @@ data class Profile(
             val id: Int,
             val difficulty: Int,
             val type: String,
+            val name: String? = null,
             val notesCount: Int,
             val level: RecordLevel
         ) {
@@ -143,7 +144,7 @@ data class Profile(
         ): String = """{
   "operationName": null,
   "variables": {},
-  "query": "{\n  profile(uid: \"$uid\") {\n    id\n    user {\n      id\n      uid\n    }\n    rating\n    exp {\n      basicExp\n      levelExp\n      totalExp\n      currentLevel\n      nextLevelExp\n      currentLevelExp\n    }\n    grades {\n      MAX\n      SS\n      S\n      A\n      B\n      C\n      D\n      F\n    }\n    activity {\n      totalRankedPlays\n      clearedNotes\n      maxCombo\n      averageRankedAccuracy\n      totalRankedScore\n      totalPlayTime\n    }\n    timeseries {\n      cumulativeRating\n      cumulativeAccuracy\n      week\n      year\n      accuracy\n      rating\n      count\n    }\n    badges {\n      uid\n      title\n      description\n      metadata\n    }\n    recentRecords(limit: $recentRecordsLimit, sort: $recentRecordsSort, order: $recentRecordsOrder) {\n      ...UserRecord\n    }\n    bestRecords(limit: $bestRecordsLimit) {\n      ...UserRecord\n    }\n  }\n}\n\nfragment UserRecord on UserRecord {\n  id\n  score\n  accuracy\n  mods\n  ranked\n  details {\n    perfect\n    great\n    good\n    bad\n    miss\n    maxCombo\n  }\n  rating\n  date\n  chart {\n    id\n    difficulty\n    type\n    notesCount\n    level {\n      id\n      uid\n      title\n      bundle {\n        backgroundImage {\n          thumbnail\n          original\n        }\n      }\n    }\n  }\n}\n"
+  "query": "{\n  profile(uid: \"$uid\") {\n    id\n    user {\n      id\n      uid\n    }\n    rating\n    exp {\n      basicExp\n      levelExp\n      totalExp\n      currentLevel\n      nextLevelExp\n      currentLevelExp\n    }\n    grades {\n      MAX\n      SS\n      S\n      A\n      B\n      C\n      D\n      F\n    }\n    activity {\n      totalRankedPlays\n      clearedNotes\n      maxCombo\n      averageRankedAccuracy\n      totalRankedScore\n      totalPlayTime\n    }\n    timeseries {\n      cumulativeRating\n      cumulativeAccuracy\n      week\n      year\n      accuracy\n      rating\n      count\n    }\n    badges {\n      uid\n      title\n      description\n      metadata\n    }\n    recentRecords(limit: $recentRecordsLimit, sort: $recentRecordsSort, order: $recentRecordsOrder) {\n      ...UserRecord\n    }\n    bestRecords(limit: $bestRecordsLimit) {\n      ...UserRecord\n    }\n  }\n}\n\nfragment UserRecord on UserRecord {\n  id\n  score\n  accuracy\n  mods\n  ranked\n  details {\n    perfect\n    great\n    good\n    bad\n    miss\n    maxCombo\n  }\n  rating\n  date\n  chart {\n    id\n    difficulty\n    type\n    name\n    notesCount\n    level {\n      id\n      uid\n      title\n      bundle {\n        backgroundImage {\n          thumbnail\n          original\n        }\n      }\n    }\n  }\n}\n"
 }"""
     }
 }

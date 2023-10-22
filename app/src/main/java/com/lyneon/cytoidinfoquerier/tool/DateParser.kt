@@ -12,7 +12,7 @@ object DateParser {
         return dateFormat.parse(dateString) as Date
     }
 
-    fun Date.formatToString(): String {
+    fun Date.formatToBeijingTimeString(): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getDefault()
         return dateFormat.format(this)

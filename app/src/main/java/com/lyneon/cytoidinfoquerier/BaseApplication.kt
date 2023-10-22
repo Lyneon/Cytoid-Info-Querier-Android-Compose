@@ -10,6 +10,8 @@ import com.tencent.bugly.crashreport.CrashReport
 import com.tencent.mmkv.MMKV
 import java.lang.Thread.UncaughtExceptionHandler
 
+const val isDebugging = true
+
 class BaseApplication : Application() {
     companion object {
         @SuppressLint("StaticFieldLeak")
@@ -20,7 +22,7 @@ class BaseApplication : Application() {
         super.onCreate()
         context = this
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler())
-        CrashReport.initCrashReport(this, "e3dc58f371", true)
+        CrashReport.initCrashReport(this, "e3dc58f371", isDebugging)
         MMKV.initialize(this)
     }
 }
