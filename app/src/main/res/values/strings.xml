@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">Cytoid Info Querier</string>
-    <string name="b30">B30</string>
-    <string name="playerName">Cytoid ID</string>
-    <string name="recordbackgroundimage">recordBackgroundImage</string>
+    <string name="b30" translatable="false">B30</string>
+    <string name="playerName" translatable="false">Cytoid ID</string>
+
     <string name="copy">复制</string>
     <string name="restart">重启</string>
     <string name="save">保存</string>
     <string name="query">查询</string>
-    <string name="profile">个人资料</string>
+    <string name="profile">Profile</string>
     <string name="title_activity_crash">错误报告</string>
     <string name="testCrash">Test Crash</string>
     <string name="ping">ping cytoid.io</string>
@@ -15,4 +15,26 @@
     <string name="empty_cytoidID">Cytoid ID不能为空</string>
     <string name="back">返回上一层级</string>
     <string name="imageError">图美丽！11</string>
+    <string name="best_records_description">顶级高手/一代糊神/水谱战神/贵阳儿歌</string>
+    <string name="profile_description">椰叶/dd的打歌水平</string>
+    <string name="drawer_background">抽屉菜单背景图像</string>
+    <string name="best_records">BestRecords</string>
+    <string name="home">主页</string>
+    <string name="drawerMenu">抽屉菜单</string>
+    <string name="settings">设置</string>
+    <string name="exit">退出</string>
+    <string name="todo">还没做完，再贵阳一会</string>
+    <string name="debug_declaration">本应用处于测试阶段，可能会遇到功能缺失异常或崩溃现象</string>
+    <string name="open_drawer">打开抽屉菜单</string>
+    <string name="queryType">查询类型</string>
+    <string name="recent_records" translatable="false">RecentRecords</string>
+    <string name="analytics">数据分析</string>
+    <string name="query_count">查询数量</string>
+    <string name="empty_queryCount">查询数量不能为空</string>
+    <string name="view_in_cytoid">在 Cytoid 中查看</string>
+    <string name="copy_content">复制内容</string>
+    <string name="choose_copy_content">选择要复制的内容</string>
+    <string name="ignore_cache">忽略已缓存数据</string>
+    <string name="view_in_cytoidIO">在 CytoidIO 中查看</string>
+    <string name="current_installed_cytoid">已安装的Cytoid信息</string>
 </resources>

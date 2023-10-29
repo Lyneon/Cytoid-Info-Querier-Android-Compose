@@ -1,16 +1,17 @@
-package com.lyneon.cytoidinfoquerier.ui.compose
+package com.lyneon.cytoidinfoquerier.ui.compose.component
 
-import android.content.res.Configuration
+import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Looper
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,17 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,176 +36,125 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.gaojc.util.DensityUtil
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.logic.model.GQLQueryResponseData
+import com.lyneon.cytoidinfoquerier.isDebugging
 import com.lyneon.cytoidinfoquerier.logic.model.Profile
-import com.lyneon.cytoidinfoquerier.logic.model.ProfileData
-import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.lyneon.cytoidinfoquerier.logic.model.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.tool.DateParser
 import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToBeijingTimeString
 import com.lyneon.cytoidinfoquerier.tool.fix
-import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
-import com.tencent.bugly.crashreport.CrashReport
-import com.tencent.mmkv.MMKV
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.Locale
-import kotlin.concurrent.thread
-
-lateinit var profile: GQLQueryResponseData<ProfileData>
 
 @Composable
-fun BestRecordCompose(navController: NavController) {
-    val context = LocalContext.current as MainActivity
-    var cytoidID by remember { mutableStateOf("") }
-    var isQueryingFinished by remember { mutableStateOf(false) }
-    val mmkv = MMKV.defaultMMKV()
-
-    Column {
-        TopBar(navController = navController, true)
-        Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
-            Column {
-                var textFieldIsError by remember { mutableStateOf(false) }
-                var textFieldIsEmpty by remember { mutableStateOf(false) }
-                TextField(
-                    isError = textFieldIsError or textFieldIsEmpty,
-                    value = cytoidID,
-                    onValueChange = {
-                        cytoidID = it
-                        textFieldIsError = !it.isValidCytoidID()
-                        textFieldIsEmpty = it.isEmpty()
-                    },
-                    label = { Text(text = stringResource(id = R.string.playerName)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        TextButton(
-                            onClick = {
-                                if (cytoidID.isEmpty()) {
-                                    context.resources.getString(R.string.empty_cytoidID).showToast()
-                                    textFieldIsEmpty = true
-                                } else if (!cytoidID.isValidCytoidID()) {
-                                    context.resources.getString(R.string.invalid_cytoidID)
-                                        .showToast()
-                                    textFieldIsError = true
-                                } else {
-                                    textFieldIsError = false
-                                    isQueryingFinished = false
-                                    if (System.currentTimeMillis() - mmkv.decodeLong(
-                                            "lastQueryProfileTime_${cytoidID}",
-                                            -1
-                                        ) <= (6 * 60 * 60 * 1000)
-                                    ) {
-                                        "6小时内有查询记录，使用已缓存的数据".showToast()
-                                        profile = NetRequest.convertGQLResponseJSONStringToObject(
-                                            mmkv.decodeString("profileString_${cytoidID}")
-                                                ?: throw Exception()
-                                        )
-                                        isQueryingFinished = true
-                                    } else {
-                                        "开始查询$cytoidID".showToast()
-                                        thread {
-                                            try {
-                                                val profileString =
-                                                    NetRequest.getGQLResponseJSONString(
-                                                        Profile.getGQLQueryString(
-                                                            cytoidID,
-                                                            bestRecordsLimit = 30
-                                                        )
-                                                    )
-                                                profile =
-                                                    NetRequest.convertGQLResponseJSONStringToObject(
-                                                        profileString
-                                                    )
-                                                isQueryingFinished = true
-                                                mmkv.encode(
-                                                    "lastQueryProfileTime_${cytoidID}",
-                                                    System.currentTimeMillis()
-                                                )
-                                                mmkv.encode(
-                                                    "profileString_${cytoidID}",
-                                                    profileString
-                                                )
-                                                Looper.prepare()
-                                                "查询${cytoidID}完成，共查询到${profile.data.profile.bestRecords.size}条数据".showToast()
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                                CrashReport.postCatchedException(
-                                                    e.cause,
-                                                    Thread.currentThread()
-                                                )
-                                                Looper.prepare()
-                                                "查询失败:${e.stackTraceToString()}".showToast()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        ) {
-                            Text(text = stringResource(id = R.string.b30))
-                        }
-                    },
-                    singleLine = true
-                )
-                AnimatedVisibility(visible = textFieldIsError) {
-                    Text(
-                        text = stringResource(id = R.string.invalid_cytoidID),
-                        color = Color.Red
-                    )
-                }
-                AnimatedVisibility(visible = textFieldIsEmpty) {
-                    Text(
-                        text = stringResource(id = R.string.empty_cytoidID),
-                        color = Color.Red
-                    )
-                }
-            }
-            LazyVerticalStaggeredGrid(
-                columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
-                    StaggeredGridCells.Fixed(1)
-                else StaggeredGridCells.Adaptive(320.dp),
-                contentPadding = PaddingValues(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                if (isQueryingFinished && ::profile.isInitialized) {
-                    for (i in 0 until profile.data.profile.bestRecords.size) {
-                        val record = profile.data.profile.bestRecords[i]
-                        item(
-                            span = if (profile.data.profile.bestRecords.size == 1) StaggeredGridItemSpan.FullLine
-                            else StaggeredGridItemSpan.SingleLane
-                        ) {
-                            RecordCard(
-                                record = record,
-                                recordIndex = i + 1
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecordCard(record: Profile.UserRecord, recordIndex: Int) {
+fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
     val context = LocalContext.current as MainActivity
     val externalCacheStorageDir = context.externalCacheDir
     Card(
-        Modifier.padding(6.dp)
+        Modifier
+            .padding(6.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        AlertDialog
+                            .Builder(context)
+                            .setItems(
+                                arrayOf(
+                                    context.resources.getString(R.string.view_in_cytoid),
+                                    context.resources.getString(R.string.copy_content)
+                                )
+                            ) { _, i: Int ->
+                                when (i) {
+                                    0 -> context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(CytoidDeepLink.getDeepLink(record.chart.level.uid))
+                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    )
+
+                                    1 -> {
+                                        AlertDialog
+                                            .Builder(context)
+                                            .setTitle(context.resources.getString(R.string.choose_copy_content))
+                                            .setItems(
+                                                arrayOf(
+                                                    record.chart.level.title,
+                                                    record.chart.level.uid,
+                                                    "${
+                                                        record.chart.name
+                                                            ?: record.chart.type.replaceFirstChar {
+                                                                if (it.isLowerCase()) it.titlecase(
+                                                                    Locale.getDefault()
+                                                                ) else it.toString()
+                                                            }
+                                                    } ${record.chart.difficulty}",
+                                                    record.score.toString(),
+                                                    record.mods.toString(),
+                                                    "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo",
+                                                    "Rating ${record.rating.fix(2)}",
+                                                    "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}",
+                                                    DateParser
+                                                        .parseISO8601Date(record.date)
+                                                        .formatToBeijingTimeString()
+                                                )
+                                            ) { _, j: Int ->
+                                                when (j) {
+                                                    0 -> record.chart.level.title.saveIntoClipboard()
+                                                    1 -> record.chart.level.uid.saveIntoClipboard()
+                                                    2 -> "${
+                                                        record.chart.name
+                                                            ?: record.chart.type.replaceFirstChar {
+                                                                if (it.isLowerCase()) it.titlecase(
+                                                                    Locale.getDefault()
+                                                                ) else it.toString()
+                                                            }
+                                                    } ${record.chart.difficulty}".saveIntoClipboard()
+
+                                                    3 -> record.score
+                                                        .toString()
+                                                        .saveIntoClipboard()
+
+                                                    4 -> record.mods
+                                                        .toString()
+                                                        .saveIntoClipboard()
+
+                                                    5 -> "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo".saveIntoClipboard()
+                                                    6 -> "Rating ${record.rating.fix(2)}".saveIntoClipboard()
+                                                    7 -> "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}".saveIntoClipboard()
+                                                    8 -> DateParser
+                                                        .parseISO8601Date(record.date)
+                                                        .formatToBeijingTimeString()
+                                                        .saveIntoClipboard()
+                                                }
+                                            }
+                                            .create()
+                                            .show()
+                                    }
+                                }
+                            }
+                            .create()
+                            .show()
+                    }
+                )
+            }
     ) {
         Column(
             Modifier.padding(6.dp)
@@ -239,7 +184,7 @@ private fun RecordCard(record: Profile.UserRecord, recordIndex: Int) {
                 }
             } else {
                 Card {
-                    Box{
+                    Box {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center)
                         )
@@ -299,7 +244,9 @@ private fun RecordCard(record: Profile.UserRecord, recordIndex: Int) {
                     }
                 }
             }
-            Text(text = "#${recordIndex}.")
+            recordIndex?.let {
+                Text(text = "#${it}.")
+            }
             Text(
                 text = record.chart.level.title,
                 fontWeight = FontWeight.SemiBold,
@@ -436,6 +383,24 @@ private fun RecordCard(record: Profile.UserRecord, recordIndex: Int) {
                 text = DateParser.parseISO8601Date(record.date)
                     .formatToBeijingTimeString()
             )
+
+            /*
+             Debug Components
+             */
+            if (isDebugging) {
+                val renderText =
+                    "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo"
+                Text(
+                    text = "Text render width:${
+                        rememberTextMeasurer().measure(renderText).size.width.toFloat()
+                    }px ${
+                        DensityUtil.pxToDp(
+                            BaseApplication.context,
+                            rememberTextMeasurer().measure(renderText).size.width.toFloat()
+                        )
+                    }dp"
+                )
+            }
         }
     }
 }

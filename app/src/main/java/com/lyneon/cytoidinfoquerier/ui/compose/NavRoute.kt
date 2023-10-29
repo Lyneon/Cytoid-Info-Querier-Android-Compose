@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose
 
 object NavRoute {
     const val home = "home"
-    const val bestRecord = "bestRecord"
+    const val analytics = "analytics"
     const val profile = "profile"
+    const val settings = "settings"
 }

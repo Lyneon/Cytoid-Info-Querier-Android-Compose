@@ -2,71 +2,77 @@ package com.lyneon.cytoidinfoquerier.ui.compose
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.lyneon.cytoidinfoquerier.isDebugging
-import com.lyneon.cytoidinfoquerier.tool.showToast
-import com.lyneon.cytoidinfoquerier.ui.activity.currentNavRoute
+import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
+import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
+import kotlinx.coroutines.launch
 
 @Composable
-fun HomeCompose(navController: NavController) {
+fun HomeCompose(drawerState: DrawerState) {
     Column {
-        TopBar(navController = navController, enableBackArrow = false)
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            contentPadding = PaddingValues(6.dp)
-        ) {
-            item {
-                FunctionCard(
-                    title = "BestRecord",
-                    description = "顶级高手/一代糊神/水谱战神/贵阳儿歌",
-                    navController = navController,
-                    navDestinationRoute = NavRoute.bestRecord
-                )
-            }
-            item {
-                FunctionCard(
-                    title = "Profile",
-                    description = "椰叶/dd的打歌水平",
-                    navController = navController,
-                    navDestinationRoute = NavRoute.profile
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FunctionCard(
-    title: String,
-    description: String,
-    navController: NavController,
-    navDestinationRoute: String
-) {
-    Card(onClick = {
-        navController.navigate(navDestinationRoute)
-        currentNavRoute = navDestinationRoute
-        if (isDebugging) navController.currentDestination?.route?.showToast()
-    }, modifier = Modifier.fillMaxWidth()) {
+        TopBar(drawerState = drawerState)
         Column(
-            Modifier.padding(6.dp)
+            modifier = Modifier.padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = title,
-                fontSize = LocalTextStyle.current.fontSize * 2
+            AlertCard(message = stringResource(id = R.string.debug_declaration))
+//            Card {
+//                val packageManager = BaseApplication.context.packageManager
+//                val cytoidApplicationInfo =
+//                    try {
+//                        packageManager.getApplicationInfo("me.tigerhix.cytoid", 0)
+//                    } catch (e: NameNotFoundException) {
+//                        null
+//                    }
+//                Column(
+//                    modifier = Modifier.padding(6.dp)
+//                ) {
+//                    Text(text = stringResource(id = R.string.current_installed_cytoid))
+//                    Row {
+//                        if (cytoidApplicationInfo != null) {
+//                            Image(
+//                                bitmap = cytoidApplicationInfo.loadIcon(packageManager).toBitmap()
+//                                    .asImageBitmap(),
+//                                contentDescription = cytoidApplicationInfo.loadLabel(packageManager)
+//                                    .toString()
+//                            )
+//                            Column {
+//                                Text(
+//                                    text = cytoidApplicationInfo.loadLabel(packageManager)
+//                                        .toString()
+//                                )
+//                                cytoidApplicationInfo.name?.let { Text(text = it) }
+//                                Text(text = cytoidApplicationInfo.packageName)
+//                            }
+//                        } else {
+//                            Text(text = stringResource(id = R.string.cytoid_not_found))
+//                        }
+//                    }
+//                }
+//            }
+            val scope = rememberCoroutineScope()
+            ExtendedFloatingActionButton(
+                text = { Text(text = stringResource(id = R.string.open_drawer)) },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Menu,
+                        contentDescription = stringResource(id = R.string.open_drawer)
+                    )
+                },
+                onClick = { scope.launch { drawerState.open() } }
             )
-            Text(text = description)
         }
     }
 }
