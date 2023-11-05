@@ -37,4 +37,10 @@
     <string name="ignore_cache">忽略已缓存数据</string>
     <string name="view_in_cytoidIO">在 CytoidIO 中查看</string>
     <string name="current_installed_cytoid">已安装的Cytoid信息</string>
+    <string name="app_center_declare">本应用使用Microsoft App Center进行错误信息收集，收集的数据中不会包含用户的个人信息，收集到的错误信息将仅用于修复漏洞。如果您不希望被收集这些数据，您可以选择在设置界面中关闭App Center数据收集，或者退出本应用</string>
+    <string name="enable_app_center">启用App Center功能</string>
+    <string name="changes_need_restart_to_enable">需要重启应用程序使更改生效</string>
+    <string name="delete_cache_image">删除缓存图像</string>
+    <string name="delete_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等。删除后仍可重新下载</string>
+    <string name="cytoid_resource_declare">本应用中的部分图片资源来自于Cytoid项目，数据来源于cytoid.io。在GNU General Public License v3.0许可证下使用</string>
 </resources>

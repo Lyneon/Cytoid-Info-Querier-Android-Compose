@@ -58,12 +58,14 @@ android {
 }
 
 dependencies {
-    val navVersion = "2.5.3"
+    val navVersion = "2.7.5"
+    val appCenterSdkVersion = "4.4.5"
 
+    implementation("com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}")
+    implementation("com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("com.tencent.bugly:crashreport:4.1.9.2")
     implementation("com.tencent:mmkv:1.3.1")
     implementation("androidx.navigation:navigation-compose:$navVersion")
 

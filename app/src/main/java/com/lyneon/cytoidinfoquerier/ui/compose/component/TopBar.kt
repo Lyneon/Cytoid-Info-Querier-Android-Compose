@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,10 +20,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.isDebugging
 import com.lyneon.cytoidinfoquerier.tool.showToast
-import com.tencent.bugly.crashreport.CrashReport
+import com.microsoft.appcenter.crashes.Crashes
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -32,14 +32,14 @@ import kotlin.concurrent.thread
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(drawerState: DrawerState) {
+fun TopBar(title: String = BaseApplication.context.resources.getString(R.string.app_name)) {
     val scope = rememberCoroutineScope()
     CenterAlignedTopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name)) },
+        title = { Text(text = title) },
         navigationIcon = {
             IconButton(onClick = {
                 scope.launch {
-                    drawerState.open()
+                    BaseApplication.globalDrawerState.open()
                 }
             }) {
                 Icon(
@@ -68,6 +68,7 @@ fun TopBar(drawerState: DrawerState) {
                     },
                     text = { Text(text = stringResource(id = R.string.ping)) },
                     onClick = {
+                        menuIsExpanded = false
                         "ping start".showToast()
                         thread {
                             val responseCode = OkHttpClient().newCall(
@@ -94,7 +95,10 @@ fun TopBar(drawerState: DrawerState) {
                             )
                         },
                         text = { Text(text = stringResource(id = R.string.testCrash)) },
-                        onClick = { CrashReport.testJavaCrash() }
+                        onClick = {
+                            menuIsExpanded = false
+                            Crashes.generateTestCrash()
+                        }
                     )
                 }
             }

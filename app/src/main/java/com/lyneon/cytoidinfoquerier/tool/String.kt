@@ -15,11 +15,13 @@ fun String.showToast(duration: Int = Toast.LENGTH_SHORT) =
 
 fun String.showDialog(
     activity: Activity,
+    title: String = "",
     additionalParameters: (AlertDialog.Builder.() -> AlertDialog.Builder)? = null
 ): AlertDialog =
     AlertDialog.Builder(activity).apply {
-        setMessage(this@showDialog)
-        additionalParameters
+        this.setTitle(title)
+        this.setMessage(this@showDialog)
+        additionalParameters?.let { this.it() }
     }.create()
 
 fun String.isValidCytoidID(): Boolean {

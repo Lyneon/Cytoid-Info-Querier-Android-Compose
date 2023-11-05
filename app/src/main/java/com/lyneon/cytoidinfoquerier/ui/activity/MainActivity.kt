@@ -38,19 +38,36 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.SecretData
 import com.lyneon.cytoidinfoquerier.logic.model.DrawerItem
-import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.NavRoute
 import com.lyneon.cytoidinfoquerier.ui.compose.ProfileCompose
+import com.lyneon.cytoidinfoquerier.ui.compose.SettingsCompose
+import com.lyneon.cytoidinfoquerier.ui.compose.SettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
+import com.microsoft.appcenter.AppCenter
+import com.microsoft.appcenter.analytics.Analytics
+import com.microsoft.appcenter.crashes.Crashes
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val mmkv = MMKV.defaultMMKV()
+
+        if (mmkv.decodeBool(SettingsMMKVKeys.enableAppCenter,true)){
+            AppCenter.start(
+                BaseApplication.context, SecretData.microsoftAppCenterAppSecret,
+                Analytics::class.java, Crashes::class.java
+            )
+        }
+
         setContent {
             CytoidInfoQuerierComposeTheme {
                 Surface(
@@ -58,9 +75,10 @@ class MainActivity : BaseActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+                    BaseApplication.globalDrawerState =
+                        rememberDrawerState(initialValue = DrawerValue.Closed)
                     ModalNavigationDrawer(
-                        drawerState = drawerState,
+                        drawerState = BaseApplication.globalDrawerState,
                         drawerContent = {
                             ModalDrawerSheet {
                                 Column {
@@ -99,7 +117,7 @@ class MainActivity : BaseActivity() {
                                                     onClick = {
                                                         navController.navigate(it.navDestinationRoute)
                                                         scope.launch {
-                                                            drawerState.close()
+                                                            BaseApplication.globalDrawerState.close()
                                                         }
                                                     },
                                                     modifier = Modifier.padding(6.dp)
@@ -115,8 +133,12 @@ class MainActivity : BaseActivity() {
                                                 .padding(6.dp)
                                                 .fillMaxWidth(),
                                         ) {
+                                            val scope = rememberCoroutineScope()
                                             Button(onClick = {
-                                                resources.getString(R.string.todo).showToast()
+                                                navController.navigate(NavRoute.settings)
+                                                scope.launch {
+                                                    BaseApplication.globalDrawerState.close()
+                                                }
                                             }) {
                                                 Column {
                                                     Icon(
@@ -149,13 +171,16 @@ class MainActivity : BaseActivity() {
                                 startDestination = NavRoute.home
                             ) {
                                 composable(NavRoute.home) {
-                                    HomeCompose(drawerState)
+                                    HomeCompose()
                                 }
                                 composable(NavRoute.analytics) {
-                                    AnalyticsCompose(drawerState)
+                                    AnalyticsCompose()
                                 }
                                 composable(NavRoute.profile) {
-                                    ProfileCompose(drawerState)
+                                    ProfileCompose()
+                                }
+                                composable(NavRoute.settings) {
+                                    SettingsCompose()
                                 }
                             }
                         }

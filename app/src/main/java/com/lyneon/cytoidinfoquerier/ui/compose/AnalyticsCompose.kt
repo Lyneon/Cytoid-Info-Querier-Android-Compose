@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -46,18 +45,19 @@ import com.lyneon.cytoidinfoquerier.logic.model.Profile
 import com.lyneon.cytoidinfoquerier.logic.model.ProfileData
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.showDialog
 import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
-import com.tencent.bugly.crashreport.CrashReport
+import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import kotlin.concurrent.thread
 
 lateinit var profile: GQLQueryResponseData<ProfileData>
 
 @Composable
-fun AnalyticsCompose(drawerState: DrawerState) {
+fun AnalyticsCompose() {
     val context = LocalContext.current as MainActivity
     var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
@@ -69,7 +69,7 @@ fun AnalyticsCompose(drawerState: DrawerState) {
     var querySettingsMenuIsExpanded by remember { mutableStateOf(false) }
 
     Column {
-        TopBar(drawerState = drawerState)
+        TopBar(title = stringResource(id = R.string.analytics))
         Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
             Column {
                 var textFieldIsError by remember { mutableStateOf(false) }
@@ -244,12 +244,10 @@ fun AnalyticsCompose(drawerState: DrawerState) {
                                                     "查询${cytoidID}完成，共查询到${if (queryType == QueryType.bestRecords) profile.data.profile.bestRecords.size else profile.data.profile.recentRecords.size}条数据".showToast()
                                                 } catch (e: Exception) {
                                                     e.printStackTrace()
-                                                    CrashReport.postCatchedException(
-                                                        e.cause,
-                                                        Thread.currentThread()
-                                                    )
+                                                    Crashes.trackError(e)
                                                     Looper.prepare()
-                                                    "查询失败:${e.stackTraceToString()}".showToast()
+                                                    e.stackTraceToString()
+                                                        .showDialog(context, "查询失败")
                                                 }
                                             }
                                         }
@@ -274,7 +272,7 @@ fun AnalyticsCompose(drawerState: DrawerState) {
                         color = Color.Red
                     )
                 }
-        }
+            }
             LazyVerticalStaggeredGrid(
                 columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
                     StaggeredGridCells.Fixed(1)

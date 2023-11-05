@@ -42,17 +42,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.gaojc.util.DensityUtil
-import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.isDebugging
-import com.lyneon.cytoidinfoquerier.logic.model.Profile
 import com.lyneon.cytoidinfoquerier.logic.model.CytoidDeepLink
+import com.lyneon.cytoidinfoquerier.logic.model.Profile
 import com.lyneon.cytoidinfoquerier.tool.DateParser
 import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToBeijingTimeString
 import com.lyneon.cytoidinfoquerier.tool.fix
@@ -383,24 +379,6 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
                 text = DateParser.parseISO8601Date(record.date)
                     .formatToBeijingTimeString()
             )
-
-            /*
-             Debug Components
-             */
-            if (isDebugging) {
-                val renderText =
-                    "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo"
-                Text(
-                    text = "Text render width:${
-                        rememberTextMeasurer().measure(renderText).size.width.toFloat()
-                    }px ${
-                        DensityUtil.pxToDp(
-                            BaseApplication.context,
-                            rememberTextMeasurer().measure(renderText).size.width.toFloat()
-                        )
-                    }dp"
-                )
-            }
         }
     }
 }
