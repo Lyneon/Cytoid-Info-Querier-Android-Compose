@@ -1,10 +1,13 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.component
 
 import android.app.AlertDialog
+import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Looper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,21 +50,27 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.logic.model.CytoidDeepLink
-import com.lyneon.cytoidinfoquerier.logic.model.Profile
+import com.lyneon.cytoidinfoquerier.model.CytoidDeepLink
+import com.lyneon.cytoidinfoquerier.model.graphql.UserRecord
 import com.lyneon.cytoidinfoquerier.tool.DateParser
-import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToBeijingTimeString
+import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.tool.fix
 import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.tool.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.tool.showDialog
 import com.lyneon.cytoidinfoquerier.tool.showToast
+import com.lyneon.cytoidinfoquerier.tool.toBitmap
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.microsoft.appcenter.crashes.Crashes
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.net.URL
 import java.util.Locale
+import kotlin.concurrent.thread
 
 @Composable
-fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
+fun RecordCard(record: UserRecord, recordIndex: Int? = null) {
     val context = LocalContext.current as MainActivity
     val externalCacheStorageDir = context.externalCacheDir
     Card(
@@ -74,17 +83,28 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
                             .Builder(context)
                             .setItems(
                                 arrayOf(
-                                    context.resources.getString(R.string.view_in_cytoid),
-                                    context.resources.getString(R.string.copy_content)
+                                    context.getString(R.string.view_in_cytoid),
+                                    context.getString(R.string.copy_content),
+                                    context.getString(R.string.save_illustration)
                                 )
                             ) { _, i: Int ->
                                 when (i) {
-                                    0 -> context.startActivity(
-                                        Intent(
-                                            Intent.ACTION_VIEW,
-                                            Uri.parse(CytoidDeepLink.getDeepLink(record.chart.level.uid))
-                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    )
+                                    0 -> try {
+                                        context.startActivity(
+                                            Intent(
+                                                Intent.ACTION_VIEW,
+                                                Uri.parse(CytoidDeepLink.getDeepLink(record.chart.level.uid))
+                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        )
+                                    } catch (e: Exception) {
+                                        e
+                                            .stackTraceToString()
+                                            .showDialog(context, context.getString(R.string.fail)) {
+                                                this.setPositiveButton(context.getString(android.R.string.ok)) { dialogInterface: DialogInterface, _: Int ->
+                                                    dialogInterface.dismiss()
+                                                }
+                                            }
+                                    }
 
                                     1 -> {
                                         AlertDialog
@@ -103,13 +123,15 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
                                                             }
                                                     } ${record.chart.difficulty}",
                                                     record.score.toString(),
-                                                    record.mods.toString(),
+                                                    "Mods:${record.mods}",
                                                     "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo",
                                                     "Rating ${record.rating.fix(2)}",
                                                     "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}",
                                                     DateParser
                                                         .parseISO8601Date(record.date)
-                                                        .formatToBeijingTimeString()
+                                                        .formatToTimeString(),
+                                                    context.getString(R.string.all_contents),
+                                                    "（仅调试）UserRecord对象"
                                                 )
                                             ) { _, j: Int ->
                                                 when (j) {
@@ -128,21 +150,55 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
                                                         .toString()
                                                         .saveIntoClipboard()
 
-                                                    4 -> record.mods
-                                                        .toString()
-                                                        .saveIntoClipboard()
+                                                    4 -> "Mods:${record.mods}".saveIntoClipboard()
 
                                                     5 -> "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo".saveIntoClipboard()
                                                     6 -> "Rating ${record.rating.fix(2)}".saveIntoClipboard()
                                                     7 -> "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}".saveIntoClipboard()
                                                     8 -> DateParser
                                                         .parseISO8601Date(record.date)
-                                                        .formatToBeijingTimeString()
+                                                        .formatToTimeString()
+                                                        .saveIntoClipboard()
+
+                                                    9 -> record
+                                                        .detailsString()
+                                                        .saveIntoClipboard()
+
+                                                    10 -> record
+                                                        .toString()
                                                         .saveIntoClipboard()
                                                 }
+
                                             }
                                             .create()
                                             .show()
+                                    }
+
+                                    2 -> {
+                                        try {
+                                            thread {
+                                                URL(record.chart.level.bundle.backgroundImage.original)
+                                                    .toBitmap()
+                                                    .saveIntoMediaStore(
+                                                        context.contentResolver,
+                                                        ContentValues()
+                                                    )
+                                                Looper.prepare()
+                                                "已保存至图库".showToast()
+                                            }
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                            e
+                                                .stackTraceToString()
+                                                .showDialog(
+                                                    context,
+                                                    context.getString(R.string.fail)
+                                                ) {
+                                                    this.setPositiveButton(context.getString(android.R.string.ok)) { dialogInterface, _ ->
+                                                        dialogInterface.dismiss()
+                                                    }
+                                                }
+                                        }
                                     }
                                 }
                             }
@@ -219,6 +275,7 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                         e.stackTraceToString().showToast()
+                                        Crashes.trackError(e)
                                     }
                                 },
                                 onError = {
@@ -328,7 +385,9 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
                     }
                 }
             }
-            Text(text = "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo")
+            Text(
+                text = "${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo"
+            )
             Text(
                 modifier = Modifier.background(
                     Color.hsl(230f, 0.15f, 0.5f),
@@ -377,7 +436,7 @@ fun RecordCard(record: Profile.UserRecord, recordIndex: Int? = null) {
             }
             Text(
                 text = DateParser.parseISO8601Date(record.date)
-                    .formatToBeijingTimeString()
+                    .formatToTimeString()
             )
         }
     }

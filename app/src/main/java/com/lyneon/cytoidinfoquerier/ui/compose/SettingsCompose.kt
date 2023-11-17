@@ -72,8 +72,8 @@ fun SettingsCompose() {
                             scope.launch {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 val result = snackbarHostState.showSnackbar(
-                                    context.resources.getString(R.string.changes_need_restart_to_enable),
-                                    context.resources.getString(R.string.restart),
+                                    context.getString(R.string.changes_need_restart_to_enable),
+                                    context.getString(R.string.restart),
                                     true,
                                     SnackbarDuration.Short
                                 )
@@ -105,8 +105,8 @@ fun SettingsCompose() {
                             scope.launch {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 when (snackbarHostState.showSnackbar(
-                                    context.resources.getString(R.string.changes_need_restart_to_enable),
-                                    context.resources.getString(R.string.restart),
+                                    context.getString(R.string.changes_need_restart_to_enable),
+                                    context.getString(R.string.restart),
                                     true,
                                     SnackbarDuration.Short
                                 )) {
@@ -139,8 +139,8 @@ fun SettingsCompose() {
                             scope.launch {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 when (snackbarHostState.showSnackbar(
-                                    context.resources.getString(R.string.delete_confirm),
-                                    context.resources.getString(android.R.string.ok),
+                                    context.getString(R.string.delete_confirm),
+                                    context.getString(android.R.string.ok),
                                     true,
                                     SnackbarDuration.Short
                                 )) {

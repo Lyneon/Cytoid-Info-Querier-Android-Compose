@@ -1,7 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
-import android.content.res.Configuration
 import android.os.Looper
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,17 +34,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.logic.model.GQLQueryResponseData
-import com.lyneon.cytoidinfoquerier.logic.model.Profile
-import com.lyneon.cytoidinfoquerier.logic.model.ProfileData
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.lyneon.cytoidinfoquerier.model.graphql.Analytics
 import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.tool.showDialog
 import com.lyneon.cytoidinfoquerier.tool.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
@@ -54,7 +52,7 @@ import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import kotlin.concurrent.thread
 
-lateinit var profile: GQLQueryResponseData<ProfileData>
+private lateinit var response: Analytics
 
 @Composable
 fun AnalyticsCompose() {
@@ -181,15 +179,15 @@ fun AnalyticsCompose() {
                             TextButton(
                                 onClick = {
                                     if (cytoidID.isEmpty()) {
-                                        context.resources.getString(R.string.empty_cytoidID)
+                                        context.getString(R.string.empty_cytoidID)
                                             .showToast()
                                         textFieldIsEmpty = true
                                     } else if (!cytoidID.isValidCytoidID()) {
-                                        context.resources.getString(R.string.invalid_cytoidID)
+                                        context.getString(R.string.invalid_cytoidID)
                                             .showToast()
                                         textFieldIsError = true
                                     } else if (queryCountIsNull) {
-                                        context.resources.getString(R.string.empty_queryCount)
+                                        context.getString(R.string.empty_queryCount)
                                             .showToast()
                                         querySettingsMenuIsExpanded = true
                                     } else {
@@ -201,37 +199,56 @@ fun AnalyticsCompose() {
                                             ) <= (6 * 60 * 60 * 1000) && !ignoreCache
                                         ) {
                                             "6小时内有查询记录，使用已缓存的数据".showToast()
-                                            profile =
-                                                NetRequest.convertGQLResponseJSONStringToObject(
+                                            response = try {
+                                                Analytics.decodeFromJSONString(
                                                     mmkv.decodeString("profileString_${cytoidID}_${queryType}")
                                                         ?: throw Exception()
                                                 )
+                                            } catch (e: Exception) {
+                                                e.stackTraceToString().showDialog(
+                                                    context,
+                                                    context.getString(R.string.fail)
+                                                )
+                                                Crashes.trackError(e)
+                                                return@TextButton
+                                            }
                                             isQueryingFinished = true
                                         } else {
                                             "开始查询$cytoidID".showToast()
                                             thread {
                                                 try {
+                                                    if (queryType == QueryType.bestRecords) {
+                                                        Analytics.getQueryBody(
+                                                            cytoidID = cytoidID,
+                                                            bestRecordsLimit = queryCount.toInt(),
+                                                            recentRecordsLimit = queryCount.toInt()
+                                                        )
+                                                    } else {
+                                                        Analytics.getQueryBody(
+                                                            cytoidID = cytoidID,
+                                                            bestRecordsLimit = queryCount.toInt(),
+                                                            recentRecordsLimit = queryCount.toInt()
+                                                        )
+                                                    }.saveIntoClipboard()
+
                                                     val profileString =
                                                         NetRequest.getGQLResponseJSONString(
                                                             if (queryType == QueryType.bestRecords) {
-                                                                Profile.getGQLQueryString(
-                                                                    cytoidID,
+                                                                Analytics.getQueryBody(
+                                                                    cytoidID = cytoidID,
                                                                     bestRecordsLimit = queryCount.toInt(),
                                                                     recentRecordsLimit = queryCount.toInt()
                                                                 )
                                                             } else {
-                                                                Profile.getGQLQueryString(
-                                                                    cytoidID,
+                                                                Analytics.getQueryBody(
+                                                                    cytoidID = cytoidID,
                                                                     bestRecordsLimit = queryCount.toInt(),
                                                                     recentRecordsLimit = queryCount.toInt()
                                                                 )
                                                             }
                                                         )
-                                                    profile =
-                                                        NetRequest.convertGQLResponseJSONStringToObject(
-                                                            profileString
-                                                        )
-                                                    isQueryingFinished = true
+                                                    response =
+                                                        Analytics.decodeFromJSONString(profileString)
                                                     mmkv.encode(
                                                         "lastQueryProfileTime_${cytoidID}_${queryType}",
                                                         System.currentTimeMillis()
@@ -241,13 +258,15 @@ fun AnalyticsCompose() {
                                                         profileString
                                                     )
                                                     Looper.prepare()
-                                                    "查询${cytoidID}完成，共查询到${if (queryType == QueryType.bestRecords) profile.data.profile.bestRecords.size else profile.data.profile.recentRecords.size}条数据".showToast()
+                                                    "查询${cytoidID}完成，共查询到${if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size else response.data.profile.recentRecords.size}条数据".showToast()
+                                                    isQueryingFinished = true
                                                 } catch (e: Exception) {
+                                                    Looper.prepare()
+                                                    "查询失败：${e.stackTraceToString()}".showToast(
+                                                        Toast.LENGTH_LONG
+                                                    )
                                                     e.printStackTrace()
                                                     Crashes.trackError(e)
-                                                    Looper.prepare()
-                                                    e.stackTraceToString()
-                                                        .showDialog(context, "查询失败")
                                                 }
                                             }
                                         }
@@ -274,24 +293,22 @@ fun AnalyticsCompose() {
                 }
             }
             LazyVerticalStaggeredGrid(
-                columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT)
-                    StaggeredGridCells.Fixed(1)
-                else StaggeredGridCells.Adaptive(300.dp),
+                columns = StaggeredGridCells.Adaptive(320.dp),
                 contentPadding = PaddingValues(top = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                if (isQueryingFinished && ::profile.isInitialized) {
+                if (isQueryingFinished && ::response.isInitialized) {
                     var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
-                    for (i in 0 until if (queryType == QueryType.bestRecords) profile.data.profile.bestRecords.size else profile.data.profile.recentRecords.size) {
+                    for (i in 0 until if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size else response.data.profile.recentRecords.size) {
                         if (remainRecord == 0) break
                         val record =
-                            if (queryType == QueryType.bestRecords) profile.data.profile.bestRecords[i]
-                            else profile.data.profile.recentRecords[i]
+                            if (queryType == QueryType.bestRecords) response.data.profile.bestRecords[i]
+                            else response.data.profile.recentRecords[i]
                         item(
                             span = if (if (queryType == QueryType.bestRecords) {
-                                    profile.data.profile.bestRecords.size
+                                    response.data.profile.bestRecords.size
                                 } else {
-                                    profile.data.profile.recentRecords.size
+                                    response.data.profile.recentRecords.size
                                 } == 1
                             ) StaggeredGridItemSpan.FullLine
                             else StaggeredGridItemSpan.SingleLane

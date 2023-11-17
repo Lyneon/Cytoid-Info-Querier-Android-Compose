@@ -16,18 +16,16 @@ fun String.showToast(duration: Int = Toast.LENGTH_SHORT) =
 fun String.showDialog(
     activity: Activity,
     title: String = "",
+    cancellable: Boolean = true,
     additionalParameters: (AlertDialog.Builder.() -> AlertDialog.Builder)? = null
-): AlertDialog =
-    AlertDialog.Builder(activity).apply {
-        this.setTitle(title)
-        this.setMessage(this@showDialog)
-        additionalParameters?.let { this.it() }
-    }.create()
+) = AlertDialog.Builder(activity).apply {
+    this.setTitle(title)
+    this.setMessage(this@showDialog)
+    this.setCancelable(cancellable)
+    additionalParameters?.let { this.it() }
+}.create().show()
 
-fun String.isValidCytoidID(): Boolean {
-    val regex = "^[a-z0-9_-]*$"
-    return this.matches(regex.toRegex())
-}
+fun String.isValidCytoidID() = this.matches("^[a-z0-9_-]*$".toRegex())
 
 fun String.saveIntoClipboard(label: String = "") {
     val clipboardManager =

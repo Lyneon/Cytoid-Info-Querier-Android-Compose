@@ -5,7 +5,7 @@ import android.content.ContentValues
 import android.graphics.Bitmap
 import android.provider.MediaStore
 
-fun Bitmap.save(contentResolver: ContentResolver, contentValues: ContentValues) {
+fun Bitmap.saveIntoMediaStore(contentResolver: ContentResolver, contentValues: ContentValues) {
     val insertUri =
         contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
     insertUri?.let {

@@ -32,7 +32,7 @@ import kotlin.concurrent.thread
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(title: String = BaseApplication.context.resources.getString(R.string.app_name)) {
+fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name)) {
     val scope = rememberCoroutineScope()
     CenterAlignedTopAppBar(
         title = { Text(text = title) },

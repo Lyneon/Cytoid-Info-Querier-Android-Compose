@@ -41,7 +41,6 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.SecretData
-import com.lyneon.cytoidinfoquerier.logic.model.DrawerItem
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.NavRoute
@@ -190,3 +189,9 @@ class MainActivity : BaseActivity() {
         }
     }
 }
+
+data class DrawerItem(
+    val icon: ImageVector,
+    val label: String,
+    val navDestinationRoute: String
+)

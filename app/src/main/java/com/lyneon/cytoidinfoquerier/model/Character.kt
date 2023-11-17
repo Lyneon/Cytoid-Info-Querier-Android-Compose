@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.logic.model
+package com.lyneon.cytoidinfoquerier.model
 
 object Character {
     const val sayaka = "Sayaka"

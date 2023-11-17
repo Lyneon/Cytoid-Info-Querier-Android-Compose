@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.logic.model
+package com.lyneon.cytoidinfoquerier.model.graphql
 
 object RecordQuerySort {
     const val Score = "Score"
