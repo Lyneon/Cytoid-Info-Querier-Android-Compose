@@ -89,7 +89,7 @@ fun AnalyticsCompose() {
                             IconButton(onClick = { querySettingsMenuIsExpanded = true }) {
                                 Icon(
                                     imageVector = Icons.Filled.Settings,
-                                    contentDescription = stringResource(id = R.string.queryType)
+                                    contentDescription = stringResource(id = R.string.querySettings)
                                 )
                                 DropdownMenu(
                                     expanded = querySettingsMenuIsExpanded,
