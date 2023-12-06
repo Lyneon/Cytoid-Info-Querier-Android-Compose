@@ -2,7 +2,7 @@ package com.lyneon.cytoidinfoquerier.model.graphql
 
 import com.lyneon.cytoidinfoquerier.tool.DateParser
 import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.tool.fix
+import com.lyneon.cytoidinfoquerier.tool.setPrecision
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.Locale
@@ -103,8 +103,8 @@ data class UserRecord(
                 }
         } ${record.chart.difficulty})(${record.chart.level.uid})")
         appendLine(record.score)
-        appendLine("${(record.accuracy * 100).fix(2)}% accuracy  ${record.details.maxCombo} max combo")
-        appendLine("Rating ${record.rating.fix(2)}")
+        appendLine("${(record.accuracy * 100).setPrecision(2)}% accuracy  ${record.details.maxCombo} max combo")
+        appendLine("Rating ${record.rating.setPrecision(2)}")
         appendLine("Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}")
         appendLine(DateParser.parseISO8601Date(record.date).formatToTimeString())
     }.toString()

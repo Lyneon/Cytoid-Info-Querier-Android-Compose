@@ -1,6 +1,6 @@
 package com.lyneon.cytoidinfoquerier.logic.network
 
-import com.lyneon.cytoidinfoquerier.model.Profile
+import com.lyneon.cytoidinfoquerier.model.webapi.Profile
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient

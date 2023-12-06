@@ -30,8 +30,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
-import com.lyneon.cytoidinfoquerier.model.Profile
-import com.lyneon.cytoidinfoquerier.tool.fix
+import com.lyneon.cytoidinfoquerier.model.webapi.Profile
+import com.lyneon.cytoidinfoquerier.tool.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.tool.showDialog
 import com.lyneon.cytoidinfoquerier.tool.showToast
@@ -168,7 +168,7 @@ fun ProfileCompose() {
                                         .padding(6.dp)
                                 )
                                 Text(
-                                    text = "Rating ${profile.rating.fix(2)}",
+                                    text = "Rating ${profile.rating.setPrecision(2)}",
                                     modifier = Modifier
                                         .background(
                                             color = Color.LightGray,

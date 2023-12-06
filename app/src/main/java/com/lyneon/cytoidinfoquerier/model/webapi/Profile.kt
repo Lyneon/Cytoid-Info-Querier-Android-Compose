@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.model
+package com.lyneon.cytoidinfoquerier.model.webapi
 
 import kotlinx.serialization.Serializable
 

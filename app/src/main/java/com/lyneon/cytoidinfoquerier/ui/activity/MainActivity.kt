@@ -60,7 +60,7 @@ class MainActivity : BaseActivity() {
 
         val mmkv = MMKV.defaultMMKV()
 
-        if (mmkv.decodeBool(SettingsMMKVKeys.enableAppCenter,true)){
+        if (mmkv.decodeBool(SettingsMMKVKeys.enableAppCenter, true)) {
             AppCenter.start(
                 BaseApplication.context, SecretData.microsoftAppCenterAppSecret,
                 Analytics::class.java, Crashes::class.java

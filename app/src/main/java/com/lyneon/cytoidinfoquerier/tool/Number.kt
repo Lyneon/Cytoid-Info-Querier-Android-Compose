@@ -3,8 +3,11 @@ package com.lyneon.cytoidinfoquerier.tool
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
-fun <T:Number> T.fix(digits: Int): String {
+fun <T : Number> T.setPrecision(
+    digits: Int,
+    roundingMode: RoundingMode = RoundingMode.CEILING
+): String {
     val df = DecimalFormat("#.${"#" * digits}")
-    df.roundingMode = RoundingMode.CEILING
+    df.roundingMode = roundingMode
     return df.format(this)
 }

@@ -26,7 +26,7 @@
     <string name="todo">还没做完，再贵阳一会</string>
     <string name="debug_declaration">本应用处于测试阶段，可能会遇到功能缺失异常或崩溃现象</string>
     <string name="open_drawer">打开抽屉菜单</string>
-    <string name="queryType">查询类型</string>
+    <string name="querySettings">查询设置</string>
     <string name="recent_records" translatable="false">RecentRecords</string>
     <string name="analytics">数据分析</string>
     <string name="query_count">查询数量</string>
@@ -46,4 +46,11 @@
     <string name="fail">操作失败</string>
     <string name="all_contents">全部内容</string>
     <string name="save_illustration">保存曲绘</string>
+    <string name="keep_2_decimal_places">仅保留两位小数</string>
+    <string name="saving_illustration">正在保存曲绘</string>
+    <string name="confirm">确定</string>
+    <string name="save_as_picture">保存为图片</string>
+    <string name="saving">正在保存</string>
+    <string name="saved">已保存</string>
+    <string name="empty_query_result">查询结果为空</string>
 </resources>

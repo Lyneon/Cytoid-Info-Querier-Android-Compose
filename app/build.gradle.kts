@@ -13,8 +13,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 33
-        versionCode = 2
-        versionName = "1.1.1"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -68,6 +68,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.tencent:mmkv:1.3.1")
     implementation("androidx.navigation:navigation-compose:$navVersion")
+    implementation("dev.shreyaspatil:capturable:1.0.3")
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")

@@ -22,9 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.isDebugging
 import com.lyneon.cytoidinfoquerier.tool.showToast
-import com.microsoft.appcenter.crashes.Crashes
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -86,21 +84,6 @@ fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name))
                         }
                     }
                 )
-                if (isDebugging) {
-                    DropdownMenuItem(
-                        leadingIcon = {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(R.drawable.baseline_bug_report_24),
-                                contentDescription = stringResource(id = R.string.testCrash)
-                            )
-                        },
-                        text = { Text(text = stringResource(id = R.string.testCrash)) },
-                        onClick = {
-                            menuIsExpanded = false
-                            Crashes.generateTestCrash()
-                        }
-                    )
-                }
             }
         }
     )

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
+import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
@@ -140,7 +141,7 @@ fun SettingsCompose() {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 when (snackbarHostState.showSnackbar(
                                     context.getString(R.string.delete_confirm),
-                                    context.getString(android.R.string.ok),
+                                    context.getString(R.string.confirm),
                                     true,
                                     SnackbarDuration.Short
                                 )) {
@@ -164,6 +165,39 @@ fun SettingsCompose() {
                     )
                 }
             }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                when (snackbarHostState.showSnackbar(
+                                    context.getString(R.string.testCrash),
+                                    context.getString(R.string.confirm),
+                                    true,
+                                    SnackbarDuration.Short
+                                )) {
+                                    Dismissed -> {}
+                                    ActionPerformed -> {
+                                        Crashes.generateTestCrash()
+                                    }
+                                }
+                            }
+                        }
+                        .padding(6.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.testCrash),
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
+                }
+            }
+
         }
     }
 }
