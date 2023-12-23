@@ -31,10 +31,10 @@ import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.model.webapi.Profile
-import com.lyneon.cytoidinfoquerier.tool.setPrecision
-import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
-import com.lyneon.cytoidinfoquerier.tool.showDialog
-import com.lyneon.cytoidinfoquerier.tool.showToast
+import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
+import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar

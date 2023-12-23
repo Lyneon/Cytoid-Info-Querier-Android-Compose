@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool
+package com.lyneon.cytoidinfoquerier.tool.extension
 
 import android.graphics.BitmapFactory
 import okhttp3.OkHttpClient

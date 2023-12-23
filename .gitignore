@@ -17,3 +17,4 @@ local.properties
 /app/src/test/java/com/lyneon/cytoidinfoquerier/
 /.idea/deploymentTargetDropDown.xml
 /app/src/main/java/com/lyneon/cytoidinfoquerier/SecretData.kt
+/.idea/

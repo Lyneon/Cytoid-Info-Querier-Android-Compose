@@ -52,16 +52,16 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.logic.DateParser
+import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.model.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.model.graphql.UserRecord
-import com.lyneon.cytoidinfoquerier.tool.DateParser
-import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
-import com.lyneon.cytoidinfoquerier.tool.saveIntoMediaStore
-import com.lyneon.cytoidinfoquerier.tool.setPrecision
-import com.lyneon.cytoidinfoquerier.tool.showDialog
-import com.lyneon.cytoidinfoquerier.tool.showToast
-import com.lyneon.cytoidinfoquerier.tool.toBitmap
+import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
+import com.lyneon.cytoidinfoquerier.tool.extension.showToast
+import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.microsoft.appcenter.crashes.Crashes
 import dev.shreyaspatil.capturable.Capturable
@@ -386,33 +386,26 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                         .background(
                             Brush.linearGradient(
                                 when (record.chart.type) {
-                                    "easy" -> {
-                                        listOf(
-                                            Color(0xff4ca2cd),
-                                            Color(0xff67b26f)
-                                        )
-                                    }
+                                    "easy" -> listOf(
+                                        Color(0xff4ca2cd),
+                                        Color(0xff67b26f)
+                                    )
 
-                                    "hard" -> {
-                                        listOf(
-                                            Color(0xffb06abc),
-                                            Color(0xff4568dc)
-                                        )
-                                    }
+                                    "hard" -> listOf(
+                                        Color(0xff4568dc),
+                                        Color(0xffb06abc)
+                                    )
 
-                                    "extreme" -> {
-                                        listOf(
-                                            Color(0xff6f0000),
-                                            Color(0xFF200122)
-                                        )
-                                    }
+                                    "extreme" -> listOf(
+                                        Color(0xFF200122),
+                                        Color(0xff6f0000)
 
-                                    else -> {
-                                        listOf(
-                                            Color(0xffb06abc),
-                                            Color(0xff4568dc)
-                                        )
-                                    }
+                                    )
+
+                                    else -> listOf(
+                                        Color(0xff4568dc),
+                                        Color(0xffb06abc)
+                                    )
                                 }
                             ), RoundedCornerShape(CornerSize(100))
                         )

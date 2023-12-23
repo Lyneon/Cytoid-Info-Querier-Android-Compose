@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool
+package com.lyneon.cytoidinfoquerier.tool.extension
 
 import android.content.Context
 import android.content.Intent

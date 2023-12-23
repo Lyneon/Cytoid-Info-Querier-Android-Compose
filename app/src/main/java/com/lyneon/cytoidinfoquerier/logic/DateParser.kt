@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool
+package com.lyneon.cytoidinfoquerier.logic
 
 import java.text.SimpleDateFormat
 import java.util.Date

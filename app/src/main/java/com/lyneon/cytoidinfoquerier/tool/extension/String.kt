@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool
+package com.lyneon.cytoidinfoquerier.tool.extension
 
 import android.app.Activity
 import android.app.AlertDialog

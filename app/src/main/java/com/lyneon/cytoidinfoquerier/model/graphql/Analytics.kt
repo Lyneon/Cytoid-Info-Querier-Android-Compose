@@ -1,8 +1,8 @@
 package com.lyneon.cytoidinfoquerier.model.graphql
 
-import com.lyneon.cytoidinfoquerier.tool.DateParser
-import com.lyneon.cytoidinfoquerier.tool.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.tool.setPrecision
+import com.lyneon.cytoidinfoquerier.logic.DateParser
+import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
+import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.Locale
@@ -17,8 +17,8 @@ data class Analytics(
     ) {
         @Serializable
         data class Profile(
-            val recentRecords: ArrayList<UserRecord>,
-            val bestRecords: ArrayList<UserRecord>
+            var recentRecords: ArrayList<UserRecord>,
+            var bestRecords: ArrayList<UserRecord>
         )
     }
 

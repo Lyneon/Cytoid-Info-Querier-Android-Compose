@@ -53,4 +53,6 @@
     <string name="saving">正在保存</string>
     <string name="saved">已保存</string>
     <string name="empty_query_result">查询结果为空</string>
+    <string name="columns_count">列数</string>
+    <string name="empty_columnsCount">列数不能为空</string>
 </resources>

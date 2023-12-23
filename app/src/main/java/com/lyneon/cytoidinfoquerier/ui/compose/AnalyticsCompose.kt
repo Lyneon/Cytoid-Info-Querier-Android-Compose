@@ -1,7 +1,9 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
+import android.os.Build
 import android.os.Looper
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,11 +42,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
 import com.lyneon.cytoidinfoquerier.model.graphql.Analytics
-import com.lyneon.cytoidinfoquerier.tool.isValidCytoidID
-import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
-import com.lyneon.cytoidinfoquerier.tool.showDialog
-import com.lyneon.cytoidinfoquerier.tool.showToast
+import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
+import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
@@ -52,8 +55,9 @@ import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import kotlin.concurrent.thread
 
-private lateinit var response: Analytics
+lateinit var response: Analytics
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AnalyticsCompose() {
     val context = LocalContext.current as MainActivity
@@ -62,8 +66,11 @@ fun AnalyticsCompose() {
     val mmkv = MMKV.defaultMMKV()
     var queryType by remember { mutableStateOf(QueryType.bestRecords) }
     var ignoreCache by remember { mutableStateOf(false) }
+    var keep2DecimalPlace by remember { mutableStateOf(true) }
     var queryCount by remember { mutableStateOf("30") }
+    var columnsCount by remember { mutableStateOf("6") }
     var queryCountIsNull by remember { mutableStateOf(false) }
+    var columnsCountIsNull by remember { mutableStateOf(false) }
     var querySettingsMenuIsExpanded by remember { mutableStateOf(false) }
 
     Column {
@@ -93,7 +100,9 @@ fun AnalyticsCompose() {
                                 )
                                 DropdownMenu(
                                     expanded = querySettingsMenuIsExpanded,
-                                    onDismissRequest = { querySettingsMenuIsExpanded = false }) {
+                                    onDismissRequest = {
+                                        querySettingsMenuIsExpanded = false
+                                    }) {
                                     DropdownMenuItem(
                                         text = {
                                             Row(
@@ -141,7 +150,9 @@ fun AnalyticsCompose() {
                                                         queryCountIsNull = it.isEmpty()
                                                         queryCount = it
                                                     },
-                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                                    keyboardOptions = KeyboardOptions(
+                                                        keyboardType = KeyboardType.Number
+                                                    ),
                                                     singleLine = true,
                                                     isError = queryCountIsNull,
                                                     label = { Text(text = stringResource(id = R.string.query_count)) }
@@ -174,6 +185,67 @@ fun AnalyticsCompose() {
                                         },
                                         onClick = { ignoreCache = !ignoreCache }
                                     )
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(text = stringResource(id = R.string.keep_2_decimal_places))
+                                                Checkbox(
+                                                    checked = keep2DecimalPlace,
+                                                    onCheckedChange = {
+                                                        keep2DecimalPlace = it
+                                                    }
+                                                )
+                                            }
+                                        },
+                                        onClick = { keep2DecimalPlace = !keep2DecimalPlace }
+                                    )
+                                    DropdownMenuItem(
+                                        text = {
+                                            Column(
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                TextField(
+                                                    value = columnsCount,
+                                                    onValueChange = {
+                                                        columnsCountIsNull = it.isEmpty()
+                                                        columnsCount = it
+                                                    },
+                                                    keyboardOptions = KeyboardOptions(
+                                                        keyboardType = KeyboardType.Number
+                                                    ),
+                                                    singleLine = true,
+                                                    isError = columnsCountIsNull,
+                                                    label = { Text(text = stringResource(id = R.string.columns_count)) },
+                                                    trailingIcon = {
+                                                        TextButton(onClick = {
+                                                            val intent =
+                                                                ImageGenerateService.getStartIntent(
+                                                                    context,
+                                                                    cytoidID,
+                                                                    columnsCount.toInt(),
+                                                                    queryType,
+                                                                    keep2DecimalPlace
+                                                                )
+                                                            context.startService(intent)
+                                                        }) {
+                                                            Text(text = stringResource(id = R.string.save_as_picture))
+                                                        }
+                                                    }
+                                                )
+                                                AnimatedVisibility(visible = columnsCountIsNull) {
+                                                    Text(
+                                                        text = stringResource(id = R.string.empty_columnsCount),
+                                                        color = Color.Red
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onClick = {}
+                                    )
                                 }
                             }
                             TextButton(
@@ -203,7 +275,31 @@ fun AnalyticsCompose() {
                                                 Analytics.decodeFromJSONString(
                                                     mmkv.decodeString("profileString_${cytoidID}_${queryType}")
                                                         ?: throw Exception()
-                                                )
+                                                ).apply {
+                                                    if (queryType == QueryType.bestRecords) {
+                                                        val toIndex =
+                                                            if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
+                                                            else this.data.profile.bestRecords.size
+                                                        this.data.profile.bestRecords =
+                                                            ArrayList(
+                                                                this.data.profile.bestRecords.subList(
+                                                                    0,
+                                                                    toIndex
+                                                                )
+                                                            )
+                                                    } else {
+                                                        val toIndex =
+                                                            if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
+                                                            else this.data.profile.recentRecords.size
+                                                        this.data.profile.recentRecords =
+                                                            ArrayList(
+                                                                this.data.profile.recentRecords.subList(
+                                                                    0,
+                                                                    toIndex
+                                                                )
+                                                            )
+                                                    }
+                                                }
                                             } catch (e: Exception) {
                                                 e.stackTraceToString().showDialog(
                                                     context,
@@ -248,7 +344,9 @@ fun AnalyticsCompose() {
                                                             }
                                                         )
                                                     response =
-                                                        Analytics.decodeFromJSONString(profileString)
+                                                        Analytics.decodeFromJSONString(
+                                                            profileString
+                                                        )
                                                     mmkv.encode(
                                                         "lastQueryProfileTime_${cytoidID}_${queryType}",
                                                         System.currentTimeMillis()
@@ -258,7 +356,10 @@ fun AnalyticsCompose() {
                                                         profileString
                                                     )
                                                     Looper.prepare()
-                                                    "查询${cytoidID}完成，共查询到${if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size else response.data.profile.recentRecords.size}条数据".showToast()
+                                                    "查询${cytoidID}完成，共查询到${
+                                                        if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
+                                                        else response.data.profile.recentRecords.size
+                                                    }条数据".showToast()
                                                     isQueryingFinished = true
                                                 } catch (e: Exception) {
                                                     Looper.prepare()
@@ -299,23 +400,24 @@ fun AnalyticsCompose() {
             ) {
                 if (isQueryingFinished && ::response.isInitialized) {
                     var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
-                    for (i in 0 until if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size else response.data.profile.recentRecords.size) {
+                    for (i in 0 until
+                            if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
+                            else response.data.profile.recentRecords.size
+                    ) {
                         if (remainRecord == 0) break
                         val record =
                             if (queryType == QueryType.bestRecords) response.data.profile.bestRecords[i]
                             else response.data.profile.recentRecords[i]
                         item(
-                            span = if (if (queryType == QueryType.bestRecords) {
-                                    response.data.profile.bestRecords.size
-                                } else {
-                                    response.data.profile.recentRecords.size
-                                } == 1
+                            span = if ((if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
+                                else response.data.profile.recentRecords.size) == 1
                             ) StaggeredGridItemSpan.FullLine
                             else StaggeredGridItemSpan.SingleLane
                         ) {
                             RecordCard(
                                 record = record,
                                 recordIndex = i + 1,
+                                keep2DecimalPlace
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                         }
@@ -331,3 +433,5 @@ object QueryType {
     const val bestRecords = "bestRecords"
     const val recentRecords = "recentRecords"
 }
+
+fun responseIsInitialized() = ::response.isInitialized

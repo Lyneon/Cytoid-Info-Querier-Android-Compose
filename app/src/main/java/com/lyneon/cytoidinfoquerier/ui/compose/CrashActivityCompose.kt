@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.tool.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 
 
