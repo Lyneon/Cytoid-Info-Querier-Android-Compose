@@ -270,14 +270,14 @@ fun AnalyticsCompose() {
                                                 -1
                                             ) <= (6 * 60 * 60 * 1000) && !ignoreCache
                                         ) {
-                                            "6小时内有查询记录，使用已缓存的数据".showToast()
                                             response = try {
-                                                Analytics.decodeFromJSONString(
+                                                var toIndex: Int
+                                                val analytics = Analytics.decodeFromJSONString(
                                                     mmkv.decodeString("profileString_${cytoidID}_${queryType}")
                                                         ?: throw Exception()
                                                 ).apply {
                                                     if (queryType == QueryType.bestRecords) {
-                                                        val toIndex =
+                                                        toIndex =
                                                             if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
                                                             else this.data.profile.bestRecords.size
                                                         this.data.profile.bestRecords =
@@ -288,7 +288,7 @@ fun AnalyticsCompose() {
                                                                 )
                                                             )
                                                     } else {
-                                                        val toIndex =
+                                                        toIndex =
                                                             if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
                                                             else this.data.profile.recentRecords.size
                                                         this.data.profile.recentRecords =
@@ -300,6 +300,8 @@ fun AnalyticsCompose() {
                                                             )
                                                     }
                                                 }
+                                                "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
+                                                analytics
                                             } catch (e: Exception) {
                                                 e.stackTraceToString().showDialog(
                                                     context,

@@ -11,10 +11,9 @@ android {
     defaultConfig {
         applicationId = "com.lyneon.cytoidinfoquerier"
         minSdk = 24
-        //noinspection OldTargetApi
         targetSdk = 33
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

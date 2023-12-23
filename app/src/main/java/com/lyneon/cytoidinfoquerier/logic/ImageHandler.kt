@@ -20,11 +20,15 @@ import com.lyneon.cytoidinfoquerier.tool.extension.enableAntiAlias
 import com.lyneon.cytoidinfoquerier.tool.extension.roundBitmap
 import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.URL
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
-import kotlin.concurrent.thread
 
 object ImageHandler {
     fun getRecordsImage(
@@ -84,9 +88,8 @@ object ImageHandler {
         paint.textSize = 75f
         canvas.drawText(
             "Lv.${profile.exp.currentLevel}  Rating ${
-                profile.rating.apply {
-                    if (keep2DecimalPlaces) this.setPrecision(2)
-                }
+                if (keep2DecimalPlaces) profile.rating.setPrecision(2)
+                else profile.rating
             }",
             (padding + avatarDiameter + padding).toFloat(),
             padding + 200f + paint.fontMetrics.descent + 75f,
@@ -107,10 +110,13 @@ object ImageHandler {
             }
         }
         val countDownLatch = CountDownLatch(records.size)
+        val job = Job()
         for (i in records.indices) {
             val record = records[i]
-            thread {
-                val recordImage = getRecordImage(record, keep2DecimalPlaces)
+            CoroutineScope(job).launch {
+                val recordImage = async(Dispatchers.IO) {
+                    getRecordImage(record, keep2DecimalPlaces)
+                }.await()
                 synchronized(ImageHandler::class.java) {
                     recordImages[i] = recordImage
                 }
@@ -118,6 +124,7 @@ object ImageHandler {
             }
         }
         countDownLatch.await()
+        job.cancel()
 
         paint.color = Color.parseColor("#FF5171DE")
         paint.style = Paint.Style.FILL
@@ -225,9 +232,8 @@ object ImageHandler {
         canvas.drawText(record.chart.level.title, 10f, 130f, paint)
         canvas.drawText(
             "${record.score} ${
-                (record.accuracy * 100).apply {
-                    if (keep2DecimalPlaces) this.setPrecision(2)
-                }
+                if (keep2DecimalPlaces) (record.accuracy * 100).setPrecision(2)
+                else record.accuracy * 100
             }%",
             10f,
             190f,
@@ -236,9 +242,8 @@ object ImageHandler {
         paint.textSize = 30f
         canvas.drawText(
             "Rating ${
-                record.rating.apply {
-                    if (keep2DecimalPlaces) this.setPrecision(2)
-                }
+                if (keep2DecimalPlaces) (record.rating).setPrecision(2)
+                else record.rating
             }", 10f, 230f, paint
         )
         canvas.drawText(
