@@ -1,5 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Looper
 import android.widget.Toast
@@ -40,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.checkSelfPermission
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
@@ -222,6 +225,17 @@ fun AnalyticsCompose() {
                                                     label = { Text(text = stringResource(id = R.string.columns_count)) },
                                                     trailingIcon = {
                                                         TextButton(onClick = {
+                                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(
+                                                                    context,
+                                                                    Manifest.permission.POST_NOTIFICATIONS
+                                                                ) != PackageManager.PERMISSION_GRANTED
+                                                            ) {
+                                                                context.requestPermissions(
+                                                                    arrayOf(
+                                                                        Manifest.permission.POST_NOTIFICATIONS
+                                                                    ), 1
+                                                                )
+                                                            }
                                                             val intent =
                                                                 ImageGenerateService.getStartIntent(
                                                                     context,

@@ -10,7 +10,6 @@ import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.ImageHandler
 import com.lyneon.cytoidinfoquerier.logic.NotificationHandler
-import com.lyneon.cytoidinfoquerier.logic.NotificationHandler.notificationManager
 import com.lyneon.cytoidinfoquerier.logic.NotificationHandler.registerNotificationChannel
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
@@ -88,7 +87,7 @@ class ImageGenerateService : Service() {
                 BaseApplication.context.resources.getString(
                     R.string.saved
                 ).showToast()
-                notificationManager.cancel(NotificationHandler.NOTIFICATION_ID_GENERATE_IMAGE)
+                this.stopSelf()
             }
         }
         return super.onStartCommand(intent, flags, startId)
