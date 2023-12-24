@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.lyneon.cytoidinfoquerier.logic
 
 import android.graphics.Bitmap
@@ -23,12 +25,14 @@ import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.net.URL
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 
 object ImageHandler {
     fun getRecordsImage(
@@ -110,14 +114,16 @@ object ImageHandler {
             }
         }
         val countDownLatch = CountDownLatch(records.size)
+        val dispatcher = Executors.newFixedThreadPool(32).asCoroutineDispatcher()
         val job = Job()
         for (i in records.indices) {
             val record = records[i]
-            CoroutineScope(job).launch {
-                val recordImage = async(Dispatchers.IO) {
+            CoroutineScope(job + dispatcher).launch {
+                val recordImage = async {
                     getRecordImage(record, keep2DecimalPlaces)
                 }.await()
                 synchronized(ImageHandler::class.java) {
+                    recordImages[i]?.recycle()
                     recordImages[i] = recordImage
                 }
                 countDownLatch.countDown()
@@ -125,6 +131,7 @@ object ImageHandler {
         }
         countDownLatch.await()
         job.cancel()
+        dispatcher.close()
 
         paint.color = Color.parseColor("#FF5171DE")
         paint.style = Paint.Style.FILL
@@ -160,6 +167,14 @@ object ImageHandler {
             (height - padding).toFloat(),
             paint
         )
+
+        recordImages.forEach { bitmap ->
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
+
+        recordImages.clear()
 
         return bitmap
     }
