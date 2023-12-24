@@ -23,7 +23,6 @@ import com.lyneon.cytoidinfoquerier.tool.extension.roundBitmap
 import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
@@ -105,13 +104,7 @@ object ImageHandler {
         val recordImages = ArrayList<Bitmap>(records.size)
         for (i in records.indices) {
 //            初始化记录图像列表
-            ResourcesCompat.getDrawable(
-                BaseApplication.context.resources,
-                R.drawable.sayakacry,
-                null
-            )?.let {
-                recordImages.add(it.toBitmap())
-            }
+            recordImages.add(Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565))
         }
         val countDownLatch = CountDownLatch(records.size)
         val dispatcher = Executors.newFixedThreadPool(32).asCoroutineDispatcher()
@@ -123,7 +116,7 @@ object ImageHandler {
                     getRecordImage(record, keep2DecimalPlaces)
                 }.await()
                 synchronized(ImageHandler::class.java) {
-                    recordImages[i]?.recycle()
+                    recordImages[i].recycle()
                     recordImages[i] = recordImage
                 }
                 countDownLatch.countDown()
