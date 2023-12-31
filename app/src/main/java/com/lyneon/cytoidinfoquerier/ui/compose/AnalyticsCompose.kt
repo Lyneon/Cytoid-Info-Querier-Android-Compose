@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Looper
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -60,7 +59,6 @@ import kotlin.concurrent.thread
 
 lateinit var response: Analytics
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AnalyticsCompose() {
     val context = LocalContext.current as MainActivity

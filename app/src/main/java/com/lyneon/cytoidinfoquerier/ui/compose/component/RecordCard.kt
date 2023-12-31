@@ -95,6 +95,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                         onLongPress = {
                             AlertDialog
                                 .Builder(context)
+                                .setTitle("${recordIndex}. ${record.chart.level.title}")
                                 .setItems(
                                     arrayOf(
                                         context.getString(R.string.view_in_cytoid),

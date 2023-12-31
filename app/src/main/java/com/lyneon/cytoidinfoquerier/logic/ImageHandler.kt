@@ -95,7 +95,7 @@ object ImageHandler {
                 else profile.rating
             }",
             (padding + avatarDiameter + padding).toFloat(),
-            padding + 200f + paint.fontMetrics.descent + 75f,
+            padding + 200f + paint.fontMetrics.descent + padding + 75f,
             paint
         )
 
