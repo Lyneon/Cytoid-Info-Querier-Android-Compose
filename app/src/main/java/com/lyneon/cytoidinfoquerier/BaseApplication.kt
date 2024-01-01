@@ -10,9 +10,6 @@ import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import java.lang.Thread.UncaughtExceptionHandler
 
-
-const val isDebugging = true
-
 class BaseApplication : Application() {
     companion object {
         @SuppressLint("StaticFieldLeak")
