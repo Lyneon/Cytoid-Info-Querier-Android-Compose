@@ -31,12 +31,11 @@ import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.model.webapi.Profile
-import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
-import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.microsoft.appcenter.crashes.Crashes
 import kotlin.concurrent.thread
@@ -115,7 +114,6 @@ fun ProfileCompose() {
                     )
                 }
             }
-            AlertCard(message = stringResource(id = R.string.todo))
             AnimatedVisibility(visible = isQueryingFinished && ::profile.isInitialized) {
                 Column {
                     Row {

@@ -109,7 +109,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                             context.startActivity(
                                                 Intent(
                                                     Intent.ACTION_VIEW,
-                                                    Uri.parse(CytoidDeepLink.getDeepLink(record.chart.level.uid))
+                                                    Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid))
                                                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                             )
                                         } catch (e: Exception) {

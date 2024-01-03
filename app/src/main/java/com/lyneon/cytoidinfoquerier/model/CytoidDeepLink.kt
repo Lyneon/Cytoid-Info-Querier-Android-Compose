@@ -1,5 +1,5 @@
 package com.lyneon.cytoidinfoquerier.model
 
 object CytoidDeepLink {
-    fun getDeepLink(levelUID: String): String = "cytoid://levels/$levelUID"
+    fun getCytoidLevelDeepLink(levelUID: String): String = "cytoid://levels/$levelUID"
 }

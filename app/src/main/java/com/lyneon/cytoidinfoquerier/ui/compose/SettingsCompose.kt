@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
-import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
@@ -184,7 +183,7 @@ fun SettingsCompose() {
                                 )) {
                                     Dismissed -> {}
                                     ActionPerformed -> {
-                                        Crashes.generateTestCrash()
+                                        throw Exception("This is a crash for test!")
                                     }
                                 }
                             }

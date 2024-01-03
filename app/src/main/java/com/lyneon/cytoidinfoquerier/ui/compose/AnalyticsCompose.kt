@@ -407,35 +407,37 @@ fun AnalyticsCompose() {
                     )
                 }
             }
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Adaptive(320.dp),
-                contentPadding = PaddingValues(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                if (isQueryingFinished && ::response.isInitialized) {
-                    var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
-                    for (i in 0 until
-                            if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
-                            else response.data.profile.recentRecords.size
-                    ) {
-                        if (remainRecord == 0) break
-                        val record =
-                            if (queryType == QueryType.bestRecords) response.data.profile.bestRecords[i]
-                            else response.data.profile.recentRecords[i]
-                        item(
-                            span = if ((if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
-                                else response.data.profile.recentRecords.size) == 1
-                            ) StaggeredGridItemSpan.FullLine
-                            else StaggeredGridItemSpan.SingleLane
+            AnimatedVisibility(visible = isQueryingFinished && ::response.isInitialized) {
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Adaptive(320.dp),
+                    contentPadding = PaddingValues(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    if (isQueryingFinished && ::response.isInitialized) {
+                        var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
+                        for (i in 0 until
+                                if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
+                                else response.data.profile.recentRecords.size
                         ) {
-                            RecordCard(
-                                record = record,
-                                recordIndex = i + 1,
-                                keep2DecimalPlace
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            if (remainRecord == 0) break
+                            val record =
+                                if (queryType == QueryType.bestRecords) response.data.profile.bestRecords[i]
+                                else response.data.profile.recentRecords[i]
+                            item(
+                                span = if ((if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
+                                    else response.data.profile.recentRecords.size) == 1
+                                ) StaggeredGridItemSpan.FullLine
+                                else StaggeredGridItemSpan.SingleLane
+                            ) {
+                                RecordCard(
+                                    record = record,
+                                    recordIndex = i + 1,
+                                    keep2DecimalPlace
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
+                            remainRecord--
                         }
-                        remainRecord--
                     }
                 }
             }

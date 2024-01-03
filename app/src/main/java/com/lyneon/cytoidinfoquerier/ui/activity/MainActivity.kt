@@ -6,10 +6,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +26,11 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -77,6 +79,7 @@ class MainActivity : BaseActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    var currentNavRoute by remember { mutableStateOf(NavRoute.home) }
                     globalDrawerState =
                         rememberDrawerState(initialValue = DrawerValue.Closed)
                     ModalNavigationDrawer(
@@ -93,61 +96,68 @@ class MainActivity : BaseActivity() {
                                         painter = painterResource(R.drawable.tutorial_background),
                                         contentDescription = stringResource(id = R.string.drawerMenu)
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    NavigationDrawerItem(
-                                        label = {
-                                            Text(text = stringResource(R.string.home))
-                                        },
-                                        icon = {
-                                            Icon(
-                                                Icons.Filled.Home,
-                                                stringResource(R.string.home)
-                                            )
-                                        },
-                                        selected = navController.currentDestination?.route == NavRoute.home,
-                                        onClick = {
-                                            navController.navigate(NavRoute.home)
-                                            scope.launch {
-                                                globalDrawerState.close()
+                                    Column(
+                                        Modifier.padding(6.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = stringResource(R.string.home))
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    Icons.Filled.Home,
+                                                    stringResource(R.string.home)
+                                                )
+                                            },
+                                            selected = currentNavRoute == NavRoute.home,
+                                            onClick = {
+                                                navController.navigate(NavRoute.home)
+                                                currentNavRoute = NavRoute.home
+                                                scope.launch {
+                                                    globalDrawerState.close()
+                                                }
                                             }
-                                        }
-                                    )
-                                    NavigationDrawerItem(
-                                        label = {
-                                            Text(text = stringResource(R.string.analytics))
-                                        },
-                                        icon = {
-                                            Icon(
-                                                ImageVector.vectorResource(R.drawable.baseline_insights_24),
-                                                stringResource(R.string.analytics)
-                                            )
-                                        },
-                                        selected = navController.currentDestination?.route == NavRoute.analytics,
-                                        onClick = {
-                                            navController.navigate(NavRoute.analytics)
-                                            scope.launch {
-                                                globalDrawerState.close()
+                                        )
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = stringResource(R.string.analytics))
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    ImageVector.vectorResource(R.drawable.baseline_insights_24),
+                                                    stringResource(R.string.analytics)
+                                                )
+                                            },
+                                            selected = currentNavRoute == NavRoute.analytics,
+                                            onClick = {
+                                                navController.navigate(NavRoute.analytics)
+                                                currentNavRoute = NavRoute.analytics
+                                                scope.launch {
+                                                    globalDrawerState.close()
+                                                }
                                             }
-                                        }
-                                    )
-                                    NavigationDrawerItem(
-                                        label = {
-                                            Text(text = stringResource(R.string.profile))
-                                        },
-                                        icon = {
-                                            Icon(
-                                                Icons.Filled.AccountCircle,
-                                                stringResource(R.string.profile)
-                                            )
-                                        },
-                                        selected = navController.currentDestination?.route == NavRoute.profile,
-                                        onClick = {
-                                            navController.navigate(NavRoute.profile)
-                                            scope.launch {
-                                                globalDrawerState.close()
+                                        )
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = stringResource(R.string.profile))
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    Icons.Filled.AccountCircle,
+                                                    stringResource(R.string.profile)
+                                                )
+                                            },
+                                            selected = currentNavRoute == NavRoute.profile,
+                                            onClick = {
+                                                navController.navigate(NavRoute.profile)
+                                                currentNavRoute = NavRoute.profile
+                                                scope.launch {
+                                                    globalDrawerState.close()
+                                                }
                                             }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(
@@ -161,6 +171,7 @@ class MainActivity : BaseActivity() {
                                     val scope = rememberCoroutineScope()
                                     Button(onClick = {
                                         navController.navigate(NavRoute.settings)
+                                        currentNavRoute = NavRoute.settings
                                         scope.launch {
                                             globalDrawerState.close()
                                         }
