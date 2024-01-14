@@ -47,7 +47,6 @@ import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
 import com.lyneon.cytoidinfoquerier.model.graphql.Analytics
 import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
-import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
@@ -327,20 +326,6 @@ fun AnalyticsCompose() {
                                             "开始查询$cytoidID".showToast()
                                             thread {
                                                 try {
-                                                    if (queryType == QueryType.bestRecords) {
-                                                        Analytics.getQueryBody(
-                                                            cytoidID = cytoidID,
-                                                            bestRecordsLimit = queryCount.toInt(),
-                                                            recentRecordsLimit = queryCount.toInt()
-                                                        )
-                                                    } else {
-                                                        Analytics.getQueryBody(
-                                                            cytoidID = cytoidID,
-                                                            bestRecordsLimit = queryCount.toInt(),
-                                                            recentRecordsLimit = queryCount.toInt()
-                                                        )
-                                                    }.saveIntoClipboard()
-
                                                     val profileString =
                                                         NetRequest.getGQLResponseJSONString(
                                                             if (queryType == QueryType.bestRecords) {
