@@ -1,13 +1,11 @@
 package com.lyneon.cytoidinfoquerier.logic.network
 
+import com.lyneon.cytoidinfoquerier.json
 import com.lyneon.cytoidinfoquerier.model.webapi.Profile
-import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-
-val json = Json { ignoreUnknownKeys = true }
 
 object NetRequest {
     fun getGQLResponseJSONString(GQLQueryString: String): String {
