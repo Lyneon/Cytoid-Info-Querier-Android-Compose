@@ -55,4 +55,9 @@
     <string name="empty_query_result">查询结果为空</string>
     <string name="columns_count">列数</string>
     <string name="empty_columnsCount">列数不能为空</string>
+    <string name="chart_manage">谱面管理</string>
+    <string name="go_to_grant_permission">前往授权</string>
+    <string name="cancel">取消</string>
+    <string name="cytoid_is_not_installed">你好像没有安装Cytoid</string>
+    <string name="saved_into_gallery">已保存至图库</string>
 </resources>

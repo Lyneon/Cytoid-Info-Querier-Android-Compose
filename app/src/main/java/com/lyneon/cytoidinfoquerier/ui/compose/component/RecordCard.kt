@@ -2,7 +2,6 @@ package com.lyneon.cytoidinfoquerier.ui.compose.component
 
 import android.app.AlertDialog
 import android.content.ContentValues
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -51,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
@@ -105,25 +105,20 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                     )
                                 ) { _, i: Int ->
                                     when (i) {
-                                        0 -> try {
+                                        0 -> if (BaseApplication.cytoidIsInstalled) {
                                             context.startActivity(
                                                 Intent(
                                                     Intent.ACTION_VIEW,
-                                                    Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid))
+                                                    Uri.parse(
+                                                        CytoidDeepLink.getCytoidLevelDeepLink(
+                                                            record.chart.level.uid
+                                                        )
+                                                    )
                                                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                             )
-                                        } catch (e: Exception) {
-                                            e
-                                                .stackTraceToString()
-                                                .showDialog(
-                                                    context,
-                                                    context.getString(R.string.fail)
-                                                ) {
-                                                    this.setPositiveButton(context.getString(R.string.confirm)) { dialogInterface: DialogInterface, _: Int ->
-                                                        dialogInterface.dismiss()
-                                                    }
-                                                }
-                                        }
+                                        } else context
+                                            .getString(R.string.cytoid_is_not_installed)
+                                            .showToast()
 
                                         1 -> {
                                             AlertDialog
@@ -235,7 +230,9 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                                     }
                                                     .onSuccess {
                                                         Looper.prepare()
-                                                        "已保存至图库".showToast()
+                                                        context
+                                                            .getString(R.string.saved_into_gallery)
+                                                            .showToast()
                                                     }
                                                     .onFailure { e ->
                                                         e.printStackTrace()

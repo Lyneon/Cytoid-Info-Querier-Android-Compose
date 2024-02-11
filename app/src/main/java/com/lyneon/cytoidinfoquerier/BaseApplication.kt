@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Intent
 import android.os.Looper
 import androidx.compose.material3.DrawerState
+import com.lyneon.cytoidinfoquerier.model.CytoidConstant
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
@@ -15,12 +16,19 @@ class BaseApplication : Application() {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: BaseApplication
         lateinit var globalDrawerState: DrawerState
+        var cytoidIsInstalled = false
     }
 
+    @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate() {
         super.onCreate()
         context = this
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler())
+        for (installedPackage in packageManager.getInstalledPackages(0)) {
+            if (installedPackage.packageName == CytoidConstant.gamePackageName) {
+                cytoidIsInstalled = true
+            }
+        }
         MMKV.initialize(this)
     }
 }
