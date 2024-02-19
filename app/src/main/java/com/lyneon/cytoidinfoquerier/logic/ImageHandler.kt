@@ -17,7 +17,7 @@ import androidx.core.graphics.scale
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.model.graphql.UserRecord
-import com.lyneon.cytoidinfoquerier.model.webapi.Profile
+import com.lyneon.cytoidinfoquerier.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.tool.extension.enableAntiAlias
 import com.lyneon.cytoidinfoquerier.tool.extension.roundBitmap
 import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
@@ -35,7 +35,7 @@ import java.util.concurrent.Executors
 
 object ImageHandler {
     fun getRecordsImage(
-        profile: Profile,
+        profileWebapi: ProfileWebapi,
         records: List<UserRecord>,
         columnsCount: Int = 5,
         keep2DecimalPlaces: Boolean = true
@@ -74,7 +74,7 @@ object ImageHandler {
 
 //      绘制用户头像
         val avatar =
-            URL(profile.user.avatar.original).toBitmap()
+            URL(profileWebapi.user.avatar.original).toBitmap()
                 .scale(avatarDiameter, avatarDiameter, false).roundBitmap()
         canvas.drawBitmap(avatar, padding.toFloat(), padding.toFloat(), null)
         avatar.recycle()
@@ -83,16 +83,16 @@ object ImageHandler {
         paint.textSize = 200f
         paint.color = Color.parseColor("#FFF8F8F2")
         canvas.drawText(
-            profile.user.uid,
+            profileWebapi.user.uid,
             (padding + avatarDiameter + padding).toFloat(),
             padding + 200f,
             paint
         )
         paint.textSize = 75f
         canvas.drawText(
-            "Lv.${profile.exp.currentLevel}  Rating ${
-                if (keep2DecimalPlaces) profile.rating.setPrecision(2)
-                else profile.rating
+            "Lv.${profileWebapi.exp.currentLevel}  Rating ${
+                if (keep2DecimalPlaces) profileWebapi.rating.setPrecision(2)
+                else profileWebapi.rating
             }",
             (padding + avatarDiameter + padding).toFloat(),
             padding + 200f + paint.fontMetrics.descent + padding + 75f,

@@ -1,9 +1,12 @@
 package com.lyneon.cytoidinfoquerier.model.webapi
 
+import com.lyneon.cytoidinfoquerier.json
 import kotlinx.serialization.Serializable
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 @Serializable
-data class Profile(
+data class ProfileWebapi(
     val user: User,
     val badges: ArrayList<Badge>,
     val grade: Grade,
@@ -22,7 +25,8 @@ data class Profile(
     ) {
         @Serializable
         data class Avatar(
-            val original: String
+            val original: String,
+            val large: String
         )
     }
 
@@ -104,5 +108,29 @@ data class Profile(
             val nextLevelExp: Int,
             val currentLevelExp: Int
         )
+    }
+
+    companion object {
+        fun get(cytoidID: String): ProfileWebapi {
+            val response = OkHttpClient().newCall(
+                Request.Builder()
+                    .url("https://services.cytoid.io/profile/$cytoidID/details")
+                    .removeHeader("User-Agent").addHeader("User-Agent", "CytoidClient/2.1.1")
+                    .build()
+            ).execute()
+            val result = try {
+                when (response.code) {
+                    200 -> response.body?.string()
+                    else -> throw Exception("Unknown Exception: HTTP response code is${response.code}")
+                }
+            } finally {
+                response.body?.close()
+            }
+            return if (result == null) {
+                throw Exception("Response body is null!HTTP response code is ${response.code}")
+            } else {
+                json.decodeFromString(result)
+            }
+        }
     }
 }

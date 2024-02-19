@@ -11,7 +11,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.ImageHandler
 import com.lyneon.cytoidinfoquerier.logic.NotificationHandler
 import com.lyneon.cytoidinfoquerier.logic.NotificationHandler.registerNotificationChannel
-import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
+import com.lyneon.cytoidinfoquerier.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.compose.QueryType
@@ -75,9 +75,7 @@ class ImageGenerateService : Service() {
             ).showToast()
             thread {
                 ImageHandler.getRecordsImage(
-                    NetRequest.getProfile(
-                        cytoidID
-                    ),
+                    ProfileWebapi.get(cytoidID),
                     if (queryType == QueryType.bestRecords) response.data.profile.bestRecords
                     else response.data.profile.recentRecords,
                     columnsCount,

@@ -1,15 +1,17 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.component
 
-import android.app.AlertDialog
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Looper
+import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,14 +23,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,29 +53,37 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.model.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.model.graphql.UserRecord
+import com.lyneon.cytoidinfoquerier.tool.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
-import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.microsoft.appcenter.crashes.Crashes
 import dev.shreyaspatil.capturable.Capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
@@ -73,11 +94,29 @@ import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
 
+@OptIn(UnstableApi::class)
+@SuppressLint("CheckResult")
 @Composable
 fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces: Boolean = true) {
-    val context = LocalContext.current as MainActivity
+    val context = LocalContext.current as BaseActivity
     val externalCacheStorageDir = context.externalCacheDir
     val captureController = rememberCaptureController()
+    var recordDialogState by remember { mutableStateOf(false) }
+    var copyRecordContentDialogState by remember { mutableStateOf(false) }
+    var mediaPlayerState by remember { mutableIntStateOf(Player.STATE_IDLE) }
+    val exoPlayer = ExoPlayer.Builder(BaseApplication.context).build().apply {
+        addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_ENDED -> mediaPlayerState = Player.STATE_ENDED
+                    Player.STATE_BUFFERING -> mediaPlayerState = Player.STATE_BUFFERING
+                    Player.STATE_IDLE -> mediaPlayerState = Player.STATE_IDLE
+                    Player.STATE_READY -> mediaPlayerState = Player.STATE_READY
+                }
+            }
+        })
+    }
+
     Capturable(
         controller = captureController,
         onCaptured = { imageBitmap: ImageBitmap?, throwable: Throwable? ->
@@ -86,186 +125,15 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 context.getString(R.string.saved).showToast()
             }
             throwable?.let { throw it }
-        }) {
+        }
+    ) {
         Card(
             Modifier
                 .padding(6.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onLongPress = {
-                            AlertDialog
-                                .Builder(context)
-                                .setTitle("${recordIndex}. ${record.chart.level.title}")
-                                .setItems(
-                                    arrayOf(
-                                        context.getString(R.string.view_in_cytoid),
-                                        context.getString(R.string.copy_content),
-                                        context.getString(R.string.save_illustration),
-                                        context.getString(R.string.save_as_picture)
-                                    )
-                                ) { _, i: Int ->
-                                    when (i) {
-                                        0 -> if (BaseApplication.cytoidIsInstalled) {
-                                            context.startActivity(
-                                                Intent(
-                                                    Intent.ACTION_VIEW,
-                                                    Uri.parse(
-                                                        CytoidDeepLink.getCytoidLevelDeepLink(
-                                                            record.chart.level.uid
-                                                        )
-                                                    )
-                                                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            )
-                                        } else context
-                                            .getString(R.string.cytoid_is_not_installed)
-                                            .showToast()
-
-                                        1 -> {
-                                            AlertDialog
-                                                .Builder(context)
-                                                .setTitle(context.resources.getString(R.string.choose_copy_content))
-                                                .setItems(
-                                                    arrayOf(
-                                                        record.chart.level.title,
-                                                        record.chart.level.uid,
-                                                        "${
-                                                            record.chart.name
-                                                                ?: record.chart.type.replaceFirstChar {
-                                                                    if (it.isLowerCase()) it.titlecase(
-                                                                        Locale.getDefault()
-                                                                    ) else it.toString()
-                                                                }
-                                                        } ${record.chart.difficulty}",
-                                                        record.score.toString(),
-                                                        "Mods:${record.mods}",
-                                                        "${
-                                                            (record.accuracy * 100).run {
-                                                                if (keep2DecimalPlaces) this.setPrecision(
-                                                                    2
-                                                                ) else this
-                                                            }
-                                                        }% accuracy  ${record.details.maxCombo} max combo",
-                                                        "Rating ${
-                                                            record.rating.run {
-                                                                if (keep2DecimalPlaces) this.setPrecision(
-                                                                    2
-                                                                ) else this
-                                                            }
-                                                        }",
-                                                        "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}",
-                                                        DateParser
-                                                            .parseISO8601Date(record.date)
-                                                            .formatToTimeString(),
-                                                        context.getString(R.string.all_contents),
-                                                        "（仅调试）UserRecord对象"
-                                                    )
-                                                ) { _, j: Int ->
-                                                    when (j) {
-                                                        0 -> record.chart.level.title.saveIntoClipboard()
-                                                        1 -> record.chart.level.uid.saveIntoClipboard()
-                                                        2 -> "${
-                                                            record.chart.name
-                                                                ?: record.chart.type.replaceFirstChar {
-                                                                    if (it.isLowerCase()) it.titlecase(
-                                                                        Locale.getDefault()
-                                                                    ) else it.toString()
-                                                                }
-                                                        } ${record.chart.difficulty}".saveIntoClipboard()
-
-                                                        3 -> record.score
-                                                            .toString()
-                                                            .saveIntoClipboard()
-
-                                                        4 -> "Mods:${record.mods}".saveIntoClipboard()
-
-                                                        5 -> "${
-                                                            (record.accuracy * 100).run {
-                                                                if (keep2DecimalPlaces) this.setPrecision(
-                                                                    2
-                                                                ) else this
-                                                            }
-                                                        }% accuracy  ${record.details.maxCombo} max combo".saveIntoClipboard()
-
-                                                        6 -> "Rating ${
-                                                            record.rating.run {
-                                                                if (keep2DecimalPlaces) this.setPrecision(
-                                                                    2
-                                                                ) else this
-                                                            }
-                                                        }".saveIntoClipboard()
-
-                                                        7 -> "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}".saveIntoClipboard()
-                                                        8 -> DateParser
-                                                            .parseISO8601Date(record.date)
-                                                            .formatToTimeString()
-                                                            .saveIntoClipboard()
-
-                                                        9 -> record
-                                                            .detailsString()
-                                                            .saveIntoClipboard()
-
-                                                        10 -> record
-                                                            .toString()
-                                                            .saveIntoClipboard()
-                                                    }
-
-                                                }
-                                                .create()
-                                                .show()
-                                        }
-
-                                        2 -> {
-                                            context
-                                                .getString(R.string.saving_illustration)
-                                                .showToast()
-                                            thread {
-                                                kotlin
-                                                    .runCatching {
-                                                        URL(record.chart.level.bundle.backgroundImage.original)
-                                                            .toBitmap()
-                                                            .saveIntoMediaStore(
-                                                                context.contentResolver,
-                                                                ContentValues()
-                                                            )
-                                                    }
-                                                    .onSuccess {
-                                                        Looper.prepare()
-                                                        context
-                                                            .getString(R.string.saved_into_gallery)
-                                                            .showToast()
-                                                    }
-                                                    .onFailure { e ->
-                                                        e.printStackTrace()
-                                                        context.runOnUiThread {
-                                                            e
-                                                                .stackTraceToString()
-                                                                .showDialog(
-                                                                    context,
-                                                                    context.getString(R.string.fail)
-                                                                ) {
-                                                                    this.setPositiveButton(
-                                                                        context.getString(
-                                                                            R.string.confirm
-                                                                        )
-                                                                    ) { dialogInterface, _ ->
-                                                                        dialogInterface.dismiss()
-                                                                    }
-                                                                }
-                                                        }
-                                                    }
-                                            }
-                                        }
-
-                                        3 -> {
-                                            context
-                                                .getString(R.string.saving)
-                                                .showToast()
-                                            captureController.capture()
-                                        }
-                                    }
-                                }
-                                .create()
-                                .show()
+                            recordDialogState = true
                         }
                     )
                 }
@@ -273,90 +141,125 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
             Column(
                 Modifier.padding(6.dp)
             ) {
-                if (File(
-                        externalCacheStorageDir,
-                        "backgroundImage_${record.chart.level.uid}"
-                    ).exists() && File(
-                        externalCacheStorageDir,
-                        "backgroundImage_${record.chart.level.uid}"
-                    ).isFile
-                ) {
-                    val input = FileInputStream(
-                        File(
+                Box {
+                    if (File(
                             externalCacheStorageDir,
                             "backgroundImage_${record.chart.level.uid}"
-                        )
-                    )
-                    val bitmap = BitmapFactory.decodeStream(input)
-                    Card {
-                        Image(
-                            painter = BitmapPainter(bitmap.asImageBitmap()),
-                            contentDescription = record.chart.level.title,
-                            contentScale = ContentScale.FillWidth,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                } else {
-                    Card {
-                        Box {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center)
+                        ).exists() && File(
+                            externalCacheStorageDir,
+                            "backgroundImage_${record.chart.level.uid}"
+                        ).isFile
+                    ) {
+                        val input = FileInputStream(
+                            File(
+                                externalCacheStorageDir,
+                                "backgroundImage_${record.chart.level.uid}"
                             )
-                            var backgroundImageIsError by remember { mutableStateOf(false) }
-                            Column {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(record.chart.level.bundle.backgroundImage.thumbnail)
-                                        .crossfade(true)
-                                        .setHeader(
-                                            "User-Agent",
-                                            "CytoidClient/2.1.1"
-                                        )
-                                        .crossfade(true)
-                                        .error(R.drawable.sayakacry)
-                                        .build(),
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentDescription = record.chart.level.title,
-                                    onSuccess = {
-                                        val imageFile = File(
-                                            externalCacheStorageDir,
-                                            "backgroundImage_${record.chart.level.uid}"
-                                        )
-                                        try {
-                                            imageFile.createNewFile()
-                                            val output =
-                                                FileOutputStream(imageFile)
-                                            it.result.drawable.toBitmap()
-                                                .compress(
-                                                    Bitmap.CompressFormat.PNG,
-                                                    100,
-                                                    output
-                                                )
-                                            output.flush()
-                                            output.close()
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                            e.stackTraceToString().showToast()
-                                            Crashes.trackError(e)
-                                        }
-                                    },
-                                    onError = {
-                                        backgroundImageIsError = true
-                                    },
-                                    contentScale = ContentScale.FillWidth,
+                        )
+                        val bitmap = BitmapFactory.decodeStream(input)
+                        Card {
+                            Image(
+                                painter = BitmapPainter(bitmap.asImageBitmap()),
+                                contentDescription = record.chart.level.title,
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    } else {
+                        Card {
+                            Box {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
-                                AnimatedVisibility(
-                                    visible = backgroundImageIsError,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.imageError),
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = LocalTextStyle.current.fontSize.times(2)
+                                var backgroundImageIsError by remember { mutableStateOf(false) }
+                                Column {
+                                    AsyncImage(
+                                        model = getImageRequestBuilderForCytoid(record.chart.level.bundle.backgroundImage.thumbnail)
+                                            .build(),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentDescription = record.chart.level.title,
+                                        onSuccess = {
+                                            val imageFile = File(
+                                                externalCacheStorageDir,
+                                                "backgroundImage_${record.chart.level.uid}"
+                                            )
+                                            try {
+                                                imageFile.createNewFile()
+                                                val output =
+                                                    FileOutputStream(imageFile)
+                                                it.result.drawable.toBitmap()
+                                                    .compress(
+                                                        Bitmap.CompressFormat.PNG,
+                                                        100,
+                                                        output
+                                                    )
+                                                output.flush()
+                                                output.close()
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                                e.stackTraceToString().showToast()
+                                                Crashes.trackError(e)
+                                            }
+                                        },
+                                        onError = {
+                                            backgroundImageIsError = true
+                                        },
+                                        contentScale = ContentScale.FillWidth,
                                     )
+                                    AnimatedVisibility(
+                                        visible = backgroundImageIsError,
+                                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = R.string.imageError),
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = LocalTextStyle.current.fontSize.times(2)
+                                        )
+                                    }
                                 }
                             }
                         }
+                    }
+                    IconButton(
+                        onClick = {
+                            if (mediaPlayerState != Player.STATE_READY) {
+                                val dataSourceFactory =
+                                    DefaultHttpDataSource.Factory()
+                                        .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
+                                val mediaItem = MediaItem.Builder()
+                                    .setUri(
+                                        Uri.parse(
+                                            record.chart.level.bundle.musicPreview
+                                                ?: record.chart.level.bundle.music
+                                        )
+                                    ).build()
+                                val internetAudioSource =
+                                    ProgressiveMediaSource.Factory(dataSourceFactory)
+                                        .createMediaSource(mediaItem)
+                                exoPlayer.setMediaSource(internetAudioSource)
+                                exoPlayer.prepare()
+                                exoPlayer.play()
+                            } else {
+                                exoPlayer.stop()
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(6.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                CircleShape
+                            )
+                    ) {
+                        if (mediaPlayerState == Player.STATE_BUFFERING) CircularProgressIndicator(
+                            Modifier.padding(6.dp)
+                        )
+                        else Icon(
+                            imageVector = if (mediaPlayerState == Player.STATE_READY) ImageVector.vectorResource(
+                                R.drawable.baseline_stop_24
+                            ) else Icons.Filled.PlayArrow,
+                            contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
+                        )
                     }
                 }
                 recordIndex?.let {
@@ -387,11 +290,6 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                     "easy" -> listOf(
                                         Color(0xff4ca2cd),
                                         Color(0xff67b26f)
-                                    )
-
-                                    "hard" -> listOf(
-                                        Color(0xff4568dc),
-                                        Color(0xffb06abc)
                                     )
 
                                     "extreme" -> listOf(
@@ -508,5 +406,238 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 )
             }
         }
+        if (recordDialogState) AlertDialog(
+            onDismissRequest = { recordDialogState = false },
+            confirmButton = {},
+            title = {
+                Text(text = record.chart.level.title, style = MaterialTheme.typography.titleLarge)
+            },
+            text = {
+                Column(
+                    Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    ListItem(
+                        headlineContent = { Text(context.getString(R.string.view_in_cytoid)) },
+                        modifier = Modifier.clickable {
+                            if (BaseApplication.cytoidIsInstalled) {
+                                BaseApplication.context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid))
+                                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            } else context
+                                .getString(R.string.cytoid_is_not_installed)
+                                .showToast()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(text = stringResource(id = R.string.view_in_cytoidIO)) },
+                        modifier = Modifier.clickable {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://cytoid.io/levels/${record.chart.level.uid}")
+                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            BaseApplication.context.startActivity(intent)
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(context.getString(R.string.copy_content)) },
+                        modifier = Modifier.clickable {
+                            copyRecordContentDialogState = true
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(context.getString(R.string.save_illustration)) },
+                        modifier = Modifier.clickable {
+                            context
+                                .getString(R.string.saving_illustration)
+                                .showToast()
+                            thread {
+                                kotlin
+                                    .runCatching {
+                                        URL(record.chart.level.bundle.backgroundImage.original)
+                                            .toBitmap()
+                                            .saveIntoMediaStore(
+                                                context.contentResolver,
+                                                ContentValues()
+                                            )
+                                    }
+                                    .onSuccess {
+                                        Looper.prepare()
+                                        context
+                                            .getString(R.string.saved_into_gallery)
+                                            .showToast()
+                                    }
+                                    .onFailure { e ->
+                                        e.printStackTrace()
+                                        context.runOnUiThread {
+                                            e
+                                                .stackTraceToString()
+                                                .showDialog(
+                                                    context,
+                                                    context.getString(R.string.fail)
+                                                )
+                                        }
+                                    }
+                            }
+
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(context.getString(R.string.save_as_picture)) },
+                        modifier = Modifier.clickable {
+                            context
+                                .getString(R.string.saving)
+                                .showToast()
+                            captureController.capture()
+
+                        }
+                    )
+                }
+            }
+        )
+        if (copyRecordContentDialogState) AlertDialog(
+            onDismissRequest = { copyRecordContentDialogState = false },
+            confirmButton = {},
+            title = {
+                Text(
+                    text = context.resources.getString(R.string.choose_copy_content),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column(
+                    Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    ListItem(
+                        headlineContent = { Text(record.chart.level.title) },
+                        modifier = Modifier.clickable {
+                            record.chart.level.title.saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(record.chart.level.uid) },
+                        modifier = Modifier.clickable {
+                            record.chart.level.uid.saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = {
+                            Text("${
+                                record.chart.name
+                                    ?: record.chart.type.replaceFirstChar {
+                                        if (it.isLowerCase()) it.titlecase(
+                                            Locale.getDefault()
+                                        ) else it.toString()
+                                    }
+                            } ${record.chart.difficulty}")
+                        },
+                        modifier = Modifier.clickable {
+                            "${
+                                record.chart.name
+                                    ?: record.chart.type.replaceFirstChar {
+                                        if (it.isLowerCase()) it.titlecase(
+                                            Locale.getDefault()
+                                        ) else it.toString()
+                                    }
+                            } ${record.chart.difficulty}".saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(record.score.toString()) },
+                        modifier = Modifier.clickable {
+                            record.score
+                                .toString()
+                                .saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text("Mods:${record.mods}") },
+                        modifier = Modifier.clickable {
+                            "Mods:${record.mods}".saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = {
+                            Text("${
+                                (record.accuracy * 100).run {
+                                    if (keep2DecimalPlaces) this.setPrecision(
+                                        2
+                                    ) else this
+                                }
+                            }% accuracy  ${record.details.maxCombo} max combo")
+                        },
+                        modifier = Modifier.clickable {
+                            "${
+                                (record.accuracy * 100).run {
+                                    if (keep2DecimalPlaces) this.setPrecision(
+                                        2
+                                    ) else this
+                                }
+                            }% accuracy  ${record.details.maxCombo} max combo".saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = {
+                            Text("Rating ${
+                                record.rating.run {
+                                    if (keep2DecimalPlaces) this.setPrecision(
+                                        2
+                                    ) else this
+                                }
+                            }")
+                        },
+                        modifier = Modifier.clickable {
+                            "Rating ${
+                                record.rating.run {
+                                    if (keep2DecimalPlaces) this.setPrecision(
+                                        2
+                                    ) else this
+                                }
+                            }".saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text("Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}") },
+                        modifier = Modifier.clickable {
+                            "Perfect ${record.details.perfect} Great ${record.details.great} Good ${record.details.good} Bad ${record.details.bad} Miss ${record.details.miss}".saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                DateParser
+                                    .parseISO8601Date(record.date)
+                                    .formatToTimeString()
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            DateParser
+                                .parseISO8601Date(record.date)
+                                .formatToTimeString()
+                                .saveIntoClipboard()
+
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text(context.getString(R.string.all_contents)) },
+                        modifier = Modifier.clickable {
+                            record
+                                .detailsString()
+                                .saveIntoClipboard()
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text("（仅调试）UserRecord对象") },
+                        modifier = Modifier.clickable {
+                            record
+                                .toString()
+                                .saveIntoClipboard()
+                        }
+                    )
+                }
+            }
+        )
     }
 }

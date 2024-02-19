@@ -46,6 +46,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
 import com.lyneon.cytoidinfoquerier.model.graphql.Analytics
+import com.lyneon.cytoidinfoquerier.model.graphql.GraphQL
 import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
@@ -328,19 +329,21 @@ fun AnalyticsCompose() {
                                                 try {
                                                     val profileString =
                                                         NetRequest.getGQLResponseJSONString(
-                                                            if (queryType == QueryType.bestRecords) {
-                                                                Analytics.getQueryBody(
-                                                                    cytoidID = cytoidID,
-                                                                    bestRecordsLimit = queryCount.toInt(),
-                                                                    recentRecordsLimit = queryCount.toInt()
-                                                                )
-                                                            } else {
-                                                                Analytics.getQueryBody(
-                                                                    cytoidID = cytoidID,
-                                                                    bestRecordsLimit = queryCount.toInt(),
-                                                                    recentRecordsLimit = queryCount.toInt()
-                                                                )
-                                                            }
+                                                            GraphQL.getQueryString(
+                                                                if (queryType == QueryType.bestRecords) {
+                                                                    Analytics.getQueryString(
+                                                                        cytoidID = cytoidID,
+                                                                        bestRecordsLimit = queryCount.toInt(),
+                                                                        recentRecordsLimit = queryCount.toInt()
+                                                                    )
+                                                                } else {
+                                                                    Analytics.getQueryString(
+                                                                        cytoidID = cytoidID,
+                                                                        bestRecordsLimit = queryCount.toInt(),
+                                                                        recentRecordsLimit = queryCount.toInt()
+                                                                    )
+                                                                }
+                                                            )
                                                         )
                                                     response =
                                                         Analytics.decodeFromJSONString(

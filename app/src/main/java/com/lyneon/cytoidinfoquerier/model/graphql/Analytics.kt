@@ -23,57 +23,56 @@ data class Analytics(
     }
 
     companion object {
-        fun getQueryBody(
+        fun getQueryString(
             cytoidID: String,
             recentRecordsLimit: Int = 0,
             recentRecordsSort: String = RecordQuerySort.Date,
             recentRecordsOrder: String = RecordQueryOrder.DESC,
             bestRecordsLimit: Int = 0
-        ): String = GraphQL.getQueryString(
-            """{
-                    profile(uid:"$cytoidID"){
-                        recentRecords(limit:$recentRecordsLimit,sort:$recentRecordsSort,order:$recentRecordsOrder){
-                            ...UserRecord
-                        },
-                        bestRecords(limit:$bestRecordsLimit){
-                            ...UserRecord
-                        }
-                    }
-                }
-    
-                fragment UserRecord on UserRecord {
-                    score,
-                    accuracy,
-                    mods,
-                    details {
-                        perfect,
-                        great,
-                        good,
-                        bad,
-                        miss,
-                        maxCombo
+        ) = """{
+                profile(uid:"$cytoidID"){
+                    recentRecords(limit:$recentRecordsLimit,sort:$recentRecordsSort,order:$recentRecordsOrder){
+                        ...UserRecord
                     },
-                    rating,
-                    date,
-                    chart {
-                        difficulty,
-                        type,
-                        name,
-                        notesCount,
-                        level {
-                            uid,
-                            title,
-                            bundle {
-                                backgroundImage {
-                                    thumbnail,
-                                    original
-                                }
+                    bestRecords(limit:$bestRecordsLimit){
+                        ...UserRecord
+                    }
+                }
+            }
+
+            fragment UserRecord on UserRecord {
+                score
+                accuracy
+                mods
+                details {
+                    perfect
+                    great
+                    good
+                    bad
+                    miss
+                    maxCombo
+                }
+                rating
+                date
+                chart {
+                    difficulty
+                    type
+                    name
+                    notesCount
+                    level {
+                        uid
+                        title
+                        bundle {
+                            backgroundImage {
+                                thumbnail
+                                original
                             }
+                            music
+                            musicPreview
                         }
                     }
                 }
-            """.replace("\n", "\\n").replace("\"", "\\\"")
-        )
+            }"""
 
         fun decodeFromJSONString(json: String): Analytics {
             val jsonHandler = Json { ignoreUnknownKeys = true }
@@ -135,7 +134,9 @@ data class UserRecord(
         ) {
             @Serializable
             data class LevelBundle(
-                val backgroundImage: Image
+                val backgroundImage: Image,
+                val music: String,
+                val musicPreview: String? = null
             ) {
                 @Serializable
                 data class Image(
