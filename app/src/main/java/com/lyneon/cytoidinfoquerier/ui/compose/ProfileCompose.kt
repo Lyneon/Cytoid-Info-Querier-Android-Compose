@@ -537,7 +537,7 @@ private fun DetailsCard(profileWebapi: ProfileWebapi) {
                     Modifier.weight(1f)
                 ) {
                     val duration =
-                        (profileWebapi.activities.totalPlayTime * 100).toLong().milliseconds
+                        (profileWebapi.activities.totalPlayTime * 1000).toLong().milliseconds
                     val days = duration.inWholeDays
                     val hours = duration.inWholeHours - duration.inWholeDays * 24
                     val minutes = duration.inWholeMinutes - duration.inWholeHours * 60
