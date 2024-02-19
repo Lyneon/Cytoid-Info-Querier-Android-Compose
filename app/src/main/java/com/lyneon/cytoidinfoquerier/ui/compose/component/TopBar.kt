@@ -30,7 +30,10 @@ import kotlin.concurrent.thread
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name)) {
+fun TopBar(
+    title: String = BaseApplication.context.getString(R.string.app_name),
+    additionalActions: @Composable ((Unit) -> Unit)? = null
+) {
     val scope = rememberCoroutineScope()
     CenterAlignedTopAppBar(
         title = { Text(text = title) },
@@ -48,6 +51,7 @@ fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name))
         },
         actions = {
             var menuIsExpanded by remember { mutableStateOf(false) }
+            additionalActions?.invoke(Unit)
             IconButton(onClick = { menuIsExpanded = !menuIsExpanded }) {
                 Icon(
                     imageVector = Icons.Filled.MoreVert,

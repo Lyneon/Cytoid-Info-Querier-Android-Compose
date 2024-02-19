@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -73,326 +75,345 @@ fun AnalyticsCompose() {
     var queryCountIsNull by remember { mutableStateOf(false) }
     var columnsCountIsNull by remember { mutableStateOf(false) }
     var querySettingsMenuIsExpanded by remember { mutableStateOf(false) }
+    var hideInput by remember { mutableStateOf(false) }
 
     Column {
-        TopBar(title = stringResource(id = R.string.analytics))
+        TopBar(
+            title = stringResource(id = R.string.analytics),
+            additionalActions = {
+                if (hideInput) IconButton(onClick = { hideInput = false }) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = stringResource(id = R.string.unfold)
+                    )
+                }
+            }
+        )
         Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
-            Column {
-                var textFieldIsError by remember { mutableStateOf(false) }
-                var textFieldIsEmpty by remember { mutableStateOf(false) }
-                TextField(
-                    isError = textFieldIsError or textFieldIsEmpty,
-                    value = cytoidID,
-                    onValueChange = {
-                        cytoidID = it
-                        textFieldIsError = !it.isValidCytoidID()
-                        textFieldIsEmpty = it.isEmpty()
-                    },
-                    label = { Text(text = stringResource(id = R.string.playerName)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        Row(
-                            Modifier.padding(horizontal = 6.dp)
-                        ) {
-                            IconButton(onClick = { querySettingsMenuIsExpanded = true }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Settings,
-                                    contentDescription = stringResource(id = R.string.querySettings)
-                                )
-                                DropdownMenu(
-                                    expanded = querySettingsMenuIsExpanded,
-                                    onDismissRequest = {
-                                        querySettingsMenuIsExpanded = false
-                                    }) {
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text(text = stringResource(id = R.string.best_records))
-                                                RadioButton(
-                                                    selected = queryType == QueryType.bestRecords,
-                                                    onClick = {
-                                                        queryType = QueryType.bestRecords
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = { queryType = QueryType.bestRecords }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text(text = stringResource(id = R.string.recent_records))
-                                                RadioButton(
-                                                    selected = queryType == QueryType.recentRecords,
-                                                    onClick = {
-                                                        queryType = QueryType.recentRecords
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = { queryType = QueryType.recentRecords }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Column(
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                TextField(
-                                                    value = queryCount,
-                                                    onValueChange = {
-                                                        queryCountIsNull = it.isEmpty()
-                                                        queryCount = it
-                                                    },
-                                                    keyboardOptions = KeyboardOptions(
-                                                        keyboardType = KeyboardType.Number
-                                                    ),
-                                                    singleLine = true,
-                                                    isError = queryCountIsNull,
-                                                    label = { Text(text = stringResource(id = R.string.query_count)) }
-                                                )
-                                                AnimatedVisibility(visible = queryCountIsNull) {
-                                                    Text(
-                                                        text = stringResource(id = R.string.empty_queryCount),
-                                                        color = Color.Red
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onClick = {}
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text(text = stringResource(id = R.string.ignore_cache))
-                                                Checkbox(
-                                                    checked = ignoreCache,
-                                                    onCheckedChange = {
-                                                        ignoreCache = it
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = { ignoreCache = !ignoreCache }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text(text = stringResource(id = R.string.keep_2_decimal_places))
-                                                Checkbox(
-                                                    checked = keep2DecimalPlace,
-                                                    onCheckedChange = {
-                                                        keep2DecimalPlace = it
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = { keep2DecimalPlace = !keep2DecimalPlace }
-                                    )
-                                    DropdownMenuItem(
-                                        text = {
-                                            Column(
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                TextField(
-                                                    value = columnsCount,
-                                                    onValueChange = {
-                                                        columnsCountIsNull = it.isEmpty()
-                                                        columnsCount = it
-                                                    },
-                                                    keyboardOptions = KeyboardOptions(
-                                                        keyboardType = KeyboardType.Number
-                                                    ),
-                                                    singleLine = true,
-                                                    isError = columnsCountIsNull,
-                                                    label = { Text(text = stringResource(id = R.string.columns_count)) },
-                                                    trailingIcon = {
-                                                        TextButton(onClick = {
-                                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(
-                                                                    context,
-                                                                    Manifest.permission.POST_NOTIFICATIONS
-                                                                ) != PackageManager.PERMISSION_GRANTED
-                                                            ) {
-                                                                context.requestPermissions(
-                                                                    arrayOf(
-                                                                        Manifest.permission.POST_NOTIFICATIONS
-                                                                    ), 1
-                                                                )
-                                                            }
-                                                            val intent =
-                                                                ImageGenerateService.getStartIntent(
-                                                                    context,
-                                                                    cytoidID,
-                                                                    columnsCount.toInt(),
-                                                                    queryType,
-                                                                    keep2DecimalPlace
-                                                                )
-                                                            context.startService(intent)
-                                                        }) {
-                                                            Text(text = stringResource(id = R.string.save_as_picture))
-                                                        }
-                                                    }
-                                                )
-                                                AnimatedVisibility(visible = columnsCountIsNull) {
-                                                    Text(
-                                                        text = stringResource(id = R.string.empty_columnsCount),
-                                                        color = Color.Red
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onClick = {}
+            AnimatedVisibility(visible = !hideInput) {
+                Column {
+                    var textFieldIsError by remember { mutableStateOf(false) }
+                    var textFieldIsEmpty by remember { mutableStateOf(false) }
+                    TextField(
+                        isError = textFieldIsError or textFieldIsEmpty,
+                        value = cytoidID,
+                        onValueChange = {
+                            cytoidID = it
+                            textFieldIsError = !it.isValidCytoidID()
+                            textFieldIsEmpty = it.isEmpty()
+                        },
+                        label = { Text(text = stringResource(id = R.string.playerName)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            Row(
+                                Modifier.padding(horizontal = 6.dp)
+                            ) {
+                                IconButton(onClick = { hideInput = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowUp,
+                                        contentDescription = stringResource(id = R.string.fold)
                                     )
                                 }
-                            }
-                            TextButton(
-                                onClick = {
-                                    if (cytoidID.isEmpty()) {
-                                        context.getString(R.string.empty_cytoidID)
-                                            .showToast()
-                                        textFieldIsEmpty = true
-                                    } else if (!cytoidID.isValidCytoidID()) {
-                                        context.getString(R.string.invalid_cytoidID)
-                                            .showToast()
-                                        textFieldIsError = true
-                                    } else if (queryCountIsNull) {
-                                        context.getString(R.string.empty_queryCount)
-                                            .showToast()
-                                        querySettingsMenuIsExpanded = true
-                                    } else {
-                                        textFieldIsError = false
-                                        isQueryingFinished = false
-                                        if (System.currentTimeMillis() - mmkv.decodeLong(
-                                                "lastQueryProfileTime_${cytoidID}_${queryType}",
-                                                -1
-                                            ) <= (6 * 60 * 60 * 1000) && !ignoreCache
-                                        ) {
-                                            response = try {
-                                                var toIndex: Int
-                                                val analytics = Analytics.decodeFromJSONString(
-                                                    mmkv.decodeString("profileString_${cytoidID}_${queryType}")
-                                                        ?: throw Exception()
-                                                ).apply {
-                                                    if (queryType == QueryType.bestRecords) {
-                                                        toIndex =
-                                                            if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
-                                                            else this.data.profile.bestRecords.size
-                                                        this.data.profile.bestRecords =
-                                                            ArrayList(
-                                                                this.data.profile.bestRecords.subList(
-                                                                    0,
-                                                                    toIndex
-                                                                )
-                                                            )
-                                                    } else {
-                                                        toIndex =
-                                                            if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
-                                                            else this.data.profile.recentRecords.size
-                                                        this.data.profile.recentRecords =
-                                                            ArrayList(
-                                                                this.data.profile.recentRecords.subList(
-                                                                    0,
-                                                                    toIndex
-                                                                )
-                                                            )
+                                IconButton(onClick = { querySettingsMenuIsExpanded = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Settings,
+                                        contentDescription = stringResource(id = R.string.querySettings)
+                                    )
+                                    DropdownMenu(
+                                        expanded = querySettingsMenuIsExpanded,
+                                        onDismissRequest = {
+                                            querySettingsMenuIsExpanded = false
+                                        }) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(text = stringResource(id = R.string.best_records))
+                                                    RadioButton(
+                                                        selected = queryType == QueryType.bestRecords,
+                                                        onClick = {
+                                                            queryType = QueryType.bestRecords
+                                                        }
+                                                    )
+                                                }
+                                            },
+                                            onClick = { queryType = QueryType.bestRecords }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(text = stringResource(id = R.string.recent_records))
+                                                    RadioButton(
+                                                        selected = queryType == QueryType.recentRecords,
+                                                        onClick = {
+                                                            queryType = QueryType.recentRecords
+                                                        }
+                                                    )
+                                                }
+                                            },
+                                            onClick = { queryType = QueryType.recentRecords }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Column(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    TextField(
+                                                        value = queryCount,
+                                                        onValueChange = {
+                                                            queryCountIsNull = it.isEmpty()
+                                                            queryCount = it
+                                                        },
+                                                        keyboardOptions = KeyboardOptions(
+                                                            keyboardType = KeyboardType.Number
+                                                        ),
+                                                        singleLine = true,
+                                                        isError = queryCountIsNull,
+                                                        label = { Text(text = stringResource(id = R.string.query_count)) }
+                                                    )
+                                                    AnimatedVisibility(visible = queryCountIsNull) {
+                                                        Text(
+                                                            text = stringResource(id = R.string.empty_queryCount),
+                                                            color = Color.Red
+                                                        )
                                                     }
                                                 }
-                                                "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
-                                                analytics
-                                            } catch (e: Exception) {
-                                                e.stackTraceToString().showDialog(
-                                                    context,
-                                                    context.getString(R.string.fail)
-                                                )
-                                                Crashes.trackError(e)
-                                                return@TextButton
-                                            }
-                                            isQueryingFinished = true
-                                        } else {
-                                            "开始查询$cytoidID".showToast()
-                                            thread {
-                                                try {
-                                                    val profileString =
-                                                        NetRequest.getGQLResponseJSONString(
-                                                            GraphQL.getQueryString(
-                                                                if (queryType == QueryType.bestRecords) {
-                                                                    Analytics.getQueryString(
-                                                                        cytoidID = cytoidID,
-                                                                        bestRecordsLimit = queryCount.toInt(),
-                                                                        recentRecordsLimit = queryCount.toInt()
-                                                                    )
-                                                                } else {
-                                                                    Analytics.getQueryString(
-                                                                        cytoidID = cytoidID,
-                                                                        bestRecordsLimit = queryCount.toInt(),
-                                                                        recentRecordsLimit = queryCount.toInt()
+                                            },
+                                            onClick = {}
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(text = stringResource(id = R.string.ignore_cache))
+                                                    Checkbox(
+                                                        checked = ignoreCache,
+                                                        onCheckedChange = {
+                                                            ignoreCache = it
+                                                        }
+                                                    )
+                                                }
+                                            },
+                                            onClick = { ignoreCache = !ignoreCache }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(text = stringResource(id = R.string.keep_2_decimal_places))
+                                                    Checkbox(
+                                                        checked = keep2DecimalPlace,
+                                                        onCheckedChange = {
+                                                            keep2DecimalPlace = it
+                                                        }
+                                                    )
+                                                }
+                                            },
+                                            onClick = { keep2DecimalPlace = !keep2DecimalPlace }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Column(
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    TextField(
+                                                        value = columnsCount,
+                                                        onValueChange = {
+                                                            columnsCountIsNull = it.isEmpty()
+                                                            columnsCount = it
+                                                        },
+                                                        keyboardOptions = KeyboardOptions(
+                                                            keyboardType = KeyboardType.Number
+                                                        ),
+                                                        singleLine = true,
+                                                        isError = columnsCountIsNull,
+                                                        label = { Text(text = stringResource(id = R.string.columns_count)) },
+                                                        trailingIcon = {
+                                                            TextButton(onClick = {
+                                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(
+                                                                        context,
+                                                                        Manifest.permission.POST_NOTIFICATIONS
+                                                                    ) != PackageManager.PERMISSION_GRANTED
+                                                                ) {
+                                                                    context.requestPermissions(
+                                                                        arrayOf(
+                                                                            Manifest.permission.POST_NOTIFICATIONS
+                                                                        ), 1
                                                                     )
                                                                 }
-                                                            )
+                                                                val intent =
+                                                                    ImageGenerateService.getStartIntent(
+                                                                        context,
+                                                                        cytoidID,
+                                                                        columnsCount.toInt(),
+                                                                        queryType,
+                                                                        keep2DecimalPlace
+                                                                    )
+                                                                context.startService(intent)
+                                                            }) {
+                                                                Text(text = stringResource(id = R.string.save_as_picture))
+                                                            }
+                                                        }
+                                                    )
+                                                    AnimatedVisibility(visible = columnsCountIsNull) {
+                                                        Text(
+                                                            text = stringResource(id = R.string.empty_columnsCount),
+                                                            color = Color.Red
                                                         )
-                                                    response =
-                                                        Analytics.decodeFromJSONString(
+                                                    }
+                                                }
+                                            },
+                                            onClick = {}
+                                        )
+                                    }
+                                }
+                                TextButton(
+                                    onClick = {
+                                        if (cytoidID.isEmpty()) {
+                                            context.getString(R.string.empty_cytoidID)
+                                                .showToast()
+                                            textFieldIsEmpty = true
+                                        } else if (!cytoidID.isValidCytoidID()) {
+                                            context.getString(R.string.invalid_cytoidID)
+                                                .showToast()
+                                            textFieldIsError = true
+                                        } else if (queryCountIsNull) {
+                                            context.getString(R.string.empty_queryCount)
+                                                .showToast()
+                                            querySettingsMenuIsExpanded = true
+                                        } else {
+                                            textFieldIsError = false
+                                            isQueryingFinished = false
+                                            if (System.currentTimeMillis() - mmkv.decodeLong(
+                                                    "lastQueryProfileTime_${cytoidID}_${queryType}",
+                                                    -1
+                                                ) <= (6 * 60 * 60 * 1000) && !ignoreCache
+                                            ) {
+                                                response = try {
+                                                    var toIndex: Int
+                                                    val analytics = Analytics.decodeFromJSONString(
+                                                        mmkv.decodeString("profileString_${cytoidID}_${queryType}")
+                                                            ?: throw Exception()
+                                                    ).apply {
+                                                        if (queryType == QueryType.bestRecords) {
+                                                            toIndex =
+                                                                if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
+                                                                else this.data.profile.bestRecords.size
+                                                            this.data.profile.bestRecords =
+                                                                ArrayList(
+                                                                    this.data.profile.bestRecords.subList(
+                                                                        0,
+                                                                        toIndex
+                                                                    )
+                                                                )
+                                                        } else {
+                                                            toIndex =
+                                                                if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
+                                                                else this.data.profile.recentRecords.size
+                                                            this.data.profile.recentRecords =
+                                                                ArrayList(
+                                                                    this.data.profile.recentRecords.subList(
+                                                                        0,
+                                                                        toIndex
+                                                                    )
+                                                                )
+                                                        }
+                                                    }
+                                                    "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
+                                                    analytics
+                                                } catch (e: Exception) {
+                                                    e.stackTraceToString().showDialog(
+                                                        context,
+                                                        context.getString(R.string.fail)
+                                                    )
+                                                    Crashes.trackError(e)
+                                                    return@TextButton
+                                                }
+                                                isQueryingFinished = true
+                                            } else {
+                                                "开始查询$cytoidID".showToast()
+                                                thread {
+                                                    try {
+                                                        val profileString =
+                                                            NetRequest.getGQLResponseJSONString(
+                                                                GraphQL.getQueryString(
+                                                                    if (queryType == QueryType.bestRecords) {
+                                                                        Analytics.getQueryString(
+                                                                            cytoidID = cytoidID,
+                                                                            bestRecordsLimit = queryCount.toInt(),
+                                                                            recentRecordsLimit = queryCount.toInt()
+                                                                        )
+                                                                    } else {
+                                                                        Analytics.getQueryString(
+                                                                            cytoidID = cytoidID,
+                                                                            bestRecordsLimit = queryCount.toInt(),
+                                                                            recentRecordsLimit = queryCount.toInt()
+                                                                        )
+                                                                    }
+                                                                )
+                                                            )
+                                                        response =
+                                                            Analytics.decodeFromJSONString(
+                                                                profileString
+                                                            )
+                                                        mmkv.encode(
+                                                            "lastQueryProfileTime_${cytoidID}_${queryType}",
+                                                            System.currentTimeMillis()
+                                                        )
+                                                        mmkv.encode(
+                                                            "profileString_${cytoidID}_${queryType}",
                                                             profileString
                                                         )
-                                                    mmkv.encode(
-                                                        "lastQueryProfileTime_${cytoidID}_${queryType}",
-                                                        System.currentTimeMillis()
-                                                    )
-                                                    mmkv.encode(
-                                                        "profileString_${cytoidID}_${queryType}",
-                                                        profileString
-                                                    )
-                                                    Looper.prepare()
-                                                    "查询${cytoidID}完成，共查询到${
-                                                        if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
-                                                        else response.data.profile.recentRecords.size
-                                                    }条数据".showToast()
-                                                    isQueryingFinished = true
-                                                } catch (e: Exception) {
-                                                    Looper.prepare()
-                                                    "查询失败：${e.stackTraceToString()}".showToast(
-                                                        Toast.LENGTH_LONG
-                                                    )
-                                                    e.printStackTrace()
-                                                    Crashes.trackError(e)
+                                                        Looper.prepare()
+                                                        "查询${cytoidID}完成，共查询到${
+                                                            if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
+                                                            else response.data.profile.recentRecords.size
+                                                        }条数据".showToast()
+                                                        isQueryingFinished = true
+                                                    } catch (e: Exception) {
+                                                        Looper.prepare()
+                                                        "查询失败：${e.stackTraceToString()}".showToast(
+                                                            Toast.LENGTH_LONG
+                                                        )
+                                                        e.printStackTrace()
+                                                        Crashes.trackError(e)
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+                                ) {
+                                    Text(text = stringResource(id = R.string.query))
                                 }
-                            ) {
-                                Text(text = stringResource(id = R.string.query))
                             }
-                        }
-                    },
-                    singleLine = true
-                )
-                AnimatedVisibility(visible = textFieldIsError) {
-                    Text(
-                        text = stringResource(id = R.string.invalid_cytoidID),
-                        color = Color.Red
+                        },
+                        singleLine = true
                     )
-                }
-                AnimatedVisibility(visible = textFieldIsEmpty) {
-                    Text(
-                        text = stringResource(id = R.string.empty_cytoidID),
-                        color = Color.Red
-                    )
+                    AnimatedVisibility(visible = textFieldIsError) {
+                        Text(
+                            text = stringResource(id = R.string.invalid_cytoidID),
+                            color = Color.Red
+                        )
+                    }
+                    AnimatedVisibility(visible = textFieldIsEmpty) {
+                        Text(
+                            text = stringResource(id = R.string.empty_cytoidID),
+                            color = Color.Red
+                        )
+                    }
                 }
             }
             AnimatedVisibility(visible = isQueryingFinished && ::response.isInitialized) {

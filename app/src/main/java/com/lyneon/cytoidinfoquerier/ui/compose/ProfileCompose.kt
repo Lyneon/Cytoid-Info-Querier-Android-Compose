@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -111,87 +112,106 @@ fun ProfileCompose() {
     var isQueryingFinished by remember { mutableStateOf(false) }
     var textFieldIsError by remember { mutableStateOf(false) }
     var textFieldIsEmpty by remember { mutableStateOf(false) }
+    var hideInput by remember { mutableStateOf(false) }
 
     Column {
-        TopBar(title = stringResource(id = R.string.profile))
+        TopBar(
+            title = stringResource(id = R.string.profile),
+            additionalActions = {
+                if (hideInput) IconButton(onClick = { hideInput = false }) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = stringResource(id = R.string.unfold)
+                    )
+                }
+            }
+        )
         Column(
             Modifier.padding(6.dp, 6.dp, 6.dp)
         ) {
-            Column {
-                TextField(
-                    isError = textFieldIsError or textFieldIsEmpty,
-                    value = cytoidID,
-                    onValueChange = {
-                        cytoidID = it
-                        textFieldIsError = !it.isValidCytoidID()
-                        textFieldIsEmpty = it.isEmpty()
-                    },
-                    label = { Text(text = stringResource(id = R.string.playerName)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        Row(
-                            Modifier.padding(horizontal = 6.dp)
-                        ) {
-                            TextButton(onClick = {
-                                if (cytoidID.isEmpty()) {
-                                    context.getString(R.string.empty_cytoidID)
-                                        .showToast()
-                                    textFieldIsEmpty = true
-                                } else if (!cytoidID.isValidCytoidID()) {
-                                    context.getString(R.string.invalid_cytoidID)
-                                        .showToast()
-                                    textFieldIsError = true
-                                } else {
-                                    textFieldIsError = false
-                                    isQueryingFinished = false
-                                    "开始查询$cytoidID".showToast()
-                                    thread {
-                                        try {
-                                            val job = Job()
-                                            CoroutineScope(job).launch {
-                                                val profiles =
-                                                    awaitAll(
-                                                        async { ProfileGraphQL.get(cytoidID) },
-                                                        async { ProfileWebapi.get(cytoidID) }
-                                                    )
-                                                profileGraphQL = profiles[0] as ProfileGraphQL
-                                                profileWebapi = profiles[1] as ProfileWebapi
-                                                comments =
-                                                    async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
-                                                isQueryingFinished = true
+            AnimatedVisibility(visible = !hideInput) {
+                Column {
+                    TextField(
+                        isError = textFieldIsError or textFieldIsEmpty,
+                        value = cytoidID,
+                        onValueChange = {
+                            cytoidID = it
+                            textFieldIsError = !it.isValidCytoidID()
+                            textFieldIsEmpty = it.isEmpty()
+                        },
+                        label = { Text(text = stringResource(id = R.string.playerName)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            Row(
+                                Modifier.padding(horizontal = 6.dp)
+                            ) {
+                                IconButton(onClick = { hideInput = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowUp,
+                                        contentDescription = stringResource(id = R.string.fold)
+                                    )
+                                }
+                                TextButton(onClick = {
+                                    if (cytoidID.isEmpty()) {
+                                        context.getString(R.string.empty_cytoidID)
+                                            .showToast()
+                                        textFieldIsEmpty = true
+                                    } else if (!cytoidID.isValidCytoidID()) {
+                                        context.getString(R.string.invalid_cytoidID)
+                                            .showToast()
+                                        textFieldIsError = true
+                                    } else {
+                                        textFieldIsError = false
+                                        isQueryingFinished = false
+                                        "开始查询$cytoidID".showToast()
+                                        thread {
+                                            try {
+                                                val job = Job()
+                                                CoroutineScope(job).launch {
+                                                    val profiles =
+                                                        awaitAll(
+                                                            async { ProfileGraphQL.get(cytoidID) },
+                                                            async { ProfileWebapi.get(cytoidID) }
+                                                        )
+                                                    profileGraphQL = profiles[0] as ProfileGraphQL
+                                                    profileWebapi = profiles[1] as ProfileWebapi
+                                                    comments =
+                                                        async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
+                                                    isQueryingFinished = true
+                                                }
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                                Crashes.trackError(e)
+                                                Looper.prepare()
+                                                e.stackTraceToString()
+                                                    .showDialog(context, "查询失败")
                                             }
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                            Crashes.trackError(e)
-                                            Looper.prepare()
-                                            e.stackTraceToString()
-                                                .showDialog(context, "查询失败")
                                         }
                                     }
+                                }) {
+                                    Text(text = stringResource(id = R.string.query))
                                 }
-                            }) {
-                                Text(text = stringResource(id = R.string.query))
                             }
-                        }
-                    },
-                    singleLine = true
-                )
-                AnimatedVisibility(visible = textFieldIsError) {
-                    Text(
-                        text = stringResource(id = R.string.invalid_cytoidID),
-                        color = Color.Red
+                        },
+                        singleLine = true
                     )
-                }
-                AnimatedVisibility(visible = textFieldIsEmpty) {
-                    Text(
-                        text = stringResource(id = R.string.empty_cytoidID),
-                        color = Color.Red
-                    )
+                    AnimatedVisibility(visible = textFieldIsError) {
+                        Text(
+                            text = stringResource(id = R.string.invalid_cytoidID),
+                            color = Color.Red
+                        )
+                    }
+                    AnimatedVisibility(visible = textFieldIsEmpty) {
+                        Text(
+                            text = stringResource(id = R.string.empty_cytoidID),
+                            color = Color.Red
+                        )
+                    }
                 }
             }
             AnimatedVisibility(visible = isQueryingFinished && ::profileGraphQL.isInitialized && ::profileWebapi.isInitialized) {
                 Column(
-                    Modifier
+                    modifier = Modifier
                         .verticalScroll(rememberScrollState())
                         .padding(vertical = 6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
