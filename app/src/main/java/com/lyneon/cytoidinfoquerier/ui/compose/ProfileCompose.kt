@@ -22,8 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -87,6 +87,7 @@ import com.patrykandpatrick.vico.compose.extension.indicatorSize
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
+import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.component.shape.DashedShape
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.dimensions.MutableDimensions
@@ -339,7 +340,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                     )
                     IconButton(onClick = { folded = !folded }) {
                         Icon(
-                            imageVector = if (folded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
                             contentDescription = if (folded) {
                                 stringResource(R.string.unfold)
                             } else {
@@ -380,7 +381,7 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                 )
                 IconButton(onClick = { folded = !folded }) {
                     Icon(
-                        imageVector = if (folded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (folded) {
                             stringResource(R.string.unfold)
                         } else {
@@ -425,7 +426,7 @@ private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL) {
                 )
                 IconButton(onClick = { folded = !folded }) {
                     Icon(
-                        imageVector = if (folded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (folded) {
                             stringResource(R.string.unfold)
                         } else {
@@ -746,7 +747,7 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                 )
                 IconButton(onClick = { folded = !folded }) {
                     Icon(
-                        imageVector = if (folded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (folded) {
                             stringResource(R.string.unfold)
                         } else {
@@ -829,7 +830,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL) {
                 )
                 IconButton(onClick = { folded = !folded }) {
                     Icon(
-                        imageVector = if (folded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (folded) {
                             stringResource(R.string.unfold)
                         } else {
@@ -871,7 +872,7 @@ private fun CommentsColumn(comments: ArrayList<Comment>) {
             )
             IconButton(onClick = { folded = !folded }) {
                 Icon(
-                    imageVector = if (folded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                    imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (folded) {
                         stringResource(R.string.unfold)
                     } else {
