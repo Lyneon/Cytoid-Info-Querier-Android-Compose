@@ -669,7 +669,11 @@ private fun DetailsCard(profileWebapi: ProfileWebapi) {
             }
             ProvideChartStyle(m3ChartStyle()) {
                 Chart(
-                    chart = if (tabIndex == 1) columnChart() else lineChart(),
+                    chart = if (tabIndex == 1) columnChart(
+                        axisValuesOverrider = AxisValuesOverrider.adaptiveYValues(1f)
+                    ) else lineChart(
+                        axisValuesOverrider = AxisValuesOverrider.adaptiveYValues(1f)
+                    ),
                     chartModelProducer = chartEntryModelProducer,
                     bottomAxis = rememberBottomAxis(
                         valueFormatter = { value, _ ->
