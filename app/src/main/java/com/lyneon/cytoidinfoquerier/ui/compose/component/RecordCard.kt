@@ -142,171 +142,186 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 Modifier.padding(6.dp)
             ) {
                 Box {
-                    if (File(
-                            externalCacheStorageDir,
-                            "backgroundImage_${record.chart.level.uid}"
-                        ).exists() && File(
-                            externalCacheStorageDir,
-                            "backgroundImage_${record.chart.level.uid}"
-                        ).isFile
-                    ) {
-                        val input = FileInputStream(
-                            File(
+                    if (record.chart?.level != null) {
+                        if (File(
                                 externalCacheStorageDir,
                                 "backgroundImage_${record.chart.level.uid}"
-                            )
-                        )
-                        val bitmap = BitmapFactory.decodeStream(input)
-                        Card {
-                            Image(
-                                painter = BitmapPainter(bitmap.asImageBitmap()),
-                                contentDescription = record.chart.level.title,
-                                contentScale = ContentScale.FillWidth,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    } else {
-                        Card {
-                            Box {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center)
+                            ).exists() && File(
+                                externalCacheStorageDir,
+                                "backgroundImage_${record.chart.level.uid}"
+                            ).isFile
+                        ) {
+                            val input = FileInputStream(
+                                File(
+                                    externalCacheStorageDir,
+                                    "backgroundImage_${record.chart.level.uid}"
                                 )
-                                var backgroundImageIsError by remember { mutableStateOf(false) }
-                                Column {
-                                    AsyncImage(
-                                        model = getImageRequestBuilderForCytoid(record.chart.level.bundle.backgroundImage.thumbnail)
-                                            .build(),
-                                        modifier = Modifier.fillMaxWidth(),
-                                        contentDescription = record.chart.level.title,
-                                        onSuccess = {
-                                            val imageFile = File(
-                                                externalCacheStorageDir,
-                                                "backgroundImage_${record.chart.level.uid}"
-                                            )
-                                            try {
-                                                imageFile.createNewFile()
-                                                val output =
-                                                    FileOutputStream(imageFile)
-                                                it.result.drawable.toBitmap()
-                                                    .compress(
-                                                        Bitmap.CompressFormat.PNG,
-                                                        100,
-                                                        output
-                                                    )
-                                                output.flush()
-                                                output.close()
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                                e.stackTraceToString().showToast()
-                                                Crashes.trackError(e)
-                                            }
-                                        },
-                                        onError = {
-                                            backgroundImageIsError = true
-                                        },
-                                        contentScale = ContentScale.FillWidth,
+                            )
+                            val bitmap = BitmapFactory.decodeStream(input)
+                            Card {
+                                Image(
+                                    painter = BitmapPainter(bitmap.asImageBitmap()),
+                                    contentDescription = record.chart.level.title,
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        } else {
+                            Card {
+                                Box {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.align(Alignment.Center)
                                     )
-                                    AnimatedVisibility(
-                                        visible = backgroundImageIsError,
-                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                    ) {
-                                        Text(
-                                            text = stringResource(id = R.string.imageError),
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = LocalTextStyle.current.fontSize.times(2)
+                                    var backgroundImageIsError by remember { mutableStateOf(false) }
+                                    Column {
+                                        AsyncImage(
+                                            model = getImageRequestBuilderForCytoid(record.chart.level.bundle.backgroundImage.thumbnail)
+                                                .build(),
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentDescription = record.chart.level.title,
+                                            onSuccess = {
+                                                val imageFile = File(
+                                                    externalCacheStorageDir,
+                                                    "backgroundImage_${record.chart.level.uid}"
+                                                )
+                                                try {
+                                                    imageFile.createNewFile()
+                                                    val output =
+                                                        FileOutputStream(imageFile)
+                                                    it.result.drawable.toBitmap()
+                                                        .compress(
+                                                            Bitmap.CompressFormat.PNG,
+                                                            100,
+                                                            output
+                                                        )
+                                                    output.flush()
+                                                    output.close()
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                    e.stackTraceToString().showToast()
+                                                    Crashes.trackError(e)
+                                                }
+                                            },
+                                            onError = {
+                                                backgroundImageIsError = true
+                                            },
+                                            contentScale = ContentScale.FillWidth,
                                         )
+                                        AnimatedVisibility(
+                                            visible = backgroundImageIsError,
+                                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                                        ) {
+                                            Text(
+                                                text = stringResource(id = R.string.imageError),
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = LocalTextStyle.current.fontSize.times(2)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    IconButton(
-                        onClick = {
-                            if (mediaPlayerState != Player.STATE_READY) {
-                                val dataSourceFactory =
-                                    DefaultHttpDataSource.Factory()
-                                        .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
-                                val mediaItem = MediaItem.Builder()
-                                    .setUri(
-                                        Uri.parse(
-                                            record.chart.level.bundle.musicPreview
-                                                ?: record.chart.level.bundle.music
-                                        )
-                                    ).build()
-                                val internetAudioSource =
-                                    ProgressiveMediaSource.Factory(dataSourceFactory)
-                                        .createMediaSource(mediaItem)
-                                exoPlayer.setMediaSource(internetAudioSource)
-                                exoPlayer.prepare()
-                                exoPlayer.play()
-                            } else {
-                                exoPlayer.stop()
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(6.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                CircleShape
+                    } else {
+                        Card {
+                            Image(
+                                painter = painterResource(id = R.drawable.sayakacry),
+                                contentDescription = "LevelTitle",
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.fillMaxWidth()
                             )
-                    ) {
-                        if (mediaPlayerState == Player.STATE_BUFFERING) CircularProgressIndicator(
-                            Modifier.padding(6.dp)
-                        )
-                        else Icon(
-                            imageVector = if (mediaPlayerState == Player.STATE_READY) ImageVector.vectorResource(
-                                R.drawable.baseline_stop_24
-                            ) else Icons.Filled.PlayArrow,
-                            contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
-                        )
+                        }
+                    }
+                    record.chart?.level?.let {
+                        IconButton(
+                            onClick = {
+                                if (mediaPlayerState != Player.STATE_READY) {
+                                    val dataSourceFactory =
+                                        DefaultHttpDataSource.Factory()
+                                            .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
+                                    val mediaItem = MediaItem.Builder()
+                                        .setUri(
+                                            Uri.parse(
+                                                record.chart.level.bundle.musicPreview
+                                                    ?: record.chart.level.bundle.music
+                                            )
+                                        ).build()
+                                    val internetAudioSource =
+                                        ProgressiveMediaSource.Factory(dataSourceFactory)
+                                            .createMediaSource(mediaItem)
+                                    exoPlayer.setMediaSource(internetAudioSource)
+                                    exoPlayer.prepare()
+                                    exoPlayer.play()
+                                } else {
+                                    exoPlayer.stop()
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(6.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    CircleShape
+                                )
+                        ) {
+                            if (mediaPlayerState == Player.STATE_BUFFERING) CircularProgressIndicator(
+                                Modifier.padding(6.dp)
+                            )
+                            else Icon(
+                                imageVector = if (mediaPlayerState == Player.STATE_READY) ImageVector.vectorResource(
+                                    R.drawable.baseline_stop_24
+                                ) else Icons.Filled.PlayArrow,
+                                contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
+                            )
+                        }
                     }
                 }
                 recordIndex?.let {
                     Text(text = "#${it}.")
                 }
                 Text(
-                    text = record.chart.level.title,
+                    text = record.chart?.level?.title ?: "LevelTitle",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = LocalTextStyle.current.fontSize * 2,
                     lineHeight = LocalTextStyle.current.lineHeight * 1.5
                 )
-                Text(text = record.chart.level.uid)
+                Text(text = record.chart?.level?.uid ?: "LevelUid")
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = " ${
-                        record.chart.name
-                            ?: record.chart.type.replaceFirstChar {
-                                if (it.isLowerCase()) it.titlecase(
-                                    Locale.getDefault()
-                                ) else it.toString()
-                            }
-                    } ${record.chart.difficulty} ",
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(
-                            Brush.linearGradient(
-                                when (record.chart.type) {
-                                    "easy" -> listOf(
-                                        Color(0xff4ca2cd),
-                                        Color(0xff67b26f)
-                                    )
-
-                                    "extreme" -> listOf(
-                                        Color(0xFF200122),
-                                        Color(0xff6f0000)
-
-                                    )
-
-                                    else -> listOf(
-                                        Color(0xff4568dc),
-                                        Color(0xffb06abc)
-                                    )
+                record.chart?.let {
+                    Text(
+                        text = " ${
+                            record.chart.name
+                                ?: record.chart.type.replaceFirstChar {
+                                    if (it.isLowerCase()) it.titlecase(
+                                        Locale.getDefault()
+                                    ) else it.toString()
                                 }
-                            ), RoundedCornerShape(CornerSize(100))
-                        )
-                        .padding(6.dp)
-                )
+                        } ${record.chart.difficulty} ",
+                        color = Color.White,
+                        modifier = Modifier
+                            .background(
+                                Brush.linearGradient(
+                                    when (record.chart.type) {
+                                        "easy" -> listOf(
+                                            Color(0xff4ca2cd),
+                                            Color(0xff67b26f)
+                                        )
+
+                                        "extreme" -> listOf(
+                                            Color(0xFF200122),
+                                            Color(0xff6f0000)
+
+                                        )
+
+                                        else -> listOf(
+                                            Color(0xff4568dc),
+                                            Color(0xffb06abc)
+                                        )
+                                    }
+                                ), RoundedCornerShape(CornerSize(100))
+                            )
+                            .padding(6.dp)
+                    )
+                }
                 Text(
                     text = record.score.toString(),
                     fontSize = LocalTextStyle.current.fontSize.times(3)
@@ -410,7 +425,10 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
             onDismissRequest = { recordDialogState = false },
             confirmButton = {},
             title = {
-                Text(text = record.chart.level.title, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = record.chart?.level?.title ?: "LevelTitle",
+                    style = MaterialTheme.typography.titleLarge
+                )
             },
             text = {
                 Column(
@@ -419,26 +437,34 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                     ListItem(
                         headlineContent = { Text(context.getString(R.string.view_in_cytoid)) },
                         modifier = Modifier.clickable {
-                            if (BaseApplication.cytoidIsInstalled) {
-                                BaseApplication.context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid))
-                                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                )
-                            } else context
-                                .getString(R.string.cytoid_is_not_installed)
-                                .showToast()
+                            if (record.chart?.level?.uid == null) {
+                                "谱面信息缺失，无法查看！".showToast()
+                            } else {
+                                if (BaseApplication.cytoidIsInstalled) {
+                                    BaseApplication.context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid))
+                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    )
+                                } else context
+                                    .getString(R.string.cytoid_is_not_installed)
+                                    .showToast()
+                            }
                         }
                     )
                     ListItem(
                         headlineContent = { Text(text = stringResource(id = R.string.view_in_cytoidIO)) },
                         modifier = Modifier.clickable {
-                            val intent = Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("https://cytoid.io/levels/${record.chart.level.uid}")
-                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            BaseApplication.context.startActivity(intent)
+                            if (record.chart?.level?.uid == null) {
+                                "谱面信息缺失，无法查看！".showToast()
+                            } else {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://cytoid.io/levels/${record.chart.level.uid}")
+                                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                BaseApplication.context.startActivity(intent)
+                            }
                         }
                     )
                     ListItem(
@@ -450,38 +476,41 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                     ListItem(
                         headlineContent = { Text(context.getString(R.string.save_illustration)) },
                         modifier = Modifier.clickable {
-                            context
-                                .getString(R.string.saving_illustration)
-                                .showToast()
-                            thread {
-                                kotlin
-                                    .runCatching {
-                                        URL(record.chart.level.bundle.backgroundImage.original)
-                                            .toBitmap()
-                                            .saveIntoMediaStore(
-                                                context.contentResolver,
-                                                ContentValues()
-                                            )
-                                    }
-                                    .onSuccess {
-                                        Looper.prepare()
-                                        context
-                                            .getString(R.string.saved_into_gallery)
-                                            .showToast()
-                                    }
-                                    .onFailure { e ->
-                                        e.printStackTrace()
-                                        context.runOnUiThread {
-                                            e
-                                                .stackTraceToString()
-                                                .showDialog(
-                                                    context,
-                                                    context.getString(R.string.fail)
+                            if (record.chart?.level?.uid == null) {
+                                "谱面信息缺失，无法保存！".showToast()
+                            } else {
+                                context
+                                    .getString(R.string.saving_illustration)
+                                    .showToast()
+                                thread {
+                                    kotlin
+                                        .runCatching {
+                                            URL(record.chart.level.bundle.backgroundImage.original)
+                                                .toBitmap()
+                                                .saveIntoMediaStore(
+                                                    context.contentResolver,
+                                                    ContentValues()
                                                 )
                                         }
-                                    }
+                                        .onSuccess {
+                                            Looper.prepare()
+                                            context
+                                                .getString(R.string.saved_into_gallery)
+                                                .showToast()
+                                        }
+                                        .onFailure { e ->
+                                            e.printStackTrace()
+                                            context.runOnUiThread {
+                                                e
+                                                    .stackTraceToString()
+                                                    .showDialog(
+                                                        context,
+                                                        context.getString(R.string.fail)
+                                                    )
+                                            }
+                                        }
+                                }
                             }
-
                         }
                     )
                     ListItem(
@@ -510,40 +539,42 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 Column(
                     Modifier.verticalScroll(rememberScrollState())
                 ) {
-                    ListItem(
-                        headlineContent = { Text(record.chart.level.title) },
-                        modifier = Modifier.clickable {
-                            record.chart.level.title.saveIntoClipboard()
-                        }
-                    )
-                    ListItem(
-                        headlineContent = { Text(record.chart.level.uid) },
-                        modifier = Modifier.clickable {
-                            record.chart.level.uid.saveIntoClipboard()
-                        }
-                    )
-                    ListItem(
-                        headlineContent = {
-                            Text("${
-                                record.chart.name
-                                    ?: record.chart.type.replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(
-                                            Locale.getDefault()
-                                        ) else it.toString()
-                                    }
-                            } ${record.chart.difficulty}")
-                        },
-                        modifier = Modifier.clickable {
-                            "${
-                                record.chart.name
-                                    ?: record.chart.type.replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(
-                                            Locale.getDefault()
-                                        ) else it.toString()
-                                    }
-                            } ${record.chart.difficulty}".saveIntoClipboard()
-                        }
-                    )
+                    if (record.chart?.level != null) {
+                        ListItem(
+                            headlineContent = { Text(record.chart.level.title) },
+                            modifier = Modifier.clickable {
+                                record.chart.level.title.saveIntoClipboard()
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text(record.chart.level.uid) },
+                            modifier = Modifier.clickable {
+                                record.chart.level.uid.saveIntoClipboard()
+                            }
+                        )
+                        ListItem(
+                            headlineContent = {
+                                Text("${
+                                    record.chart.name
+                                        ?: record.chart.type.replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(
+                                                Locale.getDefault()
+                                            ) else it.toString()
+                                        }
+                                } ${record.chart.difficulty}")
+                            },
+                            modifier = Modifier.clickable {
+                                "${
+                                    record.chart.name
+                                        ?: record.chart.type.replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(
+                                                Locale.getDefault()
+                                            ) else it.toString()
+                                        }
+                                } ${record.chart.difficulty}".saveIntoClipboard()
+                            }
+                        )
+                    }
                     ListItem(
                         headlineContent = { Text(record.score.toString()) },
                         modifier = Modifier.clickable {

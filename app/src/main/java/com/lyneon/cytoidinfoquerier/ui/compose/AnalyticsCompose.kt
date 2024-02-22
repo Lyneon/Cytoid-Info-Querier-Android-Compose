@@ -53,6 +53,7 @@ import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.microsoft.appcenter.crashes.Crashes
@@ -260,6 +261,7 @@ fun AnalyticsCompose() {
                                                                         cytoidID,
                                                                         columnsCount.toInt(),
                                                                         queryType,
+                                                                        queryCount.toInt(),
                                                                         keep2DecimalPlace
                                                                     )
                                                                 context.startService(intent)
@@ -306,30 +308,34 @@ fun AnalyticsCompose() {
                                                     var toIndex: Int
                                                     val analytics = Analytics.decodeFromJSONString(
                                                         mmkv.decodeString("profileString_${cytoidID}_${queryType}")
-                                                            ?: throw Exception()
+                                                            ?: throw Exception("decode local cache failed!")
                                                     ).apply {
-                                                        if (queryType == QueryType.bestRecords) {
-                                                            toIndex =
-                                                                if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
-                                                                else this.data.profile.bestRecords.size
-                                                            this.data.profile.bestRecords =
-                                                                ArrayList(
-                                                                    this.data.profile.bestRecords.subList(
-                                                                        0,
-                                                                        toIndex
+                                                        if (this.data.profile != null) {
+                                                            if (queryType == QueryType.bestRecords) {
+                                                                toIndex =
+                                                                    if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
+                                                                    else this.data.profile.bestRecords.size
+                                                                this.data.profile.bestRecords =
+                                                                    ArrayList(
+                                                                        this.data.profile.bestRecords.subList(
+                                                                            0,
+                                                                            toIndex
+                                                                        )
                                                                     )
-                                                                )
+                                                            } else {
+                                                                toIndex =
+                                                                    if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
+                                                                    else this.data.profile.recentRecords.size
+                                                                this.data.profile.recentRecords =
+                                                                    ArrayList(
+                                                                        this.data.profile.recentRecords.subList(
+                                                                            0,
+                                                                            toIndex
+                                                                        )
+                                                                    )
+                                                            }
                                                         } else {
-                                                            toIndex =
-                                                                if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
-                                                                else this.data.profile.recentRecords.size
-                                                            this.data.profile.recentRecords =
-                                                                ArrayList(
-                                                                    this.data.profile.recentRecords.subList(
-                                                                        0,
-                                                                        toIndex
-                                                                    )
-                                                                )
+                                                            throw Exception("local cache's data.profile is null!")
                                                         }
                                                     }
                                                     "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
@@ -369,20 +375,25 @@ fun AnalyticsCompose() {
                                                             Analytics.decodeFromJSONString(
                                                                 profileString
                                                             )
-                                                        mmkv.encode(
-                                                            "lastQueryProfileTime_${cytoidID}_${queryType}",
-                                                            System.currentTimeMillis()
+                                                        if (response.data.profile == null) throw Exception(
+                                                            "data.profile is null!"
                                                         )
-                                                        mmkv.encode(
-                                                            "profileString_${cytoidID}_${queryType}",
-                                                            profileString
-                                                        )
-                                                        Looper.prepare()
-                                                        "查询${cytoidID}完成，共查询到${
-                                                            if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
-                                                            else response.data.profile.recentRecords.size
-                                                        }条数据".showToast()
-                                                        isQueryingFinished = true
+                                                        else {
+                                                            mmkv.encode(
+                                                                "lastQueryProfileTime_${cytoidID}_${queryType}",
+                                                                System.currentTimeMillis()
+                                                            )
+                                                            mmkv.encode(
+                                                                "profileString_${cytoidID}_${queryType}",
+                                                                profileString
+                                                            )
+                                                            Looper.prepare()
+                                                            "查询${cytoidID}完成，共查询到${
+                                                                if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
+                                                                else response.data.profile!!.recentRecords.size
+                                                            }条数据".showToast()
+                                                            isQueryingFinished = true
+                                                        }
                                                     } catch (e: Exception) {
                                                         Looper.prepare()
                                                         "查询失败：${e.stackTraceToString()}".showToast(
@@ -423,29 +434,35 @@ fun AnalyticsCompose() {
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     if (isQueryingFinished && ::response.isInitialized) {
-                        var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
-                        for (i in 0 until
-                                if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
-                                else response.data.profile.recentRecords.size
-                        ) {
-                            if (remainRecord == 0) break
-                            val record =
-                                if (queryType == QueryType.bestRecords) response.data.profile.bestRecords[i]
-                                else response.data.profile.recentRecords[i]
-                            item(
-                                span = if ((if (queryType == QueryType.bestRecords) response.data.profile.bestRecords.size
-                                    else response.data.profile.recentRecords.size) == 1
-                                ) StaggeredGridItemSpan.FullLine
-                                else StaggeredGridItemSpan.SingleLane
+                        if (response.data.profile != null) {
+                            var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
+                            for (i in 0 until
+                                    if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
+                                    else response.data.profile!!.recentRecords.size
                             ) {
-                                RecordCard(
-                                    record = record,
-                                    recordIndex = i + 1,
-                                    keep2DecimalPlace
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
+                                if (remainRecord == 0) break
+                                val record =
+                                    if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords[i]
+                                    else response.data.profile!!.recentRecords[i]
+                                item(
+                                    span = if ((if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
+                                        else response.data.profile!!.recentRecords.size) == 1
+                                    ) StaggeredGridItemSpan.FullLine
+                                    else StaggeredGridItemSpan.SingleLane
+                                ) {
+                                    RecordCard(
+                                        record = record,
+                                        recordIndex = i + 1,
+                                        keep2DecimalPlace
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+                                remainRecord--
                             }
-                            remainRecord--
+                        } else {
+                            item {
+                                AlertCard(message = "data.profile is null!")
+                            }
                         }
                     }
                 }

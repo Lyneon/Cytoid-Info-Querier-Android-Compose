@@ -27,21 +27,24 @@ class ImageGenerateService : Service() {
             cytoidID: String,
             columnsCount: Int,
             queryType: String,
+            queryCount: Int,
             keep2DecimalPlaces: Boolean
         ) = Intent(context, ImageGenerateService::class.java).apply {
             this.putExtra("cytoidID", cytoidID)
             this.putExtra("columnsCount", columnsCount)
             this.putExtra("queryType", queryType)
+            this.putExtra("queryCount", queryCount)
             this.putExtra("keep2DecimalPlaces", keep2DecimalPlaces)
         }
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
+        return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (responseIsInitialized()) {
+        if (responseIsInitialized() && response.data.profile != null) {
             if (intent == null) throw Exception("intent cannot be null")
             val cytoidID =
                 intent.getStringExtra("cytoidID") ?: throw Exception("cytoidID extra needed")
@@ -50,6 +53,7 @@ class ImageGenerateService : Service() {
                 intent.getStringExtra("queryType") ?: throw Exception("queryType extra needed")
             val keep2DecimalPlaces =
                 intent.getBooleanExtra("keep2DecimalPlaces", true)
+            val queryCount = intent.getIntExtra("queryCount", 0)
 
             registerNotificationChannel(
                 NotificationHandler.CHANNEL_ID_GENERATE_IMAGE,
@@ -76,8 +80,12 @@ class ImageGenerateService : Service() {
             thread {
                 ImageHandler.getRecordsImage(
                     ProfileWebapi.get(cytoidID),
-                    if (queryType == QueryType.bestRecords) response.data.profile.bestRecords
-                    else response.data.profile.recentRecords,
+                    if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.subList(
+                        0,
+                        queryCount
+                    )
+                    else response.data.profile!!.recentRecords.subList(0, queryCount),
+                    queryType,
                     columnsCount,
                     keep2DecimalPlaces
                 ).saveIntoMediaStore()

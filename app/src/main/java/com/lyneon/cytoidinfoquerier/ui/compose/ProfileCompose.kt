@@ -543,15 +543,13 @@ private fun DetailsCard(profileWebapi: ProfileWebapi) {
                     val hours = duration.inWholeHours - duration.inWholeDays * 24
                     val minutes = duration.inWholeMinutes - duration.inWholeHours * 60
                     val seconds = duration.inWholeSeconds - duration.inWholeMinutes * 60
-                    val milliseconds = duration.inWholeMilliseconds - duration.inWholeSeconds * 1000
 
                     Text(text = "总游玩时间")
                     Text(
                         text = (if (days != 0.toLong()) "${days}天" else "") +
                                 (if (hours != 0.toLong()) "${hours}时" else "") +
                                 (if (minutes != 0.toLong()) "${minutes}分" else "") +
-                                (if (seconds != 0.toLong()) "${seconds}秒" else "") +
-                                (if (milliseconds != 0.toLong()) "${milliseconds}毫秒" else ""),
+                                (if (seconds != 0.toLong()) "${seconds}秒" else ""),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )

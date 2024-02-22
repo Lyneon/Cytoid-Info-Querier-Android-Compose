@@ -37,6 +37,7 @@ object ImageHandler {
     fun getRecordsImage(
         profileWebapi: ProfileWebapi,
         records: List<UserRecord>,
+        recordsType: String,
         columnsCount: Int = 5,
         keep2DecimalPlaces: Boolean = true
     ): Bitmap {
@@ -96,6 +97,12 @@ object ImageHandler {
             }",
             (padding + avatarDiameter + padding).toFloat(),
             padding + 200f + paint.fontMetrics.descent + padding + 75f,
+            paint
+        )
+        canvas.drawText(
+            "${records.size} ${recordsType}",
+            (padding + avatarDiameter + padding).toFloat(),
+            padding + 200f + paint.fontMetrics.descent + padding + 75f + padding + 75f,
             paint
         )
 
@@ -183,13 +190,14 @@ object ImageHandler {
             this.isAntiAlias = true
         }
 
-        paint.color = Color.parseColor("#7F000000")
+        paint.color = Color.parseColor("#80000000")
         paint.style = Paint.Style.FILL
 
         //绘制曲绘
         canvas.drawBitmap(
             try {
-                URL(record.chart.level.bundle.backgroundImage.thumbnail).toBitmap()
+                if (record.chart?.level != null) URL(record.chart.level.bundle.backgroundImage.thumbnail).toBitmap()
+                else BaseApplication.context.getDrawable(R.drawable.sayakacry)!!.toBitmap()
             } catch (e: Exception) {
                 BaseApplication.context.getDrawable(R.drawable.sayakacry)!!.toBitmap()
             },
@@ -200,44 +208,47 @@ object ImageHandler {
 //        绘制半透明灰色遮罩层
         canvas.drawRect(0f, 0f, 576f, 360f, paint)
 
-        paint.textSize = 40f
-        val difficultyWidth = paint.measureText(" ${
-            record.chart.name
-                ?: record.chart.type.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                }
-        } ${record.chart.difficulty} ")
-        paint.shader = LinearGradient(
-            10f, 20f, 10f + difficultyWidth, 70f, when (record.chart.type) {
-                "easy" -> intArrayOf(Color.parseColor("#4CA2CD"), Color.parseColor("#67B26F"))
+        record.chart?.let {
+            paint.textSize = 40f
+            val difficultyWidth = paint.measureText(" ${
+                record.chart.name
+                    ?: record.chart.type.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    }
+            } ${record.chart.difficulty} ")
+            paint.shader = LinearGradient(
+                10f, 20f, 10f + difficultyWidth, 70f, when (record.chart.type) {
+                    "easy" -> intArrayOf(Color.parseColor("#4CA2CD"), Color.parseColor("#67B26F"))
 
-                "hard" -> intArrayOf(Color.parseColor("#B06ABC"), Color.parseColor("#4568DC"))
+                    "hard" -> intArrayOf(Color.parseColor("#B06ABC"), Color.parseColor("#4568DC"))
 
-                "extreme" -> intArrayOf(
-                    Color.parseColor("#6F0000"),
-                    Color.parseColor("#200122")
-                )
+                    "extreme" -> intArrayOf(
+                        Color.parseColor("#6F0000"),
+                        Color.parseColor("#200122")
+                    )
 
-                else -> intArrayOf(Color.parseColor("#B06ABC"), Color.parseColor("#4568DC"))
-            }, null, Shader.TileMode.CLAMP
-        )
-        paint.alpha = 255
-        canvas.drawRoundRect(RectF(10f, 20f, 10f + difficultyWidth, 70f), 50f, 50f, paint)
-        paint.color = Color.WHITE
-        paint.shader = null
-        canvas.drawText(" ${
-            record.chart.name
-                ?: record.chart.type.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                }
-        } ${record.chart.difficulty} ", 10f, 60f, paint)
+                    else -> intArrayOf(Color.parseColor("#B06ABC"), Color.parseColor("#4568DC"))
+                }, null, Shader.TileMode.CLAMP
+            )
+            paint.alpha = 255
+            canvas.drawRoundRect(RectF(10f, 20f, 10f + difficultyWidth, 70f), 50f, 50f, paint)
+            paint.color = Color.WHITE
+            paint.shader = null
+            canvas.drawText(" ${
+                record.chart.name
+                    ?: record.chart.type.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    }
+            } ${record.chart.difficulty} ", 10f, 60f, paint)
+        }
+
 
         paint.textSize = 50f
-        canvas.drawText(record.chart.level.title, 10f, 130f, paint)
+        record.chart?.level.let { canvas.drawText(it?.title ?: "LevelTitle", 10f, 130f, paint) }
         canvas.drawText(
             "${record.score} ${
                 if (keep2DecimalPlaces) (record.accuracy * 100).setPrecision(2)
@@ -254,18 +265,53 @@ object ImageHandler {
                 else record.rating
             }", 10f, 230f, paint
         )
+
+        canvas.drawText("Details: ", 10f, 270f, paint)
+        paint.color = Color.parseColor("#60a5fa")
         canvas.drawText(
-            "Details: ${record.details.perfect}/${record.details.great}/${record.details.good}/${record.details.bad}/${record.details.miss}",
-            10f,
+            record.details.perfect.toString(),
+            10f + paint.measureText("Details: "),
             270f,
             paint
         )
+        paint.color = Color.parseColor("#facc15")
         canvas.drawText(
-            "${record.details.maxCombo} combos ${if (record.score == 1000000) "AP" else if (record.details.maxCombo == record.chart.notesCount) "FC" else ""}",
-            10f,
-            310f,
+            record.details.great.toString(),
+            10f + paint.measureText("Details: ${record.details.perfect}/"),
+            270f,
             paint
         )
+        paint.color = Color.parseColor("#4ade80")
+        canvas.drawText(
+            record.details.good.toString(),
+            10f + paint.measureText("Details: ${record.details.perfect}/${record.details.great}/"),
+            270f,
+            paint
+        )
+        paint.color = Color.parseColor("#f87171")
+        canvas.drawText(
+            record.details.bad.toString(),
+            10f + paint.measureText("Details: ${record.details.perfect}/${record.details.great}/${record.details.good}/"),
+            270f,
+            paint
+        )
+        paint.color = Color.parseColor("#94a3b8")
+        canvas.drawText(
+            record.details.miss.toString(),
+            10f + paint.measureText("Details: ${record.details.perfect}/${record.details.great}/${record.details.good}/${record.details.bad}/"),
+            270f,
+            paint
+        )
+
+        paint.color = Color.parseColor("#ffffff")
+        record.chart?.let {
+            canvas.drawText(
+                "${record.details.maxCombo} combos ${if (record.score == 1000000) "All Perfect" else if (record.details.maxCombo == record.chart.notesCount) "Full Combo" else ""}",
+                10f,
+                310f,
+                paint
+            )
+        }
         canvas.drawText("Mods:${record.mods}", 10f, 350f, paint)
 
         return bitmap

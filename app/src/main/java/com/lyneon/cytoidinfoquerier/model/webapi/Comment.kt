@@ -4,6 +4,7 @@ import com.lyneon.cytoidinfoquerier.json
 import kotlinx.serialization.Serializable
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.IOException
 
 @Serializable
 data class Comment(
@@ -27,12 +28,16 @@ data class Comment(
 
     companion object {
         fun get(id: String): ArrayList<Comment> {
-            val response = OkHttpClient().newCall(
-                Request.Builder()
-                    .url("https://services.cytoid.io/threads/profile/$id")
-                    .removeHeader("User-Agent").addHeader("User-Agent", "CytoidClient/2.1.1")
-                    .build()
-            ).execute()
+            val response = try {
+                OkHttpClient().newCall(
+                    Request.Builder()
+                        .url("https://services.cytoid.io/threads/profile/$id")
+                        .removeHeader("User-Agent").addHeader("User-Agent", "CytoidClient/2.1.1")
+                        .build()
+                ).execute()
+            } catch (e: IOException) {
+                throw e
+            }
             val result = try {
                 when (response.code) {
                     200 -> response.body?.string()

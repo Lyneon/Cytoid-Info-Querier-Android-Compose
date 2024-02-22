@@ -13,7 +13,7 @@ data class Analytics(
 ) {
     @Serializable
     data class Data(
-        val profile: Profile
+        val profile: Profile?
     ) {
         @Serializable
         data class Profile(
@@ -89,18 +89,20 @@ data class UserRecord(
     val details: RecordDetails,
     val rating: Float,
     val date: String,
-    val chart: RecordChart
+    val chart: RecordChart?
 ) {
     fun detailsString(): String = StringBuilder().apply {
         val record = this@UserRecord
-        appendLine("${record.chart.level.title}(${
-            record.chart.name
-                ?: record.chart.type.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                }
-        } ${record.chart.difficulty})(${record.chart.level.uid})")
+        record.chart?.let {
+            appendLine("${record.chart.level?.title ?: "LevelTitle"}(${
+                record.chart.name
+                    ?: record.chart.type.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    }
+            } ${record.chart.difficulty})(${record.chart.level?.uid ?: "LevelUid"})")
+        }
         appendLine(record.score)
         appendLine("${(record.accuracy * 100).setPrecision(2)}% accuracy  ${record.details.maxCombo} max combo")
         appendLine("Rating ${record.rating.setPrecision(2)}")
@@ -124,7 +126,7 @@ data class UserRecord(
         val type: String,
         val name: String?,
         val notesCount: Int,
-        val level: RecordLevel
+        val level: RecordLevel?
     ) {
         @Serializable
         data class RecordLevel(

@@ -70,9 +70,7 @@ dependencies {
     implementation("com.tencent:mmkv:1.3.2")
     implementation("androidx.navigation:navigation-compose:$navVersion")
     implementation("dev.shreyaspatil:capturable:1.0.3")
-    implementation("com.patrykandpatrick.vico:compose:1.13.1")
-    implementation("com.patrykandpatrick.vico:compose-m3:1.13.1")
-    implementation("com.patrykandpatrick.vico:core:1.13.1")
+    implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
     implementation("androidx.media3:media3-exoplayer:$media3Version")
 
     implementation("androidx.core:core-ktx:1.12.0")
