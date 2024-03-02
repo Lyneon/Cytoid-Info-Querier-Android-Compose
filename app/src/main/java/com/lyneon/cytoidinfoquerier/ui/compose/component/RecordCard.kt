@@ -334,17 +334,17 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                             Image(
                                 painter = painterResource(
                                     id = when (mod) {
-                                        "HideNotes" -> R.drawable.hide_notes
-                                        "HideScanline" -> R.drawable.hide_scanline
-                                        "Slow" -> R.drawable.slow
-                                        "Fast" -> R.drawable.fast
-                                        "Hard" -> R.drawable.hyper
-                                        "ExHard" -> R.drawable.another
-                                        "AP" -> R.drawable.ap
-                                        "FC" -> R.drawable.fc
-                                        "FlipAll" -> R.drawable.flip_all
-                                        "FlipX" -> R.drawable.flip_x
-                                        "FlipY" -> R.drawable.flip_y
+                                        "HideNotes" -> R.drawable.mod_hide_notes
+                                        "HideScanline" -> R.drawable.mod_hide_scanline
+                                        "Slow" -> R.drawable.mod_slow
+                                        "Fast" -> R.drawable.mod_fast
+                                        "Hard" -> R.drawable.mod_hyper
+                                        "ExHard" -> R.drawable.mod_another
+                                        "AP" -> R.drawable.mod_ap
+                                        "FC" -> R.drawable.mod_fc
+                                        "FlipAll" -> R.drawable.mod_flip_all
+                                        "FlipX" -> R.drawable.mod_flip_x
+                                        "FlipY" -> R.drawable.mod_flip_y
                                         else -> throw Exception("Unknown condition branch enter action")
                                     }
                                 ),
