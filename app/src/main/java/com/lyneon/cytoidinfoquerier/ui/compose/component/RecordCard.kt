@@ -16,12 +16,12 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -94,6 +94,7 @@ import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
 
+@kotlin.OptIn(ExperimentalLayoutApi::class)
 @OptIn(UnstableApi::class)
 @SuppressLint("CheckResult")
 @Composable
@@ -377,39 +378,31 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                     } ",
                     color = Color.White
                 )
-                Row {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(text = "Perfect")
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = record.details.perfect.toString(),
                         color = Color(0xff60a5fa)
                     )
-                }
-                Row {
                     Text(text = "Great")
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = record.details.great.toString(),
                         color = Color(0xfffacc15)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(text = "Good")
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = record.details.good.toString(),
                         color = Color(0xff4ade80)
                     )
-                }
-                Row {
                     Text(text = "Bad")
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = record.details.bad.toString(),
                         color = Color(0xfff87171)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(text = "Miss")
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = record.details.miss.toString(),
                         color = Color(0xff94a3b8)

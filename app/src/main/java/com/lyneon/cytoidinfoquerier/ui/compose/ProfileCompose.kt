@@ -7,7 +7,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -47,12 +46,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -68,6 +65,7 @@ import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
 import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
@@ -80,7 +78,6 @@ import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.marker.markerComponent
 import com.patrykandpatrick.vico.compose.component.overlayingComponent
-import com.patrykandpatrick.vico.compose.component.shape.composeShape
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.component.textComponent
 import com.patrykandpatrick.vico.compose.extension.indicatorSize
@@ -760,47 +757,7 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     profileGraphQL.data.profile.user.collections.forEach {
-                        Card {
-                            Box {
-                                AsyncImage(
-                                    model = getImageRequestBuilderForCytoid(it.cover.thumbnail).build(),
-                                    contentDescription = it.title,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentScale = ContentScale.FillWidth
-                                )
-                                Column(
-                                    Modifier
-                                        .align(Alignment.BottomStart)
-                                        .fillMaxWidth()
-                                        .background(Color(0x80000000))
-                                        .padding(6.dp)
-                                ) {
-                                    Text(
-                                        text = it.title,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = it.slogan,
-                                        maxLines = 3,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                Text(
-                                    text = "${it.levelCount}个关卡",
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(6.dp)
-                                        .background(
-                                            Color(0xFF414558),
-                                            Shapes.pillShape.composeShape()
-                                        )
-                                        .padding(6.dp)
-                                )
-                            }
-                        }
+                        CollectionCard(collection = it)
                     }
                 }
             }

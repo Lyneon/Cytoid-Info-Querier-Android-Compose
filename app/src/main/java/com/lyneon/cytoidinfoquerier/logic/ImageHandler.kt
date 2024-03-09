@@ -100,7 +100,7 @@ object ImageHandler {
             paint
         )
         canvas.drawText(
-            "${records.size} ${recordsType}",
+            "${records.size} $recordsType",
             (padding + avatarDiameter + padding).toFloat(),
             padding + 200f + paint.fontMetrics.descent + padding + 75f + padding + 75f,
             paint
@@ -302,7 +302,6 @@ object ImageHandler {
             270f,
             paint
         )
-
         paint.color = Color.parseColor("#ffffff")
         record.chart?.let {
             canvas.drawText(

@@ -114,6 +114,7 @@ fun LevelCard(level: ProfileGraphQL.ProfileData.Profile.User.UserLevel) {
             ) {
                 Text(
                     text = level.title,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleLarge,
@@ -122,12 +123,14 @@ fun LevelCard(level: ProfileGraphQL.ProfileData.Profile.User.UserLevel) {
                 level.description?.let { description ->
                     Text(
                         text = description,
+                        color = Color.White,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 Text(
                     text = level.metadata.artist.name,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
