@@ -202,5 +202,16 @@ data class ProfileGraphQL(
                     )
                 )
             )
+
+        fun getDefaultInstance(): ProfileGraphQL = ProfileGraphQL(
+            ProfileData(
+                ProfileData.Profile(
+                    ProfileData.Profile.User(
+                        "", "", "", "", ProfileData.Profile.User.Avatar("", ""), 0,
+                        arrayListOf(), 0, arrayListOf()
+                    ), "", arrayListOf(), arrayListOf()
+                )
+            )
+        )
     }
 }

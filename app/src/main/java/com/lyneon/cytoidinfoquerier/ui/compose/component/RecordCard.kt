@@ -142,79 +142,82 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
             ) {
                 Box {
                     if (record.chart?.level != null) {
-                        if (File(
-                                externalCacheStorageDir,
-                                "backgroundImage_${record.chart.level.uid}"
-                            ).exists() && File(
-                                externalCacheStorageDir,
-                                "backgroundImage_${record.chart.level.uid}"
-                            ).isFile
-                        ) {
-                            val input = FileInputStream(
+                        val level = record.chart.level
+                        if (externalCacheStorageDir != null) {
+                            val cacheBackgroundImagesDirectory =
+                                File(externalCacheStorageDir.path + "/backgroundImage")
+                            if (!cacheBackgroundImagesDirectory.exists()) cacheBackgroundImagesDirectory.mkdirs()
+                            val cacheBackgroundImageFile =
                                 File(
-                                    externalCacheStorageDir,
-                                    "backgroundImage_${record.chart.level.uid}"
+                                    cacheBackgroundImagesDirectory,
+                                    level.uid
                                 )
-                            )
-                            val bitmap = BitmapFactory.decodeStream(input)
-                            Card {
-                                Image(
-                                    painter = BitmapPainter(bitmap.asImageBitmap()),
-                                    contentDescription = record.chart.level.title,
-                                    contentScale = ContentScale.FillWidth,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        } else {
-                            Card {
-                                Box {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.align(Alignment.Center)
+                            if (cacheBackgroundImageFile.isFile) {
+                                val input = FileInputStream(cacheBackgroundImageFile)
+                                val bitmap = BitmapFactory.decodeStream(input)
+                                Card {
+                                    Image(
+                                        painter = BitmapPainter(bitmap.asImageBitmap()),
+                                        contentDescription = level.title,
+                                        contentScale = ContentScale.FillWidth,
+                                        modifier = Modifier.fillMaxWidth()
                                     )
-                                    var backgroundImageIsError by remember { mutableStateOf(false) }
-                                    Column {
-                                        AsyncImage(
-                                            model = getImageRequestBuilderForCytoid(record.chart.level.bundle.backgroundImage.thumbnail)
-                                                .build(),
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentDescription = record.chart.level.title,
-                                            onSuccess = {
-                                                val imageFile = File(
-                                                    externalCacheStorageDir,
-                                                    "backgroundImage_${record.chart.level.uid}"
-                                                )
-                                                try {
-                                                    imageFile.createNewFile()
-                                                    val output =
-                                                        FileOutputStream(imageFile)
-                                                    it.result.drawable.toBitmap()
-                                                        .compress(
-                                                            Bitmap.CompressFormat.PNG,
-                                                            100,
-                                                            output
-                                                        )
-                                                    output.flush()
-                                                    output.close()
-                                                } catch (e: Exception) {
-                                                    e.printStackTrace()
-                                                    e.stackTraceToString().showToast()
-                                                    Crashes.trackError(e)
-                                                }
-                                            },
-                                            onError = {
-                                                backgroundImageIsError = true
-                                            },
-                                            contentScale = ContentScale.FillWidth,
+                                }
+                            } else {
+                                Card {
+                                    Box {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.align(Alignment.Center)
                                         )
-                                        AnimatedVisibility(
-                                            visible = backgroundImageIsError,
-                                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                                        ) {
-                                            Text(
-                                                text = stringResource(id = R.string.imageError),
-                                                fontWeight = FontWeight.SemiBold,
-                                                fontSize = LocalTextStyle.current.fontSize.times(2)
+                                        var backgroundImageIsError by remember {
+                                            mutableStateOf(
+                                                false
                                             )
+                                        }
+                                        Column {
+                                            AsyncImage(
+                                                model = getImageRequestBuilderForCytoid(level.bundle.backgroundImage.thumbnail)
+                                                    .build(),
+                                                modifier = Modifier.fillMaxWidth(),
+                                                contentDescription = level.title,
+                                                onSuccess = {
+                                                    try {
+                                                        cacheBackgroundImageFile.createNewFile()
+                                                        val output =
+                                                            FileOutputStream(
+                                                                cacheBackgroundImageFile
+                                                            )
+                                                        it.result.drawable.toBitmap()
+                                                            .compress(
+                                                                Bitmap.CompressFormat.PNG,
+                                                                100,
+                                                                output
+                                                            )
+                                                        output.flush()
+                                                        output.close()
+                                                    } catch (e: Exception) {
+                                                        e.printStackTrace()
+                                                        e.stackTraceToString().showToast()
+                                                        Crashes.trackError(e)
+                                                    }
+                                                },
+                                                onError = {
+                                                    backgroundImageIsError = true
+                                                },
+                                                contentScale = ContentScale.FillWidth,
+                                            )
+                                            AnimatedVisibility(
+                                                visible = backgroundImageIsError,
+                                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(id = R.string.imageError),
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = LocalTextStyle.current.fontSize.times(
+                                                        2
+                                                    )
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -230,7 +233,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                             )
                         }
                     }
-                    record.chart?.level?.let {
+                    record.chart?.level?.let { level ->
                         IconButton(
                             onClick = {
                                 if (mediaPlayerState != Player.STATE_READY) {
@@ -240,8 +243,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                     val mediaItem = MediaItem.Builder()
                                         .setUri(
                                             Uri.parse(
-                                                record.chart.level.bundle.musicPreview
-                                                    ?: record.chart.level.bundle.music
+                                                level.bundle.musicPreview ?: level.bundle.music
                                             )
                                         ).build()
                                     val internetAudioSource =
@@ -283,21 +285,21 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 )
                 Text(text = record.chart?.level?.uid ?: "LevelUid")
                 Spacer(modifier = Modifier.height(6.dp))
-                record.chart?.let {
+                record.chart?.let { chart ->
                     Text(
                         text = " ${
-                            record.chart.name
-                                ?: record.chart.type.replaceFirstChar {
+                            chart.name
+                                ?: chart.type.replaceFirstChar {
                                     if (it.isLowerCase()) it.titlecase(
                                         Locale.getDefault()
                                     ) else it.toString()
                                 }
-                        } ${record.chart.difficulty} ",
+                        } ${chart.difficulty} ",
                         color = Color.White,
                         modifier = Modifier
                             .background(
                                 Brush.linearGradient(
-                                    when (record.chart.type) {
+                                    when (chart.type) {
                                         "easy" -> listOf(
                                             Color(0xff4ca2cd),
                                             Color(0xff67b26f)

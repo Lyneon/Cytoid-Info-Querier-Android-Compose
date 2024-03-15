@@ -137,5 +137,11 @@ data class ProfileWebapi(
                 json.decodeFromString(result)
             }
         }
+
+        fun getDefaultInstance(): ProfileWebapi = ProfileWebapi(
+            User("", User.Avatar("", "")),
+            arrayListOf(), Grade(), Activities(0, 0, 0, 0.0, 0, 0f), Exp(0, 0, 0, 0, 0, 0), 0.0,
+            arrayListOf(), null, null, Character("", null, Character.Exp(0, 0, 0, 0))
+        )
     }
 }

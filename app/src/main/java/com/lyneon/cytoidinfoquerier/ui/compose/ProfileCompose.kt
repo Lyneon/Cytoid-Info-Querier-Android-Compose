@@ -1,8 +1,10 @@
 package com.lyneon.cytoidinfoquerier.ui.compose
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
-import android.os.Looper
+import android.text.Spannable
+import android.text.style.ForegroundColorSpan
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,7 +26,11 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,9 +61,11 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.webapi.Comment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
+import com.lyneon.cytoidinfoquerier.json
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
@@ -65,7 +73,6 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
-import com.lyneon.cytoidinfoquerier.util.extension.showDialog
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.microsoft.appcenter.crashes.Crashes
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
@@ -88,27 +95,44 @@ import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.dimensions.MutableDimensions
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
+import com.patrykandpatrick.vico.core.extension.appendCompat
+import com.patrykandpatrick.vico.core.extension.transformToSpannable
+import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 
-lateinit var profileGraphQL: ProfileGraphQL
-lateinit var profileWebapi: ProfileWebapi
-lateinit var comments: ArrayList<Comment>
 val chartEntryModelProducer = ChartEntryModelProducer()
 
+@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun ProfileCompose() {
     val context = LocalContext.current as MainActivity
+    val mmkv = MMKV.defaultMMKV()
+    var profileGraphQL by remember {
+        mutableStateOf(ProfileGraphQL.getDefaultInstance())
+    }
+    var profileWebapi by remember {
+        mutableStateOf(ProfileWebapi.getDefaultInstance())
+    }
+    var comments by remember {
+        mutableStateOf(ArrayList<Comment>())
+    }
     var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
     var textFieldIsError by remember { mutableStateOf(false) }
     var textFieldIsEmpty by remember { mutableStateOf(false) }
     var hideInput by remember { mutableStateOf(false) }
+    var querySettingsMenuIsExpanded by remember { mutableStateOf(false) }
+    var ignoreCache by remember { mutableStateOf(false) }
+    var keep2DecimalPlace by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf("") }
 
     Column {
         TopBar(
@@ -147,6 +171,55 @@ fun ProfileCompose() {
                                         contentDescription = stringResource(id = R.string.fold)
                                     )
                                 }
+                                IconButton(onClick = { querySettingsMenuIsExpanded = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Settings,
+                                        contentDescription = stringResource(id = R.string.querySettings)
+                                    )
+                                    DropdownMenu(
+                                        expanded = querySettingsMenuIsExpanded,
+                                        onDismissRequest = {
+                                            querySettingsMenuIsExpanded = false
+                                        }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(text = stringResource(id = R.string.ignore_cache))
+                                                    Checkbox(
+                                                        checked = ignoreCache,
+                                                        onCheckedChange = {
+                                                            ignoreCache = it
+                                                        }
+                                                    )
+                                                }
+                                            },
+                                            onClick = { ignoreCache = !ignoreCache }
+                                        )
+                                        DropdownMenuItem(
+                                            text = {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(text = stringResource(id = R.string.keep_2_decimal_places))
+                                                    Checkbox(
+                                                        checked = keep2DecimalPlace,
+                                                        onCheckedChange = {
+                                                            keep2DecimalPlace = it
+                                                        }
+                                                    )
+                                                }
+                                            },
+                                            onClick = { keep2DecimalPlace = !keep2DecimalPlace }
+                                        )
+                                    }
+                                }
                                 TextButton(onClick = {
                                     if (cytoidID.isEmpty()) {
                                         context.getString(R.string.empty_cytoidID)
@@ -159,28 +232,75 @@ fun ProfileCompose() {
                                     } else {
                                         textFieldIsError = false
                                         isQueryingFinished = false
-                                        "开始查询$cytoidID".showToast()
-                                        thread {
-                                            try {
+                                        if (System.currentTimeMillis() - mmkv.decodeLong(
+                                                "lastQueryProfileTime_${cytoidID}",
+                                                -1
+                                            ) <= (6 * 60 * 60 * 1000) && !ignoreCache
+                                        ) {
+                                            val profileGraphQLString =
+                                                mmkv.decodeString("profileGraphQLString_${cytoidID}")
+                                            val profileWebapiString =
+                                                mmkv.decodeString("profileWebapiString_${cytoidID}")
+                                            val commentsString =
+                                                mmkv.decodeString("commentsString_${cytoidID}")
+                                            if (profileGraphQLString != null) profileGraphQL =
+                                                json.decodeFromString(profileGraphQLString)
+                                            else {
+                                                error = "Local cache profile data is null"
+                                                return@TextButton
+                                            }
+                                            if (profileWebapiString != null) profileWebapi =
+                                                json.decodeFromString(profileWebapiString)
+                                            else {
+                                                error = "Local cache profile data is null"
+                                                return@TextButton
+                                            }
+                                            comments =
+                                                if (commentsString != null)
+                                                    json.decodeFromString(commentsString)
+                                                else arrayListOf()
+                                            isQueryingFinished = true
+                                            "6小时内有查询记录，使用已缓存的数据".showToast()
+                                        } else {
+                                            "开始查询$cytoidID".showToast()
+                                            thread {
                                                 val job = Job()
                                                 CoroutineScope(job).launch {
-                                                    val profiles =
-                                                        awaitAll(
-                                                            async { ProfileGraphQL.get(cytoidID) },
-                                                            async { ProfileWebapi.get(cytoidID) }
-                                                        )
-                                                    profileGraphQL = profiles[0] as ProfileGraphQL
-                                                    profileWebapi = profiles[1] as ProfileWebapi
-                                                    comments =
-                                                        async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
-                                                    isQueryingFinished = true
+                                                    try {
+                                                        val profiles =
+                                                            awaitAll(
+                                                                async { ProfileGraphQL.get(cytoidID) },
+                                                                async { ProfileWebapi.get(cytoidID) }
+                                                            )
+                                                        profileGraphQL =
+                                                            profiles[0] as ProfileGraphQL
+                                                        profileWebapi = profiles[1] as ProfileWebapi
+                                                        comments =
+                                                            async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
+                                                        isQueryingFinished = true
+                                                        mmkv.run {
+                                                            encode(
+                                                                "lastQueryProfileTime_${cytoidID}",
+                                                                System.currentTimeMillis()
+                                                            )
+                                                            encode(
+                                                                "profileGraphQLString_${cytoidID}",
+                                                                json.encodeToString(profileGraphQL)
+                                                            )
+                                                            encode(
+                                                                "profileWebapiString_${cytoidID}",
+                                                                json.encodeToString(profileWebapi)
+                                                            )
+                                                            encode(
+                                                                "commentsString_${cytoidID}",
+                                                                json.encodeToString(comments)
+                                                            )
+                                                        }
+                                                    } catch (e: Exception) {
+                                                        error = e.stackTraceToString()
+                                                        Crashes.trackError(e)
+                                                    }
                                                 }
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                                Crashes.trackError(e)
-                                                Looper.prepare()
-                                                e.stackTraceToString()
-                                                    .showDialog(context, "查询失败")
                                             }
                                         }
                                     }
@@ -205,18 +325,37 @@ fun ProfileCompose() {
                     }
                 }
             }
-            AnimatedVisibility(visible = isQueryingFinished && ::profileGraphQL.isInitialized && ::profileWebapi.isInitialized) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    item { HeaderBar(profileWebapi = profileWebapi) }
-                    item { BiographyCard(profileGraphQL = profileGraphQL) }
-                    item { BadgesCard(profileGraphQL = profileGraphQL) }
-                    item { RecentRecordsCard(profileGraphQL = profileGraphQL) }
-                    item { DetailsCard(profileWebapi = profileWebapi) }
-                    item { CollectionsCard(profileGraphQL = profileGraphQL) }
-                    item { LevelsCard(profileGraphQL = profileGraphQL) }
-                    item { CommentsColumn(comments = comments) }
+            if (error.isNotEmpty()) {
+                AlertCard(message = error, modifier = Modifier.padding(vertical = 6.dp))
+            } else {
+                AnimatedVisibility(visible = isQueryingFinished) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        item {
+                            HeaderBar(
+                                profileWebapi = profileWebapi,
+                                keep2DecimalPlace = keep2DecimalPlace
+                            )
+                        }
+                        item { BiographyCard(profileGraphQL = profileGraphQL) }
+                        item { BadgesCard(profileGraphQL = profileGraphQL) }
+                        item {
+                            RecentRecordsCard(
+                                profileGraphQL = profileGraphQL,
+                                keep2DecimalPlace = keep2DecimalPlace
+                            )
+                        }
+                        item {
+                            DetailsCard(
+                                profileWebapi = profileWebapi,
+                                keep2DecimalPlace = keep2DecimalPlace
+                            )
+                        }
+                        item { CollectionsCard(profileGraphQL = profileGraphQL) }
+                        item { LevelsCard(profileGraphQL = profileGraphQL) }
+                        item { CommentsColumn(comments = comments) }
+                    }
                 }
             }
         }
@@ -225,7 +364,7 @@ fun ProfileCompose() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HeaderBar(profileWebapi: ProfileWebapi) {
+private fun HeaderBar(profileWebapi: ProfileWebapi, keep2DecimalPlace: Boolean) {
     Row {
         AsyncImage(
             model = getImageRequestBuilderForCytoid(profileWebapi.user.avatar.large)
@@ -262,7 +401,11 @@ private fun HeaderBar(profileWebapi: ProfileWebapi) {
                         .padding(horizontal = 6.dp)
                 )
                 Text(
-                    text = "Rating ${profileWebapi.rating.setPrecision(2)}",
+                    text = "Rating ${
+                        profileWebapi.rating.run {
+                            if (keep2DecimalPlace) setPrecision(2) else this
+                        }
+                    }",
                     color = Color.Black,
                     modifier = Modifier
                         .background(Color(0xFF6AF5FF), RoundedCornerShape(100))
@@ -397,7 +540,7 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
 }
 
 @Composable
-private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL) {
+private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL, keep2DecimalPlace: Boolean) {
     Card {
         Column(
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -432,7 +575,7 @@ private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL) {
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     profileGraphQL.data.profile.recentRecords.forEach {
-                        RecordCard(record = it)
+                        RecordCard(record = it, keep2DecimalPlaces = keep2DecimalPlace)
                     }
                 }
             }
@@ -442,19 +585,24 @@ private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DetailsCard(profileWebapi: ProfileWebapi) {
+private fun DetailsCard(profileWebapi: ProfileWebapi, keep2DecimalPlace: Boolean) {
     var tabIndex by remember { mutableIntStateOf(0) }
-    val timeSeries = profileWebapi.timeSeries.run {
+    val timeSeries = profileWebapi.timeSeries.apply {
         sortBy { it.date.replace("-", "").toInt() }
-        this
     }
     chartEntryModelProducer.setEntries(timeSeries.map {
         entryOf(
             timeSeries.indexOf(it),
             when (tabIndex) {
-                0 -> it.rating.setPrecision(2).toFloat()
+                0 -> it.rating.run {
+                    if (keep2DecimalPlace) setPrecision(2).toFloat() else this
+                }
+
                 1 -> it.count
-                2 -> (it.accuracy * 100).setPrecision(2).toFloat()
+                2 -> (it.accuracy * 100).run {
+                    if (keep2DecimalPlace) setPrecision(2).toFloat() else this
+                }
+
                 else -> -1
             }
         )
@@ -506,9 +654,10 @@ private fun DetailsCard(profileWebapi: ProfileWebapi) {
                     Text(text = "平均精准度")
                     Text(
                         text = "${
-                            (profileWebapi.activities.averageRankedAccuracy * 100).setPrecision(
-                                2
-                            )
+                            (profileWebapi.activities.averageRankedAccuracy * 100).run {
+                                if (keep2DecimalPlace) setPrecision(2)
+                                else this
+                            }
                         }%",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
@@ -668,16 +817,26 @@ private fun DetailsCard(profileWebapi: ProfileWebapi) {
                     chartModelProducer = chartEntryModelProducer,
                     bottomAxis = rememberBottomAxis(
                         valueFormatter = { value, _ ->
-                            timeSeries[value.toInt()].date.replace("-", "w")
+                            (if (value.toInt() < timeSeries.size)
+                                timeSeries[value.toInt()].date.replace("-", "w")
+                            else "null").substring(2)
                         },
                         labelRotationDegrees = 90f
                     ),
                     startAxis = rememberStartAxis(
                         valueFormatter = { value, _ ->
                             when (tabIndex) {
-                                0 -> value.setPrecision(2)
+                                0 -> value.run {
+                                    if (keep2DecimalPlace) setPrecision(2) else this
+                                }.toString()
+
                                 1 -> value.toInt().toString()
-                                2 -> "${value.setPrecision(2)}%"
+                                2 -> "${
+                                    value.run {
+                                        if (keep2DecimalPlace) setPrecision(2) else this
+                                    }
+                                }%"
+
                                 else -> "Error"
                             }
                         },
@@ -710,6 +869,34 @@ private fun DetailsCard(profileWebapi: ProfileWebapi) {
                         )
                     ).apply {
                         indicatorSize = 16.dp
+                        this.labelFormatter = MarkerLabelFormatter { markedEntries, _ ->
+                            markedEntries.transformToSpannable { model ->
+                                appendCompat(
+                                    profileWebapi.timeSeries[model.index].date.replace(
+                                        "-",
+                                        "年第"
+                                    ) + "周；",
+                                    ForegroundColorSpan(model.color),
+                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
+                                appendCompat(
+                                    when (tabIndex) {
+                                        0 -> model.entry.y.run {
+                                            if (keep2DecimalPlace) setPrecision(2) else this.toString()
+                                        }
+
+                                        1 -> model.entry.y.toInt().toString()
+                                        2 -> model.entry.y.run {
+                                            if (keep2DecimalPlace) setPrecision(2) else this.toString()
+                                        } + "%"
+
+                                        else -> ""
+                                    },
+                                    ForegroundColorSpan(model.color),
+                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
+                            }
+                        }
                     }
                 )
             }

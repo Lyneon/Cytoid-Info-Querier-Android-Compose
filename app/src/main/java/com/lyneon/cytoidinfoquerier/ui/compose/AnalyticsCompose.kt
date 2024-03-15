@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Looper
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,7 +53,6 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
-import com.lyneon.cytoidinfoquerier.util.extension.showDialog
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
@@ -77,6 +75,7 @@ fun AnalyticsCompose() {
     var columnsCountIsNull by remember { mutableStateOf(false) }
     var querySettingsMenuIsExpanded by remember { mutableStateOf(false) }
     var hideInput by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf("") }
 
     Column {
         TopBar(
@@ -124,7 +123,8 @@ fun AnalyticsCompose() {
                                         expanded = querySettingsMenuIsExpanded,
                                         onDismissRequest = {
                                             querySettingsMenuIsExpanded = false
-                                        }) {
+                                        }
+                                    ) {
                                         DropdownMenuItem(
                                             text = {
                                                 Row(
@@ -284,6 +284,7 @@ fun AnalyticsCompose() {
                                 }
                                 TextButton(
                                     onClick = {
+                                        error = ""
                                         if (cytoidID.isEmpty()) {
                                             context.getString(R.string.empty_cytoidID)
                                                 .showToast()
@@ -300,51 +301,56 @@ fun AnalyticsCompose() {
                                             textFieldIsError = false
                                             isQueryingFinished = false
                                             if (System.currentTimeMillis() - mmkv.decodeLong(
-                                                    "lastQueryProfileTime_${cytoidID}_${queryType}",
+                                                    "lastQueryAnalyticsTime_${cytoidID}_${queryType}",
                                                     -1
                                                 ) <= (6 * 60 * 60 * 1000) && !ignoreCache
                                             ) {
                                                 response = try {
                                                     var toIndex: Int
-                                                    val analytics = Analytics.decodeFromJSONString(
-                                                        mmkv.decodeString("profileString_${cytoidID}_${queryType}")
-                                                            ?: throw Exception("decode local cache failed!")
-                                                    ).apply {
-                                                        if (this.data.profile != null) {
-                                                            if (queryType == QueryType.bestRecords) {
-                                                                toIndex =
-                                                                    if (queryCount.toInt() <= this.data.profile.bestRecords.size) queryCount.toInt()
-                                                                    else this.data.profile.bestRecords.size
-                                                                this.data.profile.bestRecords =
-                                                                    ArrayList(
-                                                                        this.data.profile.bestRecords.subList(
-                                                                            0,
-                                                                            toIndex
-                                                                        )
-                                                                    )
-                                                            } else {
-                                                                toIndex =
-                                                                    if (queryCount.toInt() <= this.data.profile.recentRecords.size) queryCount.toInt()
-                                                                    else this.data.profile.recentRecords.size
-                                                                this.data.profile.recentRecords =
-                                                                    ArrayList(
-                                                                        this.data.profile.recentRecords.subList(
-                                                                            0,
-                                                                            toIndex
-                                                                        )
-                                                                    )
-                                                            }
-                                                        } else {
-                                                            throw Exception("local cache's data.profile is null!")
-                                                        }
+                                                    val profileString =
+                                                        mmkv.decodeString("analyticsString_${cytoidID}_${queryType}")
+                                                    if (profileString == null) {
+                                                        error = "Failed to find cache data"
+                                                        return@TextButton
                                                     }
+                                                    val analytics =
+                                                        Analytics.decodeFromJSONString(profileString)
+                                                            .apply {
+                                                                if (this.data.profile != null) {
+                                                                    val profile = this.data.profile
+                                                                    if (queryType == QueryType.bestRecords) {
+                                                                        toIndex =
+                                                                            if (queryCount.toInt() <= profile.bestRecords.size) queryCount.toInt()
+                                                                            else profile.bestRecords.size
+                                                                        profile.bestRecords =
+                                                                            ArrayList(
+                                                                                profile.bestRecords.subList(
+                                                                                    0,
+                                                                                    toIndex
+                                                                                )
+                                                                            )
+                                                                    } else {
+                                                                        toIndex =
+                                                                            if (queryCount.toInt() <= profile.recentRecords.size) queryCount.toInt()
+                                                                            else profile.recentRecords.size
+                                                                        profile.recentRecords =
+                                                                            ArrayList(
+                                                                                profile.recentRecords.subList(
+                                                                                    0,
+                                                                                    toIndex
+                                                                                )
+                                                                            )
+                                                                    }
+                                                                } else {
+                                                                    error =
+                                                                        "local cache data.profile is null!"
+                                                                    return@TextButton
+                                                                }
+                                                            }
                                                     "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
                                                     analytics
                                                 } catch (e: Exception) {
-                                                    e.stackTraceToString().showDialog(
-                                                        context,
-                                                        context.getString(R.string.fail)
-                                                    )
+                                                    error = e.stackTraceToString()
                                                     Crashes.trackError(e)
                                                     return@TextButton
                                                 }
@@ -375,16 +381,16 @@ fun AnalyticsCompose() {
                                                             Analytics.decodeFromJSONString(
                                                                 profileString
                                                             )
-                                                        if (response.data.profile == null) throw Exception(
-                                                            "data.profile is null!"
-                                                        )
-                                                        else {
+                                                        if (response.data.profile == null) {
+                                                            error = "data.profile is null!"
+                                                            return@thread
+                                                        } else {
                                                             mmkv.encode(
-                                                                "lastQueryProfileTime_${cytoidID}_${queryType}",
+                                                                "lastQueryAnalyticsTime_${cytoidID}_${queryType}",
                                                                 System.currentTimeMillis()
                                                             )
                                                             mmkv.encode(
-                                                                "profileString_${cytoidID}_${queryType}",
+                                                                "analyticsString_${cytoidID}_${queryType}",
                                                                 profileString
                                                             )
                                                             Looper.prepare()
@@ -395,11 +401,7 @@ fun AnalyticsCompose() {
                                                             isQueryingFinished = true
                                                         }
                                                     } catch (e: Exception) {
-                                                        Looper.prepare()
-                                                        "查询失败：${e.stackTraceToString()}".showToast(
-                                                            Toast.LENGTH_LONG
-                                                        )
-                                                        e.printStackTrace()
+                                                        error = "查询失败：${e.stackTraceToString()}"
                                                         Crashes.trackError(e)
                                                     }
                                                 }
@@ -427,46 +429,51 @@ fun AnalyticsCompose() {
                     }
                 }
             }
-            AnimatedVisibility(visible = isQueryingFinished && ::response.isInitialized) {
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(
-                        mmkv.decodeInt(
-                            if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1
-                        )
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalItemSpacing = 6.dp,
-                    contentPadding = PaddingValues(vertical = 6.dp)
-                ) {
-                    if (isQueryingFinished && ::response.isInitialized) {
-                        if (response.data.profile != null) {
-                            var remainRecord = if (queryCount.isEmpty()) 0 else queryCount.toInt()
-                            for (i in 0 until
-                                    if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
-                                    else response.data.profile!!.recentRecords.size
-                            ) {
-                                if (remainRecord == 0) break
-                                val record =
-                                    if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords[i]
-                                    else response.data.profile!!.recentRecords[i]
-                                item(
-                                    span = if ((if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
-                                        else response.data.profile!!.recentRecords.size) == 1
-                                    ) StaggeredGridItemSpan.FullLine
-                                    else StaggeredGridItemSpan.SingleLane
+            if (error.isNotEmpty()) {
+                AlertCard(message = error, modifier = Modifier.padding(vertical = 6.dp))
+            } else {
+                AnimatedVisibility(visible = isQueryingFinished && ::response.isInitialized) {
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(
+                            mmkv.decodeInt(
+                                if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
+                                else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1
+                            )
+                        ),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalItemSpacing = 6.dp,
+                        contentPadding = PaddingValues(vertical = 6.dp)
+                    ) {
+                        if (isQueryingFinished && ::response.isInitialized) {
+                            if (response.data.profile != null) {
+                                var remainRecord =
+                                    if (queryCount.isEmpty()) 0 else queryCount.toInt()
+                                for (i in 0 until
+                                        if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
+                                        else response.data.profile!!.recentRecords.size
                                 ) {
-                                    RecordCard(
-                                        record = record,
-                                        recordIndex = i + 1,
-                                        keep2DecimalPlace
-                                    )
+                                    if (remainRecord == 0) break
+                                    val record =
+                                        if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords[i]
+                                        else response.data.profile!!.recentRecords[i]
+                                    item(
+                                        span = if ((if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
+                                            else response.data.profile!!.recentRecords.size) == 1
+                                        ) StaggeredGridItemSpan.FullLine
+                                        else StaggeredGridItemSpan.SingleLane
+                                    ) {
+                                        RecordCard(
+                                            record = record,
+                                            recordIndex = i + 1,
+                                            keep2DecimalPlace
+                                        )
+                                    }
+                                    remainRecord--
                                 }
-                                remainRecord--
-                            }
-                        } else {
-                            item {
-                                AlertCard(message = "data.profile is null!")
+                            } else {
+                                item {
+                                    AlertCard(message = "data.profile is null!")
+                                }
                             }
                         }
                     }

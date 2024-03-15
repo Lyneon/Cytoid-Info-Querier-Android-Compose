@@ -1,6 +1,5 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.component
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -17,18 +16,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AlertCard(
+    modifier: Modifier = Modifier,
     icon: ImageVector? = Icons.Default.Info,
     message: String
 ) {
-    Card {
-        Box(modifier = Modifier.padding(16.dp)) {
-            Row {
-                icon?.let {
-                    Icon(imageVector = it, contentDescription = message)
-                    Spacer(modifier = Modifier.width(6.dp))
-                }
-                Text(text = message)
+    Card(
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            icon?.let {
+                Icon(imageVector = it, contentDescription = message)
+                Spacer(modifier = Modifier.width(6.dp))
             }
+            Text(text = message)
         }
     }
 }
