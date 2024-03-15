@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.model.graphql
+package com.lyneon.cytoidinfoquerier.data.constant
 
 object RecordQueryOrder {
     const val ASC = "ASC"

@@ -4,8 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Intent
 import android.os.Looper
+import android.os.Process
 import androidx.compose.material3.DrawerState
-import com.lyneon.cytoidinfoquerier.model.CytoidConstant
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
@@ -17,6 +18,15 @@ class BaseApplication : Application() {
         lateinit var context: BaseApplication
         lateinit var globalDrawerState: DrawerState
         var cytoidIsInstalled = false
+
+        fun restartApp() {
+            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                context.startActivity(intent)
+            }
+            Process.killProcess(Process.myPid())
+        }
     }
 
     @SuppressLint("QueryPermissionsNeeded")

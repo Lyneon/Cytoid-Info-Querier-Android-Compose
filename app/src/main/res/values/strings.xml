@@ -65,4 +65,11 @@
     <string name="browser_not_found">没有找到浏览器</string>
     <string name="unfold">展开</string>
     <string name="fold">折叠</string>
+    <string name="grid_cloumns_count_portrait">网格列数（竖屏）</string>
+    <string name="grid_cloumns_count_landscape">网格列数（横屏）</string>
+    <string name="grid_columns_count">网格列数</string>
+    <string name="reset">重置</string>
+    <string name="rotate">旋转</string>
+    <string name="decrease">减少</string>
+    <string name="increase">增加</string>
 </resources>

@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -33,10 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,13 +44,14 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.SecretData
+import com.lyneon.cytoidinfoquerier.Secret
+import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
-import com.lyneon.cytoidinfoquerier.ui.compose.NavRoute
+import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
+import com.lyneon.cytoidinfoquerier.ui.compose.GridColumnsSettingCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.ProfileCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.SettingsCompose
-import com.lyneon.cytoidinfoquerier.ui.compose.SettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
@@ -65,9 +65,9 @@ class MainActivity : BaseActivity() {
 
         val mmkv = MMKV.defaultMMKV()
 
-        if (mmkv.decodeBool(SettingsMMKVKeys.enableAppCenter, true)) {
+        if (mmkv.decodeBool(MMKVKeys.ENABLE_APP_CENTER, true)) {
             AppCenter.start(
-                BaseApplication.context, SecretData.microsoftAppCenterAppSecret,
+                BaseApplication.context, Secret.microsoftAppCenterAppSecret,
                 Analytics::class.java, Crashes::class.java
             )
         }
@@ -125,7 +125,7 @@ class MainActivity : BaseActivity() {
                                             },
                                             icon = {
                                                 Icon(
-                                                    ImageVector.vectorResource(R.drawable.baseline_insights_24),
+                                                    Icons.AutoMirrored.Filled.ShowChart,
                                                     stringResource(R.string.analytics)
                                                 )
                                             },
@@ -144,7 +144,7 @@ class MainActivity : BaseActivity() {
                                             },
                                             icon = {
                                                 Icon(
-                                                    Icons.Filled.AccountCircle,
+                                                    Icons.Default.AccountCircle,
                                                     stringResource(R.string.profile)
                                                 )
                                             },
@@ -178,7 +178,7 @@ class MainActivity : BaseActivity() {
                                     }) {
                                         Column {
                                             Icon(
-                                                imageVector = Icons.Filled.Settings,
+                                                imageVector = Icons.Default.Settings,
                                                 contentDescription = stringResource(id = R.string.settings),
                                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                                             )
@@ -214,7 +214,10 @@ class MainActivity : BaseActivity() {
                                     ProfileCompose()
                                 }
                                 composable(NavRoute.settings) {
-                                    SettingsCompose()
+                                    SettingsCompose(navController)
+                                }
+                                composable(NavRoute.gridColumnsSetting) {
+                                    GridColumnsSettingCompose(navController)
                                 }
                             }
                         }

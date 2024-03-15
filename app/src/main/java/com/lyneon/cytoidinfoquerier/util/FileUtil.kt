@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool
+package com.lyneon.cytoidinfoquerier.util
 
 import android.content.Context
 import android.graphics.Bitmap

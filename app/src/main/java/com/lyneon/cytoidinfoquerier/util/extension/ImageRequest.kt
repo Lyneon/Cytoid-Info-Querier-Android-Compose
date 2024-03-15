@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool.extension
+package com.lyneon.cytoidinfoquerier.util.extension
 
 import coil.request.ImageRequest
 import com.lyneon.cytoidinfoquerier.BaseApplication

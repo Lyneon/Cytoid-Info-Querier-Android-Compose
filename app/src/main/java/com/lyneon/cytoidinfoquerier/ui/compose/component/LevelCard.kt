@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,12 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,13 +55,13 @@ import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.model.CytoidDeepLink
-import com.lyneon.cytoidinfoquerier.model.graphql.ProfileGraphQL
-import com.lyneon.cytoidinfoquerier.tool.extension.getImageRequestBuilderForCytoid
-import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
-import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
-import com.lyneon.cytoidinfoquerier.tool.extension.showToast
-import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
+import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
+import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
+import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.util.extension.showDialog
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
 import com.patrykandpatrick.vico.compose.component.shape.composeShape
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import java.net.URL
@@ -207,9 +206,7 @@ fun LevelCard(level: ProfileGraphQL.ProfileData.Profile.User.UserLevel) {
                     Modifier.padding(6.dp)
                 )
                 else Icon(
-                    imageVector = if (mediaPlayerState == Player.STATE_READY) ImageVector.vectorResource(
-                        R.drawable.baseline_stop_24
-                    ) else Icons.Filled.PlayArrow,
+                    imageVector = if (mediaPlayerState == Player.STATE_READY) Icons.Default.Stop else Icons.Default.PlayArrow,
                     contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
                 )
             }

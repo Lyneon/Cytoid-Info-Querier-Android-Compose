@@ -17,8 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.lyneon.cytoidinfoquerier.model.graphql.ProfileGraphQL
-import com.lyneon.cytoidinfoquerier.tool.extension.getImageRequestBuilderForCytoid
+import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
+import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.patrykandpatrick.vico.compose.component.shape.composeShape
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 

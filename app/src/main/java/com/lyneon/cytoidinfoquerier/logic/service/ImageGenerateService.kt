@@ -11,9 +11,9 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.ImageHandler
 import com.lyneon.cytoidinfoquerier.logic.NotificationHandler
 import com.lyneon.cytoidinfoquerier.logic.NotificationHandler.registerNotificationChannel
-import com.lyneon.cytoidinfoquerier.model.webapi.ProfileWebapi
-import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
-import com.lyneon.cytoidinfoquerier.tool.extension.showToast
+import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.compose.QueryType
 import com.lyneon.cytoidinfoquerier.ui.compose.response
 import com.lyneon.cytoidinfoquerier.ui.compose.responseIsInitialized

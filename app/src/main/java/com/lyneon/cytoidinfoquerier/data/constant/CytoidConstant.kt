@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.model
+package com.lyneon.cytoidinfoquerier.data.constant
 
 object CytoidConstant {
     const val gamePackageName = "me.tigerhix.cytoid"

@@ -16,12 +16,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
@@ -45,30 +45,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
+import com.lyneon.cytoidinfoquerier.data.model.webapi.Comment
+import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.model.graphql.ProfileGraphQL
-import com.lyneon.cytoidinfoquerier.model.webapi.Comment
-import com.lyneon.cytoidinfoquerier.model.webapi.ProfileWebapi
-import com.lyneon.cytoidinfoquerier.tool.extension.getImageRequestBuilderForCytoid
-import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
-import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
-import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
-import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
+import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
+import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.util.extension.showDialog
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.microsoft.appcenter.crashes.Crashes
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
@@ -208,20 +206,17 @@ fun ProfileCompose() {
                 }
             }
             AnimatedVisibility(visible = isQueryingFinished && ::profileGraphQL.isInitialized && ::profileWebapi.isInitialized) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 6.dp),
+                LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    HeaderBar(profileWebapi = profileWebapi)
-                    BiographyCard(profileGraphQL = profileGraphQL)
-                    BadgesCard(profileGraphQL = profileGraphQL)
-                    RecentRecordsCard(profileGraphQL = profileGraphQL)
-                    DetailsCard(profileWebapi = profileWebapi)
-                    CollectionsCard(profileGraphQL = profileGraphQL)
-                    LevelsCard(profileGraphQL = profileGraphQL)
-                    CommentsColumn(comments = comments)
+                    item { HeaderBar(profileWebapi = profileWebapi) }
+                    item { BiographyCard(profileGraphQL = profileGraphQL) }
+                    item { BadgesCard(profileGraphQL = profileGraphQL) }
+                    item { RecentRecordsCard(profileGraphQL = profileGraphQL) }
+                    item { DetailsCard(profileWebapi = profileWebapi) }
+                    item { CollectionsCard(profileGraphQL = profileGraphQL) }
+                    item { LevelsCard(profileGraphQL = profileGraphQL) }
+                    item { CommentsColumn(comments = comments) }
                 }
             }
         }
@@ -310,7 +305,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
         ) {
             Row {
                 Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_calendar_person),
+                    imageVector = Icons.Default.DateRange,
                     contentDescription = null
                 )
                 Text(
@@ -874,7 +869,10 @@ private fun CommentsColumn(comments: ArrayList<Comment>) {
                                         }天前"
                                     )
                                 }
-                                Text(text = it.content, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    text = it.content,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
                     }

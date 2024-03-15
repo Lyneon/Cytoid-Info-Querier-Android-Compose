@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AlertCard(
-    icon: ImageVector? = Icons.Rounded.Info,
+    icon: ImageVector? = Icons.Default.Info,
     message: String
 ) {
     Card {

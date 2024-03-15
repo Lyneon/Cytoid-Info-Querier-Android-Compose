@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,13 +54,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -75,15 +74,15 @@ import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.model.CytoidDeepLink
-import com.lyneon.cytoidinfoquerier.model.graphql.UserRecord
-import com.lyneon.cytoidinfoquerier.tool.extension.getImageRequestBuilderForCytoid
-import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
-import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoMediaStore
-import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
-import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
-import com.lyneon.cytoidinfoquerier.tool.extension.showToast
-import com.lyneon.cytoidinfoquerier.tool.extension.toBitmap
+import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
+import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
+import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.util.extension.showDialog
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
 import com.microsoft.appcenter.crashes.Crashes
 import dev.shreyaspatil.capturable.Capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
@@ -130,7 +129,6 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
     ) {
         Card(
             Modifier
-                .padding(6.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onLongPress = {
@@ -268,9 +266,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                 Modifier.padding(6.dp)
                             )
                             else Icon(
-                                imageVector = if (mediaPlayerState == Player.STATE_READY) ImageVector.vectorResource(
-                                    R.drawable.baseline_stop_24
-                                ) else Icons.Filled.PlayArrow,
+                                imageVector = if (mediaPlayerState == Player.STATE_READY) Icons.Default.Stop else Icons.Default.PlayArrow,
                                 contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
                             )
                         }

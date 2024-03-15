@@ -1,5 +1,6 @@
-package com.lyneon.cytoidinfoquerier.model.graphql
+package com.lyneon.cytoidinfoquerier.data.model.graphql
 
+import com.lyneon.cytoidinfoquerier.data.GraphQL
 import com.lyneon.cytoidinfoquerier.json
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import kotlinx.serialization.Serializable

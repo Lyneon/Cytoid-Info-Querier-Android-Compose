@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -16,13 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.tool.extension.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 
 
@@ -45,7 +46,7 @@ fun CrashActivityCompose(crashMessage: String) {
                         Process.killProcess(Process.myPid())
                     }) {
                         Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_menu_restart),
+                            imageVector = Icons.Default.Refresh,
                             contentDescription = stringResource(id = R.string.restart)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -62,7 +63,7 @@ fun CrashActivityCompose(crashMessage: String) {
                     Text(text = stringResource(id = R.string.copy))
                     Spacer(modifier = Modifier.width(6.dp))
                     Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_menu_copy),
+                        imageVector = Icons.Default.ContentCopy,
                         contentDescription = "复制"
                     )
                 }

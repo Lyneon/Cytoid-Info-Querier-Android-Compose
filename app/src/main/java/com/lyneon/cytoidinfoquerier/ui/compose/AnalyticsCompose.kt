@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Looper
 import android.widget.Toast
@@ -10,9 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -45,17 +44,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.checkSelfPermission
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.GraphQL
+import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
+import com.lyneon.cytoidinfoquerier.data.model.graphql.Analytics
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
-import com.lyneon.cytoidinfoquerier.model.graphql.Analytics
-import com.lyneon.cytoidinfoquerier.model.graphql.GraphQL
-import com.lyneon.cytoidinfoquerier.tool.extension.isValidCytoidID
-import com.lyneon.cytoidinfoquerier.tool.extension.showDialog
-import com.lyneon.cytoidinfoquerier.tool.extension.showToast
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
+import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.util.extension.showDialog
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import kotlin.concurrent.thread
@@ -429,9 +429,15 @@ fun AnalyticsCompose() {
             }
             AnimatedVisibility(visible = isQueryingFinished && ::response.isInitialized) {
                 LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Adaptive(320.dp),
-                    contentPadding = PaddingValues(top = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    columns = StaggeredGridCells.Fixed(
+                        mmkv.decodeInt(
+                            if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
+                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1
+                        )
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalItemSpacing = 6.dp,
+                    contentPadding = PaddingValues(vertical = 6.dp)
                 ) {
                     if (isQueryingFinished && ::response.isInitialized) {
                         if (response.data.profile != null) {
@@ -455,7 +461,6 @@ fun AnalyticsCompose() {
                                         recordIndex = i + 1,
                                         keep2DecimalPlace
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
                                 }
                                 remainRecord--
                             }
