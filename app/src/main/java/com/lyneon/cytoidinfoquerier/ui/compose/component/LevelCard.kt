@@ -56,6 +56,7 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
@@ -152,21 +153,9 @@ fun LevelCard(level: ProfileGraphQL.ProfileData.Profile.User.UserLevel) {
                                 .background(
                                     Brush.linearGradient(
                                         when (chart.type) {
-                                            "easy" -> listOf(
-                                                Color(0xff4ca2cd),
-                                                Color(0xff67b26f)
-                                            )
-
-                                            "extreme" -> listOf(
-                                                Color(0xFF200122),
-                                                Color(0xff6f0000)
-
-                                            )
-
-                                            else -> listOf(
-                                                Color(0xff4568dc),
-                                                Color(0xffb06abc)
-                                            )
+                                            "easy" -> CytoidColors.easyColor
+                                            "extreme" -> CytoidColors.extremeColor
+                                            else -> CytoidColors.hardColor
                                         }
                                     ), Shapes.pillShape.composeShape()
                                 )

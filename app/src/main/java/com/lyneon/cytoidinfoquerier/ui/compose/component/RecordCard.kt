@@ -72,10 +72,10 @@ import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.logic.DateParser
-import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
+import com.lyneon.cytoidinfoquerier.logic.DateParser
+import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
