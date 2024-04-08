@@ -4,6 +4,7 @@ import android.os.Looper
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -17,12 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.tool.extension.showToast
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,7 +29,10 @@ import kotlin.concurrent.thread
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name)) {
+fun TopBar(
+    title: String = BaseApplication.context.getString(R.string.app_name),
+    additionalActions: @Composable ((Unit) -> Unit)? = null
+) {
     val scope = rememberCoroutineScope()
     CenterAlignedTopAppBar(
         title = { Text(text = title) },
@@ -48,9 +50,10 @@ fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name))
         },
         actions = {
             var menuIsExpanded by remember { mutableStateOf(false) }
+            additionalActions?.invoke(Unit)
             IconButton(onClick = { menuIsExpanded = !menuIsExpanded }) {
                 Icon(
-                    imageVector = Icons.Filled.MoreVert,
+                    imageVector = Icons.Default.MoreVert,
                     contentDescription = "选项菜单"
                 )
             }
@@ -60,7 +63,7 @@ fun TopBar(title: String = BaseApplication.context.getString(R.string.app_name))
                 DropdownMenuItem(
                     leadingIcon = {
                         Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.baseline_public_24),
+                            imageVector = Icons.Default.Public,
                             contentDescription = stringResource(id = R.string.ping)
                         )
                     },

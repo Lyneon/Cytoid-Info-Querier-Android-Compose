@@ -2,7 +2,10 @@ package com.lyneon.cytoidinfoquerier.ui.compose
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -24,7 +27,10 @@ fun HomeCompose() {
     Column {
         TopBar()
         Column(
-            modifier = Modifier.padding(6.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(6.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             AlertCard(message = stringResource(id = R.string.debug_declaration))

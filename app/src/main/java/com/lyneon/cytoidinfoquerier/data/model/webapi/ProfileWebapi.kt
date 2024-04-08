@@ -1,9 +1,13 @@
-package com.lyneon.cytoidinfoquerier.model.webapi
+package com.lyneon.cytoidinfoquerier.data.model.webapi
 
+import com.lyneon.cytoidinfoquerier.json
 import kotlinx.serialization.Serializable
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.IOException
 
 @Serializable
-data class Profile(
+data class ProfileWebapi(
     val user: User,
     val badges: ArrayList<Badge>,
     val grade: Grade,
@@ -22,7 +26,8 @@ data class Profile(
     ) {
         @Serializable
         data class Avatar(
-            val original: String
+            val original: String,
+            val large: String
         )
     }
 
@@ -103,6 +108,40 @@ data class Profile(
             val currentLevel: Int,
             val nextLevelExp: Int,
             val currentLevelExp: Int
+        )
+    }
+
+    companion object {
+        fun get(cytoidID: String): ProfileWebapi {
+            val response = try {
+                OkHttpClient().newCall(
+                    Request.Builder()
+                        .url("https://services.cytoid.io/profile/$cytoidID/details")
+                        .removeHeader("User-Agent").addHeader("User-Agent", "CytoidClient/2.1.1")
+                        .build()
+                ).execute()
+            } catch (e: IOException) {
+                throw e
+            }
+            val result = try {
+                when (response.code) {
+                    200 -> response.body?.string()
+                    else -> throw Exception("Unknown Exception: HTTP response code is${response.code}")
+                }
+            } finally {
+                response.body?.close()
+            }
+            return if (result == null) {
+                throw Exception("Response body is null!HTTP response code is ${response.code}")
+            } else {
+                json.decodeFromString(result)
+            }
+        }
+
+        fun getDefaultInstance(): ProfileWebapi = ProfileWebapi(
+            User("", User.Avatar("", "")),
+            arrayListOf(), Grade(), Activities(0, 0, 0, 0.0, 0, 0f), Exp(0, 0, 0, 0, 0, 0), 0.0,
+            arrayListOf(), null, null, Character("", null, Character.Exp(0, 0, 0, 0))
         )
     }
 }

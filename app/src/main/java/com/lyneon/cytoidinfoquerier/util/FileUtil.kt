@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool
+package com.lyneon.cytoidinfoquerier.util
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,15 +8,16 @@ import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
-fun Context.saveStringFile(fileName: String, fileContent: String) {
+fun Context.writeStringIntoFile(fileName: String, fileContent: String) {
     val outputStream = this.openFileOutput(fileName, Context.MODE_PRIVATE)
     val writer = BufferedWriter(OutputStreamWriter(outputStream))
     writer.use {
         it.write(fileContent)
     }
+    outputStream.close()
 }
 
-fun Context.loadStringFile(fileName: String): String {
+fun Context.readStringFromFile(fileName: String): String {
     val fileContent = StringBuilder()
     val inputStream = this.openFileInput(fileName)
     val reader = BufferedReader(InputStreamReader(inputStream))
@@ -25,20 +26,26 @@ fun Context.loadStringFile(fileName: String): String {
             fileContent.append(it)
         }
     }
+    inputStream.close()
     return fileContent.toString()
 }
 
-fun Context.saveImageFile(fileName: String, image: Bitmap) {
+fun Context.writeImageIntoFile(fileName: String, image: Bitmap) {
+    val output = this.openFileOutput(fileName, Context.MODE_PRIVATE)
     try {
-        val output = this.openFileOutput(fileName, Context.MODE_PRIVATE)
         image.compress(Bitmap.CompressFormat.JPEG, 100, output)
         output.flush()
-        output.close()
     } catch (e: Exception) {
         e.printStackTrace()
         throw e
+    } finally {
+        output.close()
     }
 }
 
-fun Context.loadImageFile(fileName: String): Bitmap =
-    BitmapFactory.decodeStream(this.openFileInput(fileName))
+fun Context.readImageFromFile(fileName: String): Bitmap {
+    val inputStream = this.openFileInput(fileName)
+    val image = BitmapFactory.decodeStream(inputStream)
+    inputStream.close()
+    return image
+}

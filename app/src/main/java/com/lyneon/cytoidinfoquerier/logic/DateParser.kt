@@ -12,8 +12,13 @@ object DateParser {
         return dateFormat.parse(dateString) as Date
     }
 
-    fun Date.formatToTimeString(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    /**
+     * 将当前Date对象转换为字符串表示
+     * @param pattern 目标字符串的期望格式
+     * @return Date对象的字符串表示
+     */
+    fun Date.formatToTimeString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String {
+        val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
         dateFormat.timeZone = TimeZone.getDefault()
         return dateFormat.format(this)
     }

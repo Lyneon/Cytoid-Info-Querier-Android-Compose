@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.tool.extension
+package com.lyneon.cytoidinfoquerier.util.extension
 
 import java.math.RoundingMode
 import java.text.DecimalFormat

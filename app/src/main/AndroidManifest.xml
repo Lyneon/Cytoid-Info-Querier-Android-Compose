@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <queries>
+        <package android:name="me.tigerhix.cytoid" />
+    </queries>
+
     <application
         android:name=".BaseApplication"
         android:allowBackup="true"

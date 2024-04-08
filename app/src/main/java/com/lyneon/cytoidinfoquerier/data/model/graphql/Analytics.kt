@@ -1,8 +1,10 @@
-package com.lyneon.cytoidinfoquerier.model.graphql
+package com.lyneon.cytoidinfoquerier.data.model.graphql
 
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.tool.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.Locale
@@ -13,7 +15,7 @@ data class Analytics(
 ) {
     @Serializable
     data class Data(
-        val profile: Profile
+        val profile: Profile?
     ) {
         @Serializable
         data class Profile(
@@ -23,57 +25,56 @@ data class Analytics(
     }
 
     companion object {
-        fun getQueryBody(
+        fun getQueryString(
             cytoidID: String,
             recentRecordsLimit: Int = 0,
             recentRecordsSort: String = RecordQuerySort.Date,
             recentRecordsOrder: String = RecordQueryOrder.DESC,
             bestRecordsLimit: Int = 0
-        ): String = GraphQL.getQueryString(
-            """{
-                    profile(uid:"$cytoidID"){
-                        recentRecords(limit:$recentRecordsLimit,sort:$recentRecordsSort,order:$recentRecordsOrder){
-                            ...UserRecord
-                        },
-                        bestRecords(limit:$bestRecordsLimit){
-                            ...UserRecord
-                        }
-                    }
-                }
-    
-                fragment UserRecord on UserRecord {
-                    score,
-                    accuracy,
-                    mods,
-                    details {
-                        perfect,
-                        great,
-                        good,
-                        bad,
-                        miss,
-                        maxCombo
+        ) = """{
+                profile(uid:"$cytoidID"){
+                    recentRecords(limit:$recentRecordsLimit,sort:$recentRecordsSort,order:$recentRecordsOrder){
+                        ...UserRecord
                     },
-                    rating,
-                    date,
-                    chart {
-                        difficulty,
-                        type,
-                        name,
-                        notesCount,
-                        level {
-                            uid,
-                            title,
-                            bundle {
-                                backgroundImage {
-                                    thumbnail,
-                                    original
-                                }
+                    bestRecords(limit:$bestRecordsLimit){
+                        ...UserRecord
+                    }
+                }
+            }
+
+            fragment UserRecord on UserRecord {
+                score
+                accuracy
+                mods
+                details {
+                    perfect
+                    great
+                    good
+                    bad
+                    miss
+                    maxCombo
+                }
+                rating
+                date
+                chart {
+                    difficulty
+                    type
+                    name
+                    notesCount
+                    level {
+                        uid
+                        title
+                        bundle {
+                            backgroundImage {
+                                thumbnail
+                                original
                             }
+                            music
+                            musicPreview
                         }
                     }
                 }
-            """.replace("\n", "\\n").replace("\"", "\\\"")
-        )
+            }"""
 
         fun decodeFromJSONString(json: String): Analytics {
             val jsonHandler = Json { ignoreUnknownKeys = true }
@@ -90,18 +91,20 @@ data class UserRecord(
     val details: RecordDetails,
     val rating: Float,
     val date: String,
-    val chart: RecordChart
+    val chart: RecordChart?
 ) {
     fun detailsString(): String = StringBuilder().apply {
         val record = this@UserRecord
-        appendLine("${record.chart.level.title}(${
-            record.chart.name
-                ?: record.chart.type.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                }
-        } ${record.chart.difficulty})(${record.chart.level.uid})")
+        record.chart?.let {
+            appendLine("${record.chart.level?.title ?: "LevelTitle"}(${
+                record.chart.name
+                    ?: record.chart.type.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    }
+            } ${record.chart.difficulty})(${record.chart.level?.uid ?: "LevelUid"})")
+        }
         appendLine(record.score)
         appendLine("${(record.accuracy * 100).setPrecision(2)}% accuracy  ${record.details.maxCombo} max combo")
         appendLine("Rating ${record.rating.setPrecision(2)}")
@@ -125,7 +128,7 @@ data class UserRecord(
         val type: String,
         val name: String?,
         val notesCount: Int,
-        val level: RecordLevel
+        val level: RecordLevel?
     ) {
         @Serializable
         data class RecordLevel(
@@ -135,7 +138,9 @@ data class UserRecord(
         ) {
             @Serializable
             data class LevelBundle(
-                val backgroundImage: Image
+                val backgroundImage: Image,
+                val music: String,
+                val musicPreview: String? = null
             ) {
                 @Serializable
                 data class Image(

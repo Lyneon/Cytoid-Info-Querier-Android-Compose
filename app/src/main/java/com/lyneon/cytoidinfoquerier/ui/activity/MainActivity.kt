@@ -6,14 +6,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -26,27 +27,31 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
+import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.SecretData
+import com.lyneon.cytoidinfoquerier.Secret
+import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
-import com.lyneon.cytoidinfoquerier.ui.compose.NavRoute
+import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
+import com.lyneon.cytoidinfoquerier.ui.compose.GridColumnsSettingCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.ProfileCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.SettingsCompose
-import com.lyneon.cytoidinfoquerier.ui.compose.SettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
@@ -60,9 +65,9 @@ class MainActivity : BaseActivity() {
 
         val mmkv = MMKV.defaultMMKV()
 
-        if (mmkv.decodeBool(SettingsMMKVKeys.enableAppCenter, true)) {
+        if (mmkv.decodeBool(MMKVKeys.ENABLE_APP_CENTER, true)) {
             AppCenter.start(
-                BaseApplication.context, SecretData.microsoftAppCenterAppSecret,
+                BaseApplication.context, Secret.microsoftAppCenterAppSecret,
                 Analytics::class.java, Crashes::class.java
             )
         }
@@ -74,90 +79,120 @@ class MainActivity : BaseActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    BaseApplication.globalDrawerState =
+                    var currentNavRoute by remember { mutableStateOf(NavRoute.home) }
+                    globalDrawerState =
                         rememberDrawerState(initialValue = DrawerValue.Closed)
                     ModalNavigationDrawer(
-                        drawerState = BaseApplication.globalDrawerState,
+                        drawerState = globalDrawerState,
                         drawerContent = {
                             ModalDrawerSheet {
-                                Column {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .verticalScroll(rememberScrollState())
+                                ) {
+                                    val scope = rememberCoroutineScope()
                                     Image(
-                                        painter = painterResource(id = R.drawable.tutorial_background),
-                                        contentDescription = stringResource(id = R.string.drawer_background)
+                                        painter = painterResource(R.drawable.tutorial_background),
+                                        contentDescription = stringResource(id = R.string.drawerMenu)
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Column {
-                                        Column(
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            val drawerItems = listOf(
-                                                DrawerItem(
-                                                    icon = Icons.Filled.Home,
-                                                    label = stringResource(id = R.string.home),
-                                                    navDestinationRoute = NavRoute.home
-                                                ),
-                                                DrawerItem(
-                                                    icon = ImageVector.vectorResource(id = R.drawable.baseline_insights_24),
-                                                    label = stringResource(id = R.string.analytics),
-                                                    navDestinationRoute = NavRoute.analytics
-                                                ),
-                                                DrawerItem(
-                                                    icon = Icons.Filled.AccountCircle,
-                                                    label = stringResource(id = R.string.profile),
-                                                    navDestinationRoute = NavRoute.profile
+                                    Column(
+                                        Modifier.padding(6.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = stringResource(R.string.home))
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    Icons.Filled.Home,
+                                                    stringResource(R.string.home)
                                                 )
-                                            )
-                                            val scope = rememberCoroutineScope()
-                                            drawerItems.forEach {
-                                                NavigationDrawerItem(
-                                                    icon = { Icon(it.icon, it.label) },
-                                                    label = { Text(text = it.label) },
-                                                    selected = false,
-                                                    onClick = {
-                                                        navController.navigate(it.navDestinationRoute)
-                                                        scope.launch {
-                                                            BaseApplication.globalDrawerState.close()
-                                                        }
-                                                    },
-                                                    modifier = Modifier.padding(6.dp)
-                                                )
-                                            }
-                                        }
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(
-                                                6.dp,
-                                                Alignment.End
-                                            ),
-                                            modifier = Modifier
-                                                .padding(6.dp)
-                                                .fillMaxWidth(),
-                                        ) {
-                                            val scope = rememberCoroutineScope()
-                                            Button(onClick = {
-                                                navController.navigate(NavRoute.settings)
+                                            },
+                                            selected = currentNavRoute == NavRoute.home,
+                                            onClick = {
+                                                navController.navigate(NavRoute.home)
+                                                currentNavRoute = NavRoute.home
                                                 scope.launch {
-                                                    BaseApplication.globalDrawerState.close()
-                                                }
-                                            }) {
-                                                Column {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Settings,
-                                                        contentDescription = stringResource(id = R.string.settings),
-                                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                                    )
-                                                    Text(text = stringResource(id = R.string.settings))
+                                                    globalDrawerState.close()
                                                 }
                                             }
-                                            Button(onClick = { this@MainActivity.finish() }) {
-                                                Column {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.ExitToApp,
-                                                        contentDescription = stringResource(id = R.string.exit),
-                                                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                                                    )
-                                                    Text(text = stringResource(id = R.string.exit))
+                                        )
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = stringResource(R.string.analytics))
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    Icons.AutoMirrored.Filled.ShowChart,
+                                                    stringResource(R.string.analytics)
+                                                )
+                                            },
+                                            selected = currentNavRoute == NavRoute.analytics,
+                                            onClick = {
+                                                navController.navigate(NavRoute.analytics)
+                                                currentNavRoute = NavRoute.analytics
+                                                scope.launch {
+                                                    globalDrawerState.close()
                                                 }
                                             }
+                                        )
+                                        NavigationDrawerItem(
+                                            label = {
+                                                Text(text = stringResource(R.string.profile))
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    Icons.Default.AccountCircle,
+                                                    stringResource(R.string.profile)
+                                                )
+                                            },
+                                            selected = currentNavRoute == NavRoute.profile,
+                                            onClick = {
+                                                navController.navigate(NavRoute.profile)
+                                                currentNavRoute = NavRoute.profile
+                                                scope.launch {
+                                                    globalDrawerState.close()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        6.dp,
+                                        Alignment.End
+                                    ),
+                                    modifier = Modifier
+                                        .padding(6.dp)
+                                        .fillMaxWidth(),
+                                ) {
+                                    val scope = rememberCoroutineScope()
+                                    Button(onClick = {
+                                        navController.navigate(NavRoute.settings)
+                                        currentNavRoute = NavRoute.settings
+                                        scope.launch {
+                                            globalDrawerState.close()
+                                        }
+                                    }) {
+                                        Column {
+                                            Icon(
+                                                imageVector = Icons.Default.Settings,
+                                                contentDescription = stringResource(id = R.string.settings),
+                                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                            )
+                                            Text(text = stringResource(id = R.string.settings))
+                                        }
+                                    }
+                                    Button(onClick = { this@MainActivity.finish() }) {
+                                        Column {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                                contentDescription = stringResource(id = R.string.exit),
+                                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                            )
+                                            Text(text = stringResource(id = R.string.exit))
                                         }
                                     }
                                 }
@@ -179,7 +214,10 @@ class MainActivity : BaseActivity() {
                                     ProfileCompose()
                                 }
                                 composable(NavRoute.settings) {
-                                    SettingsCompose()
+                                    SettingsCompose(navController)
+                                }
+                                composable(NavRoute.gridColumnsSetting) {
+                                    GridColumnsSettingCompose(navController)
                                 }
                             }
                         }
@@ -189,9 +227,3 @@ class MainActivity : BaseActivity() {
         }
     }
 }
-
-data class DrawerItem(
-    val icon: ImageVector,
-    val label: String,
-    val navDestinationRoute: String
-)
