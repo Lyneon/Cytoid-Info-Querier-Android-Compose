@@ -356,14 +356,7 @@ object CytoidRecordsImageHandler2 {
                 (CytoidColors.backgroundColor.green * 255).roundToInt(),
                 (CytoidColors.backgroundColor.blue * 255).roundToInt()
             )
-            addBitmap(
-                getHeaderImage(
-                    profileWebapi,
-                    keep2DecimalPlaces,
-                    records,
-                    recordsType
-                )
-            )
+            addBitmap(getHeaderImage(profileWebapi, keep2DecimalPlaces, records, recordsType))
             addSpace(32)
             addBitmap(getRecordsGridImage(rowsCount, columnsCount, records, keep2DecimalPlaces))
             addSpace(32)
@@ -392,8 +385,7 @@ object CytoidRecordsImageHandler2 {
                     textSize = 160f
                 })
                 addText("Lv.${profileWebapi.exp.currentLevel}  Rating ${
-                    if (keep2DecimalPlaces) profileWebapi.rating.setPrecision(2)
-                    else profileWebapi.rating
+                    profileWebapi.rating.run { if (keep2DecimalPlaces) this.setPrecision(2) else this }
                 }", getDefaultPaint().apply {
                     textSize = 70f
                 })
@@ -507,9 +499,7 @@ object CytoidRecordsImageHandler2 {
                         }
                 } ${chart.difficulty} "
                 val score = "${record.score} ${
-                    (record.accuracy * 100).apply {
-                        if (keep2DecimalPlaces) setPrecision(2)
-                    }
+                    (record.accuracy * 100).run { if (keep2DecimalPlaces) this.setPrecision(2) else this }
                 }%"
                 addBitmap(getDifficultyImage(difficulty, chart.type, difficultySize))
                 addText(
@@ -550,7 +540,13 @@ object CytoidRecordsImageHandler2 {
                                     else -> ""
                                 }
                             } | " +
-                            "Rating ${record.rating.apply { if (keep2DecimalPlaces) setPrecision(2) }}",
+                            "Rating ${
+                                record.rating.run {
+                                    if (keep2DecimalPlaces) this.setPrecision(
+                                        2
+                                    ) else this
+                                }
+                            }",
                     getDefaultPaint().apply { textSize = detailsSize }
                 )
                 addBitmap(RowBitmap().apply {
