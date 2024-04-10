@@ -73,6 +73,8 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
 import com.lyneon.cytoidinfoquerier.logic.DateParser
 import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
@@ -323,7 +325,14 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 }
                 Text(
                     text = record.score.toString(),
-                    fontSize = LocalTextStyle.current.fontSize.times(3)
+                    fontSize = LocalTextStyle.current.fontSize.times(3),
+                    style = LocalTextStyle.current.copy(
+                        brush = when (record.score) {
+                            CytoidScoreRange.max -> Brush.linearGradient(CytoidColors.maxColor)
+                            in CytoidScoreRange.sss -> Brush.linearGradient(CytoidColors.sssColor)
+                            else -> null
+                        }
+                    )
                 )
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
