@@ -12,8 +12,8 @@ android {
         applicationId = "com.lyneon.cytoidinfoquerier"
         minSdk = 24
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.4.2"
+        versionCode = 9
+        versionName = "1.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
