@@ -54,8 +54,8 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
-import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
+import io.sentry.Sentry
 import kotlin.concurrent.thread
 
 lateinit var response: Analytics
@@ -351,7 +351,7 @@ fun AnalyticsCompose() {
                                                     analytics
                                                 } catch (e: Exception) {
                                                     error = e.stackTraceToString()
-                                                    Crashes.trackError(e)
+                                                    Sentry.captureException(e)
                                                     return@TextButton
                                                 }
                                                 isQueryingFinished = true
@@ -402,7 +402,7 @@ fun AnalyticsCompose() {
                                                         }
                                                     } catch (e: Exception) {
                                                         error = "查询失败：${e.stackTraceToString()}"
-                                                        Crashes.trackError(e)
+                                                        Sentry.captureException(e)
                                                     }
                                                 }
                                             }

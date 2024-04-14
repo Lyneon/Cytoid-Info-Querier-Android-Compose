@@ -49,8 +49,8 @@ import kotlinx.coroutines.launch
 fun SettingsCompose(navController: NavController) {
     val mmkv = MMKV.defaultMMKV()
     val scope = rememberCoroutineScope()
-    var enableAppCenter by remember {
-        mutableStateOf(mmkv.decodeBool(MMKVKeys.ENABLE_APP_CENTER, true))
+    var enableSentry by remember {
+        mutableStateOf(mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY, true))
     }
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -66,8 +66,8 @@ fun SettingsCompose(navController: NavController) {
                 .padding(paddingValues)
         ) {
             SettingsItem(onClick = {
-                enableAppCenter = !enableAppCenter
-                mmkv.encode(MMKVKeys.ENABLE_APP_CENTER, enableAppCenter)
+                enableSentry = !enableSentry
+                mmkv.encode(MMKVKeys.ENABLE_SENTRY, enableSentry)
                 scope.launch {
                     snackbarHostState.currentSnackbarData?.dismiss()
                     val result = snackbarHostState.showSnackbar(
@@ -94,18 +94,18 @@ fun SettingsCompose(navController: NavController) {
                         modifier = Modifier.align(Alignment.CenterVertically)
                     ) {
                         Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_app_center),
-                            contentDescription = stringResource(id = R.string.enable_app_center)
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_sentry),
+                            contentDescription = stringResource(id = R.string.enable_sentry)
                         )
                         Text(
-                            text = stringResource(id = R.string.enable_app_center),
+                            text = stringResource(id = R.string.enable_sentry),
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                     }
                     Switch(
-                        checked = enableAppCenter, onCheckedChange = { checked ->
-                            enableAppCenter = checked
-                            mmkv.encode(MMKVKeys.ENABLE_APP_CENTER, checked)
+                        checked = enableSentry, onCheckedChange = { checked ->
+                            enableSentry = checked
+                            mmkv.encode(MMKVKeys.ENABLE_SENTRY, checked)
                             scope.launch {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 when (snackbarHostState.showSnackbar(

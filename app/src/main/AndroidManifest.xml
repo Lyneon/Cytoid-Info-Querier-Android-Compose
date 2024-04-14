@@ -24,6 +24,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CytoidInfoQuerierCompose"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="io.sentry.auto-init"
+            android:value="false" />
+
         <activity
             android:name=".ui.activity.CrashActivity"
             android:exported="false"
@@ -43,6 +48,7 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="specialUse" />
+
     </application>
 
 </manifest>

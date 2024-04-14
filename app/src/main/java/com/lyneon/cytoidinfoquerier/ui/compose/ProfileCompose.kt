@@ -74,7 +74,6 @@ import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCyto
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
-import com.microsoft.appcenter.crashes.Crashes
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -99,6 +98,7 @@ import com.patrykandpatrick.vico.core.extension.appendCompat
 import com.patrykandpatrick.vico.core.extension.transformToSpannable
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 import com.tencent.mmkv.MMKV
+import io.sentry.Sentry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -298,7 +298,7 @@ fun ProfileCompose() {
                                                         }
                                                     } catch (e: Exception) {
                                                         error = e.stackTraceToString()
-                                                        Crashes.trackError(e)
+                                                        Sentry.captureException(e)
                                                     }
                                                 }
                                             }

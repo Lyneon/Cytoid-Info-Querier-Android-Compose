@@ -34,7 +34,7 @@ fun HomeCompose() {
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             AlertCard(message = stringResource(id = R.string.debug_declaration))
-            AlertCard(message = stringResource(id = R.string.app_center_declare))
+            AlertCard(message = stringResource(id = R.string.sentry_declare))
             AlertCard(message = stringResource(id = R.string.cytoid_resource_declare))
             val scope = rememberCoroutineScope()
             ExtendedFloatingActionButton(

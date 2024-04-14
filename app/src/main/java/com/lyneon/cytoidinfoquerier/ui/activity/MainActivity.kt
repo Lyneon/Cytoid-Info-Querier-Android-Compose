@@ -41,23 +41,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
-import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.Secret
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
-import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
-import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
 import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
+import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.GridColumnsSettingCompose
+import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.ProfileCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.SettingsCompose
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
-import com.microsoft.appcenter.AppCenter
-import com.microsoft.appcenter.analytics.Analytics
-import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
+import io.sentry.SentryEvent
+import io.sentry.SentryLevel
+import io.sentry.SentryOptions.BeforeSendCallback
+import io.sentry.android.core.SentryAndroid
+import io.sentry.android.core.SentryAndroidOptions
 import kotlinx.coroutines.launch
+
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,11 +66,19 @@ class MainActivity : BaseActivity() {
 
         val mmkv = MMKV.defaultMMKV()
 
-        if (mmkv.decodeBool(MMKVKeys.ENABLE_APP_CENTER, true)) {
-            AppCenter.start(
-                BaseApplication.context, Secret.microsoftAppCenterAppSecret,
-                Analytics::class.java, Crashes::class.java
-            )
+        if (mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY, true)) {
+            SentryAndroid.init(this) { options: SentryAndroidOptions ->
+                options.setDsn("https://0149a51a6abff3008e5272ea306abf47@o4507079700971520.ingest.de.sentry.io/4507079706804304")
+                // Add a callback that will be used before the event is sent to Sentry.
+                // With this callback, you can modify the event or, when returning null, also discard the event.
+                options.beforeSend =
+                    BeforeSendCallback { event: SentryEvent, _ ->
+                        event.level?.let { eventLevel ->
+                            if (eventLevel < SentryLevel.ERROR) return@BeforeSendCallback null
+                            else return@BeforeSendCallback event
+                        }
+                    }
+            }
         }
 
         setContent {

@@ -59,18 +59,16 @@ android {
 
 dependencies {
     val navVersion = "2.7.7"
-    val appCenterSdkVersion = "5.0.4"
-    val media3Version = "1.3.0"
-    val composeBomVersion = "2024.02.02"
+    val media3Version = "1.3.1"
+    val composeBomVersion = "2024.04.00"
 
-    implementation("com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}")
-    implementation("com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}")
+    implementation("io.sentry:sentry-android:7.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("com.tencent:mmkv:1.3.3")
     implementation("androidx.navigation:navigation-compose:$navVersion")
-    implementation("androidx.compose.material:material-icons-extended:1.6.3")
+    implementation("androidx.compose.material:material-icons-extended:1.6.5")
     implementation("dev.shreyaspatil:capturable:1.0.3")
     implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
     implementation("androidx.media3:media3-exoplayer:$media3Version")

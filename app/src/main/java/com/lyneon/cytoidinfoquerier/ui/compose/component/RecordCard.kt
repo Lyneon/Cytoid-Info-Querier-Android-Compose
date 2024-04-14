@@ -85,9 +85,9 @@ import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showDialog
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
-import com.microsoft.appcenter.crashes.Crashes
 import dev.shreyaspatil.capturable.Capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
+import io.sentry.Sentry
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -200,7 +200,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                                     } catch (e: Exception) {
                                                         e.printStackTrace()
                                                         e.stackTraceToString().showToast()
-                                                        Crashes.trackError(e)
+                                                        Sentry.captureException(e)
                                                     }
                                                 },
                                                 onError = {
@@ -302,21 +302,9 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                             .background(
                                 Brush.linearGradient(
                                     when (chart.type) {
-                                        "easy" -> listOf(
-                                            Color(0xff4ca2cd),
-                                            Color(0xff67b26f)
-                                        )
-
-                                        "extreme" -> listOf(
-                                            Color(0xFF200122),
-                                            Color(0xff6f0000)
-
-                                        )
-
-                                        else -> listOf(
-                                            Color(0xff4568dc),
-                                            Color(0xffb06abc)
-                                        )
+                                        "easy" -> CytoidColors.easyColor
+                                        "extreme" -> CytoidColors.extremeColor
+                                        else -> CytoidColors.hardColor
                                     }
                                 ), RoundedCornerShape(CornerSize(100))
                             )
@@ -392,27 +380,27 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                     Text(text = "Perfect")
                     Text(
                         text = record.details.perfect.toString(),
-                        color = Color(0xff60a5fa)
+                        color = CytoidColors.perfectColor
                     )
                     Text(text = "Great")
                     Text(
                         text = record.details.great.toString(),
-                        color = Color(0xfffacc15)
+                        color = CytoidColors.greatColor
                     )
                     Text(text = "Good")
                     Text(
                         text = record.details.good.toString(),
-                        color = Color(0xff4ade80)
+                        color = CytoidColors.goodColor
                     )
                     Text(text = "Bad")
                     Text(
                         text = record.details.bad.toString(),
-                        color = Color(0xfff87171)
+                        color = CytoidColors.badColor
                     )
                     Text(text = "Miss")
                     Text(
                         text = record.details.miss.toString(),
-                        color = Color(0xff94a3b8)
+                        color = CytoidColors.missColor
                     )
                 }
                 Text(
@@ -539,41 +527,38 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 Column(
                     Modifier.verticalScroll(rememberScrollState())
                 ) {
-                    if (record.chart?.level != null) {
-                        ListItem(
-                            headlineContent = { Text(record.chart.level.title) },
-                            modifier = Modifier.clickable {
-                                record.chart.level.title.saveIntoClipboard()
-                            }
-                        )
-                        ListItem(
-                            headlineContent = { Text(record.chart.level.uid) },
-                            modifier = Modifier.clickable {
-                                record.chart.level.uid.saveIntoClipboard()
-                            }
-                        )
-                        ListItem(
-                            headlineContent = {
-                                Text("${
-                                    record.chart.name
-                                        ?: record.chart.type.replaceFirstChar {
+                    record.chart?.let { chart ->
+                        chart.level?.let { level ->
+                            ListItem(
+                                headlineContent = { Text(level.title) },
+                                modifier = Modifier.clickable { level.title.saveIntoClipboard() }
+                            )
+                            ListItem(
+                                headlineContent = { Text(level.uid) },
+                                modifier = Modifier.clickable { level.uid.saveIntoClipboard() }
+                            )
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        "${
+                                            chart.name ?: chart.type.replaceFirstChar {
+                                                if (it.isLowerCase()) it.titlecase(
+                                                    Locale.getDefault()
+                                                ) else it.toString()
+                                            }
+                                        } ${chart.difficulty}")
+                                },
+                                modifier = Modifier.clickable {
+                                    "${
+                                        chart.name ?: chart.type.replaceFirstChar {
                                             if (it.isLowerCase()) it.titlecase(
                                                 Locale.getDefault()
                                             ) else it.toString()
                                         }
-                                } ${record.chart.difficulty}")
-                            },
-                            modifier = Modifier.clickable {
-                                "${
-                                    record.chart.name
-                                        ?: record.chart.type.replaceFirstChar {
-                                            if (it.isLowerCase()) it.titlecase(
-                                                Locale.getDefault()
-                                            ) else it.toString()
-                                        }
-                                } ${record.chart.difficulty}".saveIntoClipboard()
-                            }
-                        )
+                                    } ${chart.difficulty}".saveIntoClipboard()
+                                }
+                            )
+                        }
                     }
                     ListItem(
                         headlineContent = { Text(record.score.toString()) },

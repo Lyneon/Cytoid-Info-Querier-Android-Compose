@@ -8,7 +8,6 @@ import android.os.Process
 import androidx.compose.material3.DrawerState
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
-import com.microsoft.appcenter.crashes.Crashes
 import com.tencent.mmkv.MMKV
 import java.lang.Thread.UncaughtExceptionHandler
 
@@ -46,7 +45,6 @@ class BaseApplication : Application() {
 class CrashHandler : UncaughtExceptionHandler {
     override fun uncaughtException(t: Thread, e: Throwable) {
         e.printStackTrace()
-        Crashes.trackError(e)
         val intent = Intent()
         intent.setClass(BaseApplication.context, CrashActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
