@@ -144,17 +144,17 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
             ) {
                 Box {
                     if (record.chart?.level != null) {
-                        val level = record.chart.level
-                        if (externalCacheStorageDir != null) {
-                            val cacheBackgroundImagesDirectory =
-                                File(externalCacheStorageDir.path + "/backgroundImage")
-                            if (!cacheBackgroundImagesDirectory.exists()) cacheBackgroundImagesDirectory.mkdirs()
-                            val cacheBackgroundImageFile =
-                                File(
-                                    cacheBackgroundImagesDirectory,
-                                    level.uid
-                                )
-                            if (cacheBackgroundImageFile.isFile) {
+                        Box {
+                            val level = record.chart.level
+                            val cacheBackgroundImagesDirectory = externalCacheStorageDir?.run {
+                                File(this.path + "/backgroundImage")
+                            }
+                            val cacheBackgroundImageFile = cacheBackgroundImagesDirectory?.run {
+                                if (!this.exists()) this.mkdirs()
+                                File(this, level.uid)
+                            }
+
+                            if (cacheBackgroundImageFile != null && cacheBackgroundImageFile.isFile) {
                                 val input = FileInputStream(cacheBackgroundImageFile)
                                 val bitmap = BitmapFactory.decodeStream(input)
                                 Card {
@@ -182,21 +182,21 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                                     .build(),
                                                 modifier = Modifier.fillMaxWidth(),
                                                 contentDescription = level.title,
-                                                onSuccess = {
+                                                onSuccess = { successState ->
                                                     try {
-                                                        cacheBackgroundImageFile.createNewFile()
-                                                        val output =
-                                                            FileOutputStream(
-                                                                cacheBackgroundImageFile
-                                                            )
-                                                        it.result.drawable.toBitmap()
-                                                            .compress(
-                                                                Bitmap.CompressFormat.PNG,
-                                                                100,
-                                                                output
-                                                            )
-                                                        output.flush()
-                                                        output.close()
+                                                        cacheBackgroundImageFile?.run {
+                                                            this.createNewFile()
+                                                            FileOutputStream(this)
+                                                        }?.let { output ->
+                                                            successState.result.drawable.toBitmap()
+                                                                .compress(
+                                                                    Bitmap.CompressFormat.PNG,
+                                                                    100,
+                                                                    output
+                                                                )
+                                                            output.flush()
+                                                            output.close()
+                                                        }
                                                     } catch (e: Exception) {
                                                         e.printStackTrace()
                                                         e.stackTraceToString().showToast()
@@ -224,6 +224,44 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                     }
                                 }
                             }
+                            IconButton(
+                                onClick = {
+                                    if (mediaPlayerState != Player.STATE_READY) {
+                                        val dataSourceFactory =
+                                            DefaultHttpDataSource.Factory()
+                                                .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
+                                        val mediaItem = MediaItem.Builder()
+                                            .setUri(
+                                                Uri.parse(
+                                                    level.bundle.musicPreview ?: level.bundle.music
+                                                )
+                                            ).build()
+                                        val internetAudioSource =
+                                            ProgressiveMediaSource.Factory(dataSourceFactory)
+                                                .createMediaSource(mediaItem)
+                                        exoPlayer.setMediaSource(internetAudioSource)
+                                        exoPlayer.prepare()
+                                        exoPlayer.play()
+                                    } else {
+                                        exoPlayer.stop()
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(6.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        CircleShape
+                                    )
+                            ) {
+                                if (mediaPlayerState == Player.STATE_BUFFERING) CircularProgressIndicator(
+                                    Modifier.padding(6.dp)
+                                )
+                                else Icon(
+                                    imageVector = if (mediaPlayerState == Player.STATE_READY) Icons.Default.Stop else Icons.Default.PlayArrow,
+                                    contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
+                                )
+                            }
                         }
                     } else {
                         Card {
@@ -233,46 +271,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                 contentScale = ContentScale.FillWidth,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                        }
-                    }
-                    record.chart?.level?.let { level ->
-                        IconButton(
-                            onClick = {
-                                if (mediaPlayerState != Player.STATE_READY) {
-                                    val dataSourceFactory =
-                                        DefaultHttpDataSource.Factory()
-                                            .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
-                                    val mediaItem = MediaItem.Builder()
-                                        .setUri(
-                                            Uri.parse(
-                                                level.bundle.musicPreview ?: level.bundle.music
-                                            )
-                                        ).build()
-                                    val internetAudioSource =
-                                        ProgressiveMediaSource.Factory(dataSourceFactory)
-                                            .createMediaSource(mediaItem)
-                                    exoPlayer.setMediaSource(internetAudioSource)
-                                    exoPlayer.prepare()
-                                    exoPlayer.play()
-                                } else {
-                                    exoPlayer.stop()
-                                }
-                            },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(6.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    CircleShape
-                                )
-                        ) {
-                            if (mediaPlayerState == Player.STATE_BUFFERING) CircularProgressIndicator(
-                                Modifier.padding(6.dp)
-                            )
-                            else Icon(
-                                imageVector = if (mediaPlayerState == Player.STATE_READY) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                contentDescription = "${if (mediaPlayerState == Player.STATE_READY) "停止" else "播放"}音乐预览"
-                            )
+                            Text(text = "record.chart.level is null!")
                         }
                     }
                 }
@@ -327,26 +326,41 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                 ) {
                     for (mod in record.mods) {
                         item {
-                            Image(
-                                painter = painterResource(
-                                    id = when (mod) {
-                                        "HideNotes" -> R.drawable.mod_hide_notes
-                                        "HideScanline" -> R.drawable.mod_hide_scanline
-                                        "Slow" -> R.drawable.mod_slow
-                                        "Fast" -> R.drawable.mod_fast
-                                        "Hard" -> R.drawable.mod_hyper
-                                        "ExHard" -> R.drawable.mod_another
-                                        "AP" -> R.drawable.mod_ap
-                                        "FC" -> R.drawable.mod_fc
-                                        "FlipAll" -> R.drawable.mod_flip_all
-                                        "FlipX" -> R.drawable.mod_flip_x
-                                        "FlipY" -> R.drawable.mod_flip_y
-                                        else -> throw Exception("Unknown condition branch enter action")
-                                    }
-                                ),
-                                contentDescription = mod,
-                                modifier = Modifier.height(32.dp)
-                            )
+                            var modTextIsVisible by remember { mutableStateOf(false) }
+                            Column(
+                                modifier = Modifier
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onTap = { modTextIsVisible = !modTextIsVisible }
+                                        )
+                                    },
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Image(
+                                    painter = painterResource(
+                                        id = when (mod) {
+                                            "HideNotes" -> R.drawable.mod_hide_notes
+                                            "HideScanline" -> R.drawable.mod_hide_scanline
+                                            "Slow" -> R.drawable.mod_slow
+                                            "Fast" -> R.drawable.mod_fast
+                                            "Hard" -> R.drawable.mod_hyper
+                                            "ExHard" -> R.drawable.mod_another
+                                            "AP" -> R.drawable.mod_ap
+                                            "FC" -> R.drawable.mod_fc
+                                            "FlipAll" -> R.drawable.mod_flip_all
+                                            "FlipX" -> R.drawable.mod_flip_x
+                                            "FlipY" -> R.drawable.mod_flip_y
+                                            else -> throw Exception("Unknown condition branch enter action")
+                                        }
+                                    ),
+                                    contentDescription = mod,
+                                    modifier = Modifier
+                                        .height(32.dp)
+                                )
+                                AnimatedVisibility(visible = modTextIsVisible) {
+                                    Text(text = mod)
+                                }
+                            }
                         }
                     }
                 }
