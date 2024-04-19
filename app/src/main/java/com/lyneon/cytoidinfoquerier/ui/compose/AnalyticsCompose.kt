@@ -80,7 +80,7 @@ fun AnalyticsCompose() {
     Column {
         TopBar(
             title = stringResource(id = R.string.analytics),
-            additionalActions = {
+            actionsAlwaysShow = {
                 if (hideInput) IconButton(onClick = { hideInput = false }) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,

@@ -137,7 +137,7 @@ fun ProfileCompose() {
     Column {
         TopBar(
             title = stringResource(id = R.string.profile),
-            additionalActions = {
+            actionsAlwaysShow = {
                 if (hideInput) IconButton(onClick = { hideInput = false }) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
