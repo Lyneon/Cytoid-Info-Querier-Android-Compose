@@ -44,6 +44,7 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
@@ -92,6 +93,14 @@ class MainActivity : BaseActivity() {
                     var currentNavRoute by remember { mutableStateOf(NavRoute.home) }
                     globalDrawerState =
                         rememberDrawerState(initialValue = DrawerValue.Closed)
+                    val selfPackageInfo =
+                        context.packageManager.getPackageInfo(context.packageName, 0)
+                    val cytoidPackageInfo = try {
+                        context.packageManager.getPackageInfo(CytoidConstant.gamePackageName, 0)
+                    } catch (e: Exception) {
+                        null
+                    }
+
                     ModalNavigationDrawer(
                         drawerState = globalDrawerState,
                         drawerContent = {
@@ -109,12 +118,18 @@ class MainActivity : BaseActivity() {
                                             text = stringResource(id = R.string.app_name),
                                             style = MaterialTheme.typography.titleLarge
                                         )
-                                        val packageInfo = context.packageManager.getPackageInfo(
-                                            context.packageName,
-                                            0
+                                        Text(
+                                            text = "${selfPackageInfo.versionName}${if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) "(${selfPackageInfo.longVersionCode})" else ""}",
+                                            style = MaterialTheme.typography.bodySmall
                                         )
                                         Text(
-                                            text = "${packageInfo.versionName}${if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) "(${packageInfo.longVersionCode})" else ""}",
+                                            text = "已安装的Cytoid版本：${
+                                                if (cytoidPackageInfo != null) {
+                                                    "${cytoidPackageInfo.versionName}${if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) "(${cytoidPackageInfo.longVersionCode})" else ""}"
+                                                } else {
+                                                    "未找到"
+                                                }
+                                            }",
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
