@@ -1,8 +1,8 @@
 package com.lyneon.cytoidinfoquerier.ui.activity
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -34,13 +35,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
+import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
@@ -101,10 +102,23 @@ class MainActivity : BaseActivity() {
                                         .verticalScroll(rememberScrollState())
                                 ) {
                                     val scope = rememberCoroutineScope()
-                                    Image(
-                                        painter = painterResource(R.drawable.tutorial_background),
-                                        contentDescription = stringResource(id = R.string.drawerMenu)
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = R.string.app_name),
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
+                                        val packageInfo = context.packageManager.getPackageInfo(
+                                            context.packageName,
+                                            0
+                                        )
+                                        Text(
+                                            text = "${packageInfo.versionName}${if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) "(${packageInfo.longVersionCode})" else ""}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                    HorizontalDivider()
                                     Column(
                                         Modifier.padding(6.dp),
                                         verticalArrangement = Arrangement.spacedBy(6.dp)
