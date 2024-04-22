@@ -436,8 +436,8 @@ fun AnalyticsCompose() {
                     LazyVerticalStaggeredGrid(
                         columns = StaggeredGridCells.Fixed(
                             mmkv.decodeInt(
-                                if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-                                else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1
+                                if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                                else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
                             )
                         ),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),

@@ -53,15 +53,15 @@ fun GridColumnsSettingCompose(navController: NavController) {
 
     columnsCount = mmkv.decodeInt(
         if (orientation == Configuration.ORIENTATION_PORTRAIT)
-            MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-        else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1
+            MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+        else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
     )
     if (columnsCount < 1) {
         columnsCount = 1
         mmkv.encode(
             if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1
+                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
         )
     }
 
@@ -106,8 +106,8 @@ fun GridColumnsSettingCompose(navController: NavController) {
                                 columnsCount--
                                 mmkv.encode(
                                     if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                        MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-                                    else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, columnsCount
+                                        MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                                    else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
                                 )
                             }
                         },
@@ -124,8 +124,8 @@ fun GridColumnsSettingCompose(navController: NavController) {
                         columnsCount++
                         mmkv.encode(
                             if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, columnsCount
+                                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
                         )
                     },
                     modifier = Modifier.padding(6.dp)
@@ -140,8 +140,8 @@ fun GridColumnsSettingCompose(navController: NavController) {
                         columnsCount = 1
                         mmkv.encode(
                             if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT
-                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, columnsCount
+                                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
                         )
                     },
                     modifier = Modifier.padding(6.dp)

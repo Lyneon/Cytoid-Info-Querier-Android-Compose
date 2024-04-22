@@ -28,8 +28,8 @@ data class Analytics(
         fun getQueryString(
             cytoidID: String,
             recentRecordsLimit: Int = 0,
-            recentRecordsSort: String = RecordQuerySort.Date,
-            recentRecordsOrder: String = RecordQueryOrder.DESC,
+            recentRecordsSort: String = RecordQuerySort.Date.name,
+            recentRecordsOrder: String = RecordQueryOrder.DESC.name,
             bestRecordsLimit: Int = 0
         ) = """{
                 profile(uid:"$cytoidID"){

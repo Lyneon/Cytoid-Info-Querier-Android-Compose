@@ -41,7 +41,7 @@ import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
-import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
+import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
@@ -55,7 +55,7 @@ fun SettingsCompose(navController: NavController) {
     val mmkv = MMKV.defaultMMKV()
     val scope = rememberCoroutineScope()
     var enableSentry by remember {
-        mutableStateOf(mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY, true))
+        mutableStateOf(mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY.name, true))
     }
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -72,7 +72,7 @@ fun SettingsCompose(navController: NavController) {
         ) {
             SettingsItem(onClick = {
                 enableSentry = !enableSentry
-                mmkv.encode(MMKVKeys.ENABLE_SENTRY, enableSentry)
+                mmkv.encode(MMKVKeys.ENABLE_SENTRY.name, enableSentry)
                 scope.launch {
                     snackbarHostState.currentSnackbarData?.dismiss()
                     val result = snackbarHostState.showSnackbar(
@@ -104,7 +104,7 @@ fun SettingsCompose(navController: NavController) {
                     Switch(
                         checked = enableSentry, onCheckedChange = { checked ->
                             enableSentry = checked
-                            mmkv.encode(MMKVKeys.ENABLE_SENTRY, checked)
+                            mmkv.encode(MMKVKeys.ENABLE_SENTRY.name, checked)
                             scope.launch {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 when (snackbarHostState.showSnackbar(
@@ -174,7 +174,7 @@ fun SettingsCompose(navController: NavController) {
             }
 
             SettingsItem(onClick = {
-                navController.navigate(NavRoute.gridColumnsSetting)
+                navController.navigate(MainActivityScreens.GridColumnsSetting.name)
             }, icon = {
                 Icon(
                     imageVector = Icons.Default.StayPrimaryPortrait,
@@ -190,9 +190,9 @@ fun SettingsCompose(navController: NavController) {
                     )
                     Text(
                         text = "竖屏:${
-                            mmkv.decodeInt(MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT, 1)
+                            mmkv.decodeInt(MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name, 1)
                         } 横屏:${
-                            mmkv.decodeInt(MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE, 1)
+                            mmkv.decodeInt(MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1)
                         }"
                     )
                 }

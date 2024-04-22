@@ -46,7 +46,7 @@ import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
-import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
+import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.GridColumnsSettingCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
@@ -68,7 +68,7 @@ class MainActivity : BaseActivity() {
 
         val mmkv = MMKV.defaultMMKV()
 
-        if (mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY, true)) {
+        if (mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY.name, true)) {
             SentryAndroid.init(this) { options: SentryAndroidOptions ->
                 options.setDsn("https://0149a51a6abff3008e5272ea306abf47@o4507079700971520.ingest.de.sentry.io/4507079706804304")
                 // Add a callback that will be used before the event is sent to Sentry.
@@ -90,7 +90,7 @@ class MainActivity : BaseActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    var currentNavRoute by remember { mutableStateOf(NavRoute.home) }
+                    var currentNavRoute by remember { mutableStateOf(MainActivityScreens.Home.name) }
                     globalDrawerState =
                         rememberDrawerState(initialValue = DrawerValue.Closed)
                     val selfPackageInfo =
@@ -148,10 +148,10 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.home)
                                                 )
                                             },
-                                            selected = currentNavRoute == NavRoute.home,
+                                            selected = currentNavRoute == MainActivityScreens.Home.name,
                                             onClick = {
-                                                navController.navigate(NavRoute.home)
-                                                currentNavRoute = NavRoute.home
+                                                navController.navigate(MainActivityScreens.Home.name)
+                                                currentNavRoute = MainActivityScreens.Home.name
                                                 scope.launch {
                                                     globalDrawerState.close()
                                                 }
@@ -167,10 +167,10 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.analytics)
                                                 )
                                             },
-                                            selected = currentNavRoute == NavRoute.analytics,
+                                            selected = currentNavRoute == MainActivityScreens.Analytics.name,
                                             onClick = {
-                                                navController.navigate(NavRoute.analytics)
-                                                currentNavRoute = NavRoute.analytics
+                                                navController.navigate(MainActivityScreens.Analytics.name)
+                                                currentNavRoute = MainActivityScreens.Analytics.name
                                                 scope.launch {
                                                     globalDrawerState.close()
                                                 }
@@ -186,10 +186,10 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.profile)
                                                 )
                                             },
-                                            selected = currentNavRoute == NavRoute.profile,
+                                            selected = currentNavRoute == MainActivityScreens.Profile.name,
                                             onClick = {
-                                                navController.navigate(NavRoute.profile)
-                                                currentNavRoute = NavRoute.profile
+                                                navController.navigate(MainActivityScreens.Profile.name)
+                                                currentNavRoute = MainActivityScreens.Profile.name
                                                 scope.launch {
                                                     globalDrawerState.close()
                                                 }
@@ -208,8 +208,8 @@ class MainActivity : BaseActivity() {
                                 ) {
                                     val scope = rememberCoroutineScope()
                                     Button(onClick = {
-                                        navController.navigate(NavRoute.settings)
-                                        currentNavRoute = NavRoute.settings
+                                        navController.navigate(MainActivityScreens.Settings.name)
+                                        currentNavRoute = MainActivityScreens.Settings.name
                                         scope.launch {
                                             globalDrawerState.close()
                                         }
@@ -240,21 +240,21 @@ class MainActivity : BaseActivity() {
                         Column {
                             NavHost(
                                 navController = navController,
-                                startDestination = NavRoute.home
+                                startDestination = MainActivityScreens.Home.name
                             ) {
-                                composable(NavRoute.home) {
+                                composable(MainActivityScreens.Home.name) {
                                     HomeCompose()
                                 }
-                                composable(NavRoute.analytics) {
+                                composable(MainActivityScreens.Analytics.name) {
                                     AnalyticsCompose()
                                 }
-                                composable(NavRoute.profile) {
+                                composable(MainActivityScreens.Profile.name) {
                                     ProfileCompose()
                                 }
-                                composable(NavRoute.settings) {
+                                composable(MainActivityScreens.Settings.name) {
                                     SettingsCompose(navController)
                                 }
-                                composable(NavRoute.gridColumnsSetting) {
+                                composable(MainActivityScreens.GridColumnsSetting.name) {
                                     GridColumnsSettingCompose(navController)
                                 }
                             }
