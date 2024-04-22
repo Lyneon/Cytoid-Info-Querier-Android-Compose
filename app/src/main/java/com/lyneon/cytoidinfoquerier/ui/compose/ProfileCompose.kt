@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
@@ -144,6 +145,18 @@ fun ProfileCompose() {
                         contentDescription = stringResource(id = R.string.unfold)
                     )
                 }
+            },
+            actionsDropDownMenuContent = {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.history)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = stringResource(id = R.string.history)
+                        )
+                    },
+                    onClick = { }
+                )
             }
         )
         Column(

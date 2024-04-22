@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
@@ -87,6 +88,18 @@ fun AnalyticsCompose() {
                         contentDescription = stringResource(id = R.string.unfold)
                     )
                 }
+            },
+            actionsDropDownMenuContent = {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.history)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = stringResource(id = R.string.history)
+                        )
+                    },
+                    onClick = { }
+                )
             }
         )
         Column(modifier = Modifier.padding(6.dp, 6.dp, 6.dp)) {
