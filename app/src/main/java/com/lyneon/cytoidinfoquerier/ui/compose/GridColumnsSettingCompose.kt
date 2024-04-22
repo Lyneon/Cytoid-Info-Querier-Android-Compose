@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
-import com.lyneon.cytoidinfoquerier.data.constant.NavRoute
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.tencent.mmkv.MMKV
 
@@ -78,7 +77,7 @@ fun GridColumnsSettingCompose(navController: NavController) {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate(NavRoute.settings) }) {
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)
