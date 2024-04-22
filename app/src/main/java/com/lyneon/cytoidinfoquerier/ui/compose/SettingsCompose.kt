@@ -212,23 +212,34 @@ fun SettingsCompose(navController: NavController) {
                             snackbarHostState.currentSnackbarData?.dismiss()
                             snackbarHostState.showSnackbar("pinging cytoid.io...")
                             thread {
-                                val responseCode = OkHttpClient().newCall(
-                                    Request.Builder().url("https://cytoid.io/")
-                                        .head()
-                                        .removeHeader("User-Agent")
-                                        .addHeader(
-                                            "User-Agent",
-                                            "CytoidClient/2.1.1"
+                                try {
+                                    val response = OkHttpClient().newCall(
+                                        Request.Builder().url("https://cytoid.io/")
+                                            .head()
+                                            .removeHeader("User-Agent")
+                                            .addHeader(
+                                                "User-Agent",
+                                                "CytoidClient/2.1.1"
+                                            )
+                                            .build()
+                                    ).execute()
+                                    scope.launch {
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                        snackbarHostState.showSnackbar(
+                                            "ping result:\ncytoid.io:${response.code} ${response.message}",
+                                            withDismissAction = true,
+                                            duration = SnackbarDuration.Indefinite
                                         )
-                                        .build()
-                                ).execute().code
-                                scope.launch {
-                                    snackbarHostState.currentSnackbarData?.dismiss()
-                                    snackbarHostState.showSnackbar(
-                                        "ping result:\ncytoid.io:$responseCode",
-                                        withDismissAction = true,
-                                        duration = SnackbarDuration.Indefinite
-                                    )
+                                    }
+                                } catch (e: Exception) {
+                                    scope.launch {
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                        snackbarHostState.showSnackbar(
+                                            "ping failed:\n${e.message}",
+                                            withDismissAction = true,
+                                            duration = SnackbarDuration.Indefinite
+                                        )
+                                    }
                                 }
                             }
                         }
