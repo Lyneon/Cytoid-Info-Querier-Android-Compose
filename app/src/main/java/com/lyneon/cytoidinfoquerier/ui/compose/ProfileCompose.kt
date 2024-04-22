@@ -159,7 +159,7 @@ fun ProfileCompose() {
                             textFieldIsError = !it.isValidCytoidID()
                             textFieldIsEmpty = it.isEmpty()
                         },
-                        label = { Text(text = stringResource(id = R.string.playerName)) },
+                        label = { Text(text = stringResource(id = R.string.cytoid_id)) },
                         modifier = Modifier.fillMaxWidth(),
                         trailingIcon = {
                             Row(
@@ -174,7 +174,7 @@ fun ProfileCompose() {
                                 IconButton(onClick = { querySettingsMenuIsExpanded = true }) {
                                     Icon(
                                         imageVector = Icons.Filled.Settings,
-                                        contentDescription = stringResource(id = R.string.querySettings)
+                                        contentDescription = stringResource(id = R.string.query_settings)
                                     )
                                     DropdownMenu(
                                         expanded = querySettingsMenuIsExpanded,
@@ -222,11 +222,11 @@ fun ProfileCompose() {
                                 }
                                 TextButton(onClick = {
                                     if (cytoidID.isEmpty()) {
-                                        context.getString(R.string.empty_cytoidID)
+                                        context.getString(R.string.empty_cytoid_id)
                                             .showToast()
                                         textFieldIsEmpty = true
                                     } else if (!cytoidID.isValidCytoidID()) {
-                                        context.getString(R.string.invalid_cytoidID)
+                                        context.getString(R.string.invalid_cytoid_id)
                                             .showToast()
                                         textFieldIsError = true
                                     } else {
@@ -313,13 +313,13 @@ fun ProfileCompose() {
                     )
                     AnimatedVisibility(visible = textFieldIsError) {
                         Text(
-                            text = stringResource(id = R.string.invalid_cytoidID),
+                            text = stringResource(id = R.string.invalid_cytoid_id),
                             color = Color.Red
                         )
                     }
                     AnimatedVisibility(visible = textFieldIsEmpty) {
                         Text(
-                            text = stringResource(id = R.string.empty_cytoidID),
+                            text = stringResource(id = R.string.empty_cytoid_id),
                             color = Color.Red
                         )
                     }

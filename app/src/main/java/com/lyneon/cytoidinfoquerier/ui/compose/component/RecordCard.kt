@@ -213,7 +213,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                                             ) {
                                                 Text(
-                                                    text = stringResource(id = R.string.imageError),
+                                                    text = stringResource(id = R.string.image_error),
                                                     fontWeight = FontWeight.SemiBold,
                                                     fontSize = LocalTextStyle.current.fontSize.times(
                                                         2
@@ -456,7 +456,7 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                         }
                     )
                     ListItem(
-                        headlineContent = { Text(text = stringResource(id = R.string.view_in_cytoidIO)) },
+                        headlineContent = { Text(text = stringResource(id = R.string.view_in_cytoid_io)) },
                         modifier = Modifier.clickable {
                             if (record.chart?.level?.uid == null) {
                                 "谱面信息缺失，无法查看！".showToast()

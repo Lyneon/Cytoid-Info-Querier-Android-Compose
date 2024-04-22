@@ -228,7 +228,7 @@ fun LevelCard(level: ProfileGraphQL.ProfileData.Profile.User.UserLevel) {
                     }
                 )
                 ListItem(
-                    headlineContent = { Text(text = stringResource(id = R.string.view_in_cytoidIO)) },
+                    headlineContent = { Text(text = stringResource(id = R.string.view_in_cytoid_io)) },
                     modifier = Modifier.clickable {
                         val intent = Intent(
                             Intent.ACTION_VIEW,

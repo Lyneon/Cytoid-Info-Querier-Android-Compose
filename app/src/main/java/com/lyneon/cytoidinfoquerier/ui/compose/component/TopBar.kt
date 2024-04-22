@@ -38,7 +38,7 @@ fun TopBar(
             }) {
                 Icon(
                     imageVector = Icons.Filled.Menu,
-                    contentDescription = stringResource(id = R.string.drawerMenu)
+                    contentDescription = stringResource(id = R.string.drawer_menu)
                 )
             }
         },

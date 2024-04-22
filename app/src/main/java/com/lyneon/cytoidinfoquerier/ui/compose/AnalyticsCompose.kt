@@ -102,7 +102,7 @@ fun AnalyticsCompose() {
                             textFieldIsError = !it.isValidCytoidID()
                             textFieldIsEmpty = it.isEmpty()
                         },
-                        label = { Text(text = stringResource(id = R.string.playerName)) },
+                        label = { Text(text = stringResource(id = R.string.cytoid_id)) },
                         modifier = Modifier.fillMaxWidth(),
                         trailingIcon = {
                             Row(
@@ -117,7 +117,7 @@ fun AnalyticsCompose() {
                                 IconButton(onClick = { querySettingsMenuIsExpanded = true }) {
                                     Icon(
                                         imageVector = Icons.Filled.Settings,
-                                        contentDescription = stringResource(id = R.string.querySettings)
+                                        contentDescription = stringResource(id = R.string.query_settings)
                                     )
                                     DropdownMenu(
                                         expanded = querySettingsMenuIsExpanded,
@@ -181,7 +181,7 @@ fun AnalyticsCompose() {
                                                     )
                                                     AnimatedVisibility(visible = queryCountIsNull) {
                                                         Text(
-                                                            text = stringResource(id = R.string.empty_queryCount),
+                                                            text = stringResource(id = R.string.empty_query_count),
                                                             color = Color.Red
                                                         )
                                                     }
@@ -286,15 +286,15 @@ fun AnalyticsCompose() {
                                     onClick = {
                                         error = ""
                                         if (cytoidID.isEmpty()) {
-                                            context.getString(R.string.empty_cytoidID)
+                                            context.getString(R.string.empty_cytoid_id)
                                                 .showToast()
                                             textFieldIsEmpty = true
                                         } else if (!cytoidID.isValidCytoidID()) {
-                                            context.getString(R.string.invalid_cytoidID)
+                                            context.getString(R.string.invalid_cytoid_id)
                                                 .showToast()
                                             textFieldIsError = true
                                         } else if (queryCountIsNull) {
-                                            context.getString(R.string.empty_queryCount)
+                                            context.getString(R.string.empty_query_count)
                                                 .showToast()
                                             querySettingsMenuIsExpanded = true
                                         } else {
@@ -417,13 +417,13 @@ fun AnalyticsCompose() {
                     )
                     AnimatedVisibility(visible = textFieldIsError) {
                         Text(
-                            text = stringResource(id = R.string.invalid_cytoidID),
+                            text = stringResource(id = R.string.invalid_cytoid_id),
                             color = Color.Red
                         )
                     }
                     AnimatedVisibility(visible = textFieldIsEmpty) {
                         Text(
-                            text = stringResource(id = R.string.empty_cytoidID),
+                            text = stringResource(id = R.string.empty_cytoid_id),
                             color = Color.Red
                         )
                     }

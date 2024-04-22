@@ -1,37 +1,36 @@
 <resources>
     <string name="app_name">Cytoid Info Querier</string>
-    <string name="playerName" translatable="false">Cytoid ID</string>
-
+    <string name="cytoid_id" translatable="false">Cytoid ID</string>
     <string name="copy">复制</string>
     <string name="restart">重启</string>
     <string name="save">保存</string>
     <string name="query">查询</string>
     <string name="profile">Profile</string>
     <string name="title_activity_crash">错误报告</string>
-    <string name="testCrash">Test Crash</string>
+    <string name="test_crash">Test Crash</string>
     <string name="ping">ping cytoid.io</string>
-    <string name="invalid_cytoidID">Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符</string>
-    <string name="empty_cytoidID">Cytoid ID不能为空</string>
+    <string name="invalid_cytoid_id">Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符</string>
+    <string name="empty_cytoid_id">Cytoid ID不能为空</string>
     <string name="back">返回上一层级</string>
-    <string name="imageError">图美丽！11</string>
+    <string name="image_error">图美丽！11</string>
     <string name="best_records">BestRecords</string>
     <string name="home">主页</string>
-    <string name="drawerMenu">抽屉菜单</string>
+    <string name="drawer_menu">抽屉菜单</string>
     <string name="settings">设置</string>
     <string name="exit">退出</string>
     <string name="todo">还没做完，再贵阳一会</string>
     <string name="debug_declaration">本应用处于测试阶段，可能会遇到功能缺失异常或崩溃现象</string>
     <string name="open_drawer">打开抽屉菜单</string>
-    <string name="querySettings">查询设置</string>
+    <string name="query_settings">查询设置</string>
     <string name="recent_records" translatable="false">RecentRecords</string>
     <string name="analytics">Analytics</string>
     <string name="query_count">查询数量</string>
-    <string name="empty_queryCount">查询数量不能为空</string>
+    <string name="empty_query_count">查询数量不能为空</string>
     <string name="view_in_cytoid">在 Cytoid 中查看</string>
     <string name="copy_content">复制内容</string>
     <string name="choose_copy_content">选择要复制的内容</string>
     <string name="ignore_cache">忽略已缓存数据</string>
-    <string name="view_in_cytoidIO">在 cytoid.io 中查看</string>
+    <string name="view_in_cytoid_io">在 cytoid.io 中查看</string>
     <string name="current_installed_cytoid">已安装的Cytoid信息</string>
     <string name="sentry_declare">本应用使用Sentry进行错误信息收集，收集到的错误信息将仅用于修复漏洞。如果您不希望被收集这些数据，您可以选择在设置界面中关闭Sentry数据收集，或者退出本应用</string>
     <string name="enable_sentry">启用Sentry</string>
@@ -48,21 +47,17 @@
     <string name="save_as_picture">保存为图片</string>
     <string name="saving">正在保存</string>
     <string name="saved">已保存</string>
-    <string name="empty_query_result">查询结果为空</string>
     <string name="columns_count">列数</string>
     <string name="empty_columnsCount">列数不能为空</string>
-    <string name="chart_manage">谱面管理</string>
-    <string name="go_to_grant_permission">前往授权</string>
     <string name="cancel">取消</string>
     <string name="cytoid_is_not_installed">你好像没有安装Cytoid</string>
     <string name="saved_into_gallery">已保存至图库</string>
     <string name="biography">个人简介</string>
     <string name="badge">徽章</string>
-    <string name="browser_not_found">没有找到浏览器</string>
     <string name="unfold">展开</string>
     <string name="fold">折叠</string>
-    <string name="grid_cloumns_count_portrait">网格列数（竖屏）</string>
-    <string name="grid_cloumns_count_landscape">网格列数（横屏）</string>
+    <string name="grid_columns_count_portrait">网格列数（竖屏）</string>
+    <string name="grid_columns_count_landscape">网格列数（横屏）</string>
     <string name="grid_columns_count">网格列数</string>
     <string name="reset">重置</string>
     <string name="rotate">旋转</string>

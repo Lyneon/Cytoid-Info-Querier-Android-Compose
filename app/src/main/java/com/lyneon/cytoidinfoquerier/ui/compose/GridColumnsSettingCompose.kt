@@ -72,8 +72,8 @@ fun GridColumnsSettingCompose(navController: NavController) {
                     Text(
                         text = stringResource(
                             id = if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                R.string.grid_cloumns_count_portrait
-                            else R.string.grid_cloumns_count_landscape
+                                R.string.grid_columns_count_portrait
+                            else R.string.grid_columns_count_landscape
                         ) + "当前：$columnsCount"
                     )
                 },

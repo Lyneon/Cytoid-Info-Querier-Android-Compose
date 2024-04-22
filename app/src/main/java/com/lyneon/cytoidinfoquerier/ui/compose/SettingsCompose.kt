@@ -155,7 +155,7 @@ fun SettingsCompose(navController: NavController) {
                 scope.launch {
                     snackbarHostState.currentSnackbarData?.dismiss()
                     when (snackbarHostState.showSnackbar(
-                        context.getString(R.string.testCrash),
+                        context.getString(R.string.test_crash),
                         context.getString(R.string.confirm),
                         true,
                         SnackbarDuration.Short
@@ -167,10 +167,10 @@ fun SettingsCompose(navController: NavController) {
             }, icon = {
                 Icon(
                     imageVector = Icons.Default.BugReport,
-                    contentDescription = stringResource(id = R.string.testCrash)
+                    contentDescription = stringResource(id = R.string.test_crash)
                 )
             }) {
-                Text(text = stringResource(id = R.string.testCrash))
+                Text(text = stringResource(id = R.string.test_crash))
             }
 
             SettingsItem(onClick = {
