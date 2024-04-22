@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
@@ -251,11 +252,16 @@ class MainActivity : BaseActivity() {
                                 composable(MainActivityScreens.Profile.name) {
                                     ProfileCompose()
                                 }
-                                composable(MainActivityScreens.Settings.name) {
-                                    SettingsCompose(navController)
-                                }
-                                composable(MainActivityScreens.GridColumnsSetting.name) {
-                                    GridColumnsSettingCompose(navController)
+                                navigation(
+                                    startDestination = MainActivityScreens.Settings.name,
+                                    route = MainActivityScreens.SettingsNavigation.name
+                                ) {
+                                    composable(MainActivityScreens.Settings.name) {
+                                        SettingsCompose(navController)
+                                    }
+                                    composable(MainActivityScreens.GridColumnsSetting.name) {
+                                        GridColumnsSettingCompose(navController)
+                                    }
                                 }
                             }
                         }

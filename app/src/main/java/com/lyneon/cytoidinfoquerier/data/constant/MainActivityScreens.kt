@@ -4,6 +4,7 @@ enum class MainActivityScreens {
     Home,
     Analytics,
     Profile,
+    SettingsNavigation,
     Settings,
     GridColumnsSetting
 }
