@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +34,7 @@ fun TopBar(
         navigationIcon = {
             IconButton(onClick = {
                 scope.launch {
-                    BaseApplication.globalDrawerState.open()
+                    MainActivity.drawerState.open()
                 }
             }) {
                 Icon(

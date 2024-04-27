@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
@@ -44,7 +43,7 @@ import com.tencent.mmkv.MMKV
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GridColumnsSettingCompose(navController: NavController) {
+fun GridColumnsSettingCompose(onNavigateBack: () -> Unit) {
     val context = LocalContext.current as MainActivity
     val orientation by remember { mutableIntStateOf(context.resources.configuration.orientation) }
     val mmkv = MMKV.defaultMMKV()
@@ -77,7 +76,7 @@ fun GridColumnsSettingCompose(navController: NavController) {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = { onNavigateBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.back)

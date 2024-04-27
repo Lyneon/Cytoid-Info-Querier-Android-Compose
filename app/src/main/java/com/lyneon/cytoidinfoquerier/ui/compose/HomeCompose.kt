@@ -16,16 +16,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeCompose() {
+fun HomeCompose(onClickOpenDrawerButton: () -> Unit) {
     Column {
-        TopBar(title = stringResource(id = R.string.home) )
+        TopBar(title = stringResource(id = R.string.home))
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -45,7 +44,7 @@ fun HomeCompose() {
                         contentDescription = stringResource(id = R.string.open_drawer)
                     )
                 },
-                onClick = { scope.launch { BaseApplication.globalDrawerState.open() } }
+                onClick = { scope.launch { onClickOpenDrawerButton() } }
             )
         }
     }

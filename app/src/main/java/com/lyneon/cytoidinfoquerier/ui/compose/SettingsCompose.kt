@@ -36,12 +36,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
-import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
@@ -51,17 +49,17 @@ import kotlin.concurrent.thread
 
 
 @Composable
-fun SettingsCompose(navController: NavController) {
+fun SettingsCompose(onNavigateToGridColumnsSetting: () -> Unit) {
     val mmkv = MMKV.defaultMMKV()
     val scope = rememberCoroutineScope()
     var enableSentry by remember {
         mutableStateOf(mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY.name, true))
     }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = { TopBar(title = stringResource(id = R.string.settings)) },
         snackbarHost = {
-            SnackbarHost(snackbarHostState)
+            SnackbarHost(snackBarHostState)
         },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
@@ -74,8 +72,8 @@ fun SettingsCompose(navController: NavController) {
                 enableSentry = !enableSentry
                 mmkv.encode(MMKVKeys.ENABLE_SENTRY.name, enableSentry)
                 scope.launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    val result = snackbarHostState.showSnackbar(
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    val result = snackBarHostState.showSnackbar(
                         context.getString(R.string.changes_need_restart_to_enable),
                         context.getString(R.string.restart),
                         true,
@@ -106,8 +104,8 @@ fun SettingsCompose(navController: NavController) {
                             enableSentry = checked
                             mmkv.encode(MMKVKeys.ENABLE_SENTRY.name, checked)
                             scope.launch {
-                                snackbarHostState.currentSnackbarData?.dismiss()
-                                when (snackbarHostState.showSnackbar(
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                                when (snackBarHostState.showSnackbar(
                                     context.getString(R.string.changes_need_restart_to_enable),
                                     context.getString(R.string.restart),
                                     true,
@@ -124,8 +122,8 @@ fun SettingsCompose(navController: NavController) {
 
             SettingsItem(onClick = {
                 scope.launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    when (snackbarHostState.showSnackbar(
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    when (snackBarHostState.showSnackbar(
                         context.getString(R.string.delete_confirm),
                         context.getString(R.string.confirm),
                         true,
@@ -153,8 +151,8 @@ fun SettingsCompose(navController: NavController) {
 
             SettingsItem(onClick = {
                 scope.launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    when (snackbarHostState.showSnackbar(
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    when (snackBarHostState.showSnackbar(
                         context.getString(R.string.test_crash),
                         context.getString(R.string.confirm),
                         true,
@@ -173,9 +171,7 @@ fun SettingsCompose(navController: NavController) {
                 Text(text = stringResource(id = R.string.test_crash))
             }
 
-            SettingsItem(onClick = {
-                navController.navigate(MainActivityScreens.GridColumnsSetting.name)
-            }, icon = {
+            SettingsItem(onClick = { onNavigateToGridColumnsSetting() }, icon = {
                 Icon(
                     imageVector = Icons.Default.StayPrimaryPortrait,
                     contentDescription = stringResource(R.string.grid_columns_count)
@@ -200,8 +196,8 @@ fun SettingsCompose(navController: NavController) {
 
             SettingsItem(onClick = {
                 scope.launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    when (snackbarHostState.showSnackbar(
+                    snackBarHostState.currentSnackbarData?.dismiss()
+                    when (snackBarHostState.showSnackbar(
                         "start ping?",
                         context.getString(R.string.confirm),
                         true,
@@ -209,8 +205,8 @@ fun SettingsCompose(navController: NavController) {
                     )) {
                         Dismissed -> {}
                         ActionPerformed -> {
-                            snackbarHostState.currentSnackbarData?.dismiss()
-                            snackbarHostState.showSnackbar("pinging cytoid.io...")
+                            snackBarHostState.currentSnackbarData?.dismiss()
+                            snackBarHostState.showSnackbar("pinging cytoid.io...")
                             thread {
                                 try {
                                     val response = OkHttpClient().newCall(
@@ -224,8 +220,8 @@ fun SettingsCompose(navController: NavController) {
                                             .build()
                                     ).execute()
                                     scope.launch {
-                                        snackbarHostState.currentSnackbarData?.dismiss()
-                                        snackbarHostState.showSnackbar(
+                                        snackBarHostState.currentSnackbarData?.dismiss()
+                                        snackBarHostState.showSnackbar(
                                             "ping result:\ncytoid.io:${response.code} ${response.message}",
                                             withDismissAction = true,
                                             duration = SnackbarDuration.Indefinite
@@ -233,8 +229,8 @@ fun SettingsCompose(navController: NavController) {
                                     }
                                 } catch (e: Exception) {
                                     scope.launch {
-                                        snackbarHostState.currentSnackbarData?.dismiss()
-                                        snackbarHostState.showSnackbar(
+                                        snackBarHostState.currentSnackbarData?.dismiss()
+                                        snackBarHostState.showSnackbar(
                                             "ping failed:\n${e.message}",
                                             withDismissAction = true,
                                             duration = SnackbarDuration.Indefinite
