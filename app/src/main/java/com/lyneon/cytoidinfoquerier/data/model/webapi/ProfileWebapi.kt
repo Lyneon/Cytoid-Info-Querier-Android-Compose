@@ -18,7 +18,7 @@ data class ProfileWebapi(
     val lastActive: String?,
     val tier: Tier?,
     val character: Character
-) {
+) : WebapiJSONDataModel() {
     @Serializable
     data class User(
         val uid: String,

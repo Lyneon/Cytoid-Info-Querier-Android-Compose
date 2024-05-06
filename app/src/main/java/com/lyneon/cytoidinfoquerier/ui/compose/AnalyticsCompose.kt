@@ -47,6 +47,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.GraphQL
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.model.graphql.Analytics
+import com.lyneon.cytoidinfoquerier.data.model.ui.AnalyticsScreenDataModel
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
@@ -59,7 +60,7 @@ import com.tencent.mmkv.MMKV
 import io.sentry.Sentry
 import kotlin.concurrent.thread
 
-lateinit var response: Analytics
+lateinit var response: AnalyticsScreenDataModel
 
 @Composable
 fun AnalyticsCompose() {
@@ -361,7 +362,7 @@ fun AnalyticsCompose() {
                                                                 }
                                                             }
                                                     "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
-                                                    analytics
+                                                    AnalyticsScreenDataModel(analytics)
                                                 } catch (e: Exception) {
                                                     error = e.stackTraceToString()
                                                     Sentry.captureException(e)
@@ -391,10 +392,12 @@ fun AnalyticsCompose() {
                                                                 )
                                                             )
                                                         response =
-                                                            Analytics.decodeFromJSONString(
-                                                                profileString
+                                                            AnalyticsScreenDataModel(
+                                                                Analytics.decodeFromJSONString(
+                                                                    profileString
+                                                                )
                                                             )
-                                                        if (response.data.profile == null) {
+                                                        if (response.analytics.data.profile == null) {
                                                             error = "data.profile is null!"
                                                             return@thread
                                                         } else {
@@ -408,8 +411,8 @@ fun AnalyticsCompose() {
                                                             )
                                                             Looper.prepare()
                                                             "查询${cytoidID}完成，共查询到${
-                                                                if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
-                                                                else response.data.profile!!.recentRecords.size
+                                                                if (queryType == QueryType.bestRecords) response.analytics.data.profile!!.bestRecords.size
+                                                                else response.analytics.data.profile!!.recentRecords.size
                                                             }条数据".showToast()
                                                             isQueryingFinished = true
                                                         }
@@ -458,20 +461,20 @@ fun AnalyticsCompose() {
                         contentPadding = PaddingValues(vertical = 6.dp)
                     ) {
                         if (isQueryingFinished && ::response.isInitialized) {
-                            if (response.data.profile != null) {
+                            if (response.analytics.data.profile != null) {
                                 var remainRecord =
                                     if (queryCount.isEmpty()) 0 else queryCount.toInt()
                                 for (i in 0 until
-                                        if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
-                                        else response.data.profile!!.recentRecords.size
+                                        if (queryType == QueryType.bestRecords) response.analytics.data.profile!!.bestRecords.size
+                                        else response.analytics.data.profile!!.recentRecords.size
                                 ) {
                                     if (remainRecord == 0) break
                                     val record =
-                                        if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords[i]
-                                        else response.data.profile!!.recentRecords[i]
+                                        if (queryType == QueryType.bestRecords) response.analytics.data.profile!!.bestRecords[i]
+                                        else response.analytics.data.profile!!.recentRecords[i]
                                     item(
-                                        span = if ((if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.size
-                                            else response.data.profile!!.recentRecords.size) == 1
+                                        span = if ((if (queryType == QueryType.bestRecords) response.analytics.data.profile!!.bestRecords.size
+                                            else response.analytics.data.profile!!.recentRecords.size) == 1
                                         ) StaggeredGridItemSpan.FullLine
                                         else StaggeredGridItemSpan.SingleLane
                                     ) {

@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
+import com.lyneon.cytoidinfoquerier.data.model.ui.ProfileScreenIntegratedDataModel
 import com.lyneon.cytoidinfoquerier.data.model.webapi.Comment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.json
@@ -116,15 +118,10 @@ val chartEntryModelProducer = ChartEntryModelProducer()
 fun ProfileCompose() {
     val context = LocalContext.current as MainActivity
     val mmkv = MMKV.defaultMMKV()
-    var profileGraphQL by remember {
-        mutableStateOf(ProfileGraphQL.getDefaultInstance())
+    var integratedData by remember<MutableState<ProfileScreenIntegratedDataModel?>> {
+        mutableStateOf(null)
     }
-    var profileWebapi by remember {
-        mutableStateOf(ProfileWebapi.getDefaultInstance())
-    }
-    var comments by remember {
-        mutableStateOf(ArrayList<Comment>())
-    }
+
     var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
     var textFieldIsError by remember { mutableStateOf(false) }
@@ -243,38 +240,30 @@ fun ProfileCompose() {
                                             .showToast()
                                         textFieldIsError = true
                                     } else {
+//                                        ID格式正确，开始处理
                                         textFieldIsError = false
                                         isQueryingFinished = false
+//                                        检查是否有已缓存的数据
                                         if (System.currentTimeMillis() - mmkv.decodeLong(
                                                 "lastQueryProfileTime_${cytoidID}",
                                                 -1
                                             ) <= (6 * 60 * 60 * 1000) && !ignoreCache
                                         ) {
-                                            val profileGraphQLString =
-                                                mmkv.decodeString("profileGraphQLString_${cytoidID}")
-                                            val profileWebapiString =
-                                                mmkv.decodeString("profileWebapiString_${cytoidID}")
-                                            val commentsString =
-                                                mmkv.decodeString("commentsString_${cytoidID}")
-                                            if (profileGraphQLString != null) profileGraphQL =
-                                                json.decodeFromString(profileGraphQLString)
-                                            else {
-                                                error = "Local cache profile data is null"
-                                                return@TextButton
-                                            }
-                                            if (profileWebapiString != null) profileWebapi =
-                                                json.decodeFromString(profileWebapiString)
-                                            else {
-                                                error = "Local cache profile data is null"
-                                                return@TextButton
-                                            }
-                                            comments =
-                                                if (commentsString != null)
-                                                    json.decodeFromString(commentsString)
-                                                else arrayListOf()
+//                                            存在已缓存的数据，从硬盘中读取缓存数据
+                                            val integratedDataModelString =
+                                                mmkv.decodeString("profileScreenIntegratedData_${cytoidID}")
+                                            val integratedDataModel: ProfileScreenIntegratedDataModel =
+                                                if (integratedDataModelString != null) {
+                                                    json.decodeFromString(integratedDataModelString)
+                                                } else {
+                                                    error = "Local cache profile data is null"
+                                                    return@TextButton
+                                                }
+                                            integratedData = integratedDataModel
                                             isQueryingFinished = true
                                             "6小时内有查询记录，使用已缓存的数据".showToast()
                                         } else {
+//                                            没有缓存数据，从服务器获取数据并缓存至本地
                                             "开始查询$cytoidID".showToast()
                                             thread {
                                                 val job = Job()
@@ -285,28 +274,29 @@ fun ProfileCompose() {
                                                                 async { ProfileGraphQL.get(cytoidID) },
                                                                 async { ProfileWebapi.get(cytoidID) }
                                                             )
-                                                        profileGraphQL =
+                                                        val profileGraphQL =
                                                             profiles[0] as ProfileGraphQL
-                                                        profileWebapi = profiles[1] as ProfileWebapi
-                                                        comments =
+                                                        val profileWebapi =
+                                                            profiles[1] as ProfileWebapi
+                                                        val comments =
                                                             async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
+                                                        integratedData =
+                                                            ProfileScreenIntegratedDataModel(
+                                                                System.currentTimeMillis(),
+                                                                profileGraphQL,
+                                                                profileWebapi,
+                                                                comments
+                                                            )
                                                         isQueryingFinished = true
                                                         mmkv.run {
+//                                                        缓存数据至本地
                                                             encode(
                                                                 "lastQueryProfileTime_${cytoidID}",
                                                                 System.currentTimeMillis()
                                                             )
                                                             encode(
-                                                                "profileGraphQLString_${cytoidID}",
-                                                                json.encodeToString(profileGraphQL)
-                                                            )
-                                                            encode(
-                                                                "profileWebapiString_${cytoidID}",
-                                                                json.encodeToString(profileWebapi)
-                                                            )
-                                                            encode(
-                                                                "commentsString_${cytoidID}",
-                                                                json.encodeToString(comments)
+                                                                "profileScreenIntegratedData_${cytoidID}",
+                                                                json.encodeToString(integratedData)
                                                             )
                                                         }
                                                     } catch (e: Exception) {
@@ -341,33 +331,35 @@ fun ProfileCompose() {
             if (error.isNotEmpty()) {
                 AlertCard(message = error, modifier = Modifier.padding(vertical = 6.dp))
             } else {
-                AnimatedVisibility(visible = isQueryingFinished) {
+                AnimatedVisibility(visible = isQueryingFinished && integratedData != null) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        item {
-                            HeaderBar(
-                                profileWebapi = profileWebapi,
-                                keep2DecimalPlace = keep2DecimalPlace
-                            )
+                        integratedData?.let {
+                            item {
+                                HeaderBar(
+                                    profileWebapi = it.profileWebapi,
+                                    keep2DecimalPlace = keep2DecimalPlace
+                                )
+                            }
+                            item { BiographyCard(profileGraphQL = it.profileGraphQL) }
+                            item { BadgesCard(profileGraphQL = it.profileGraphQL) }
+                            item {
+                                RecentRecordsCard(
+                                    profileGraphQL = it.profileGraphQL,
+                                    keep2DecimalPlace = keep2DecimalPlace
+                                )
+                            }
+                            item {
+                                DetailsCard(
+                                    profileWebapi = it.profileWebapi,
+                                    keep2DecimalPlace = keep2DecimalPlace
+                                )
+                            }
+                            item { CollectionsCard(profileGraphQL = it.profileGraphQL) }
+                            item { LevelsCard(profileGraphQL = it.profileGraphQL) }
+                            item { CommentsColumn(comments = it.comments) }
                         }
-                        item { BiographyCard(profileGraphQL = profileGraphQL) }
-                        item { BadgesCard(profileGraphQL = profileGraphQL) }
-                        item {
-                            RecentRecordsCard(
-                                profileGraphQL = profileGraphQL,
-                                keep2DecimalPlace = keep2DecimalPlace
-                            )
-                        }
-                        item {
-                            DetailsCard(
-                                profileWebapi = profileWebapi,
-                                keep2DecimalPlace = keep2DecimalPlace
-                            )
-                        }
-                        item { CollectionsCard(profileGraphQL = profileGraphQL) }
-                        item { LevelsCard(profileGraphQL = profileGraphQL) }
-                        item { CommentsColumn(comments = comments) }
                     }
                 }
             }
@@ -1004,7 +996,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL) {
 }
 
 @Composable
-private fun CommentsColumn(comments: ArrayList<Comment>) {
+private fun CommentsColumn(comments: List<Comment>) {
     Column(
         modifier = Modifier.padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
