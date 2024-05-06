@@ -8,7 +8,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class ProfileScreenIntegratedDataModel(
-    val queryTime: Long,
     val profileGraphQL: ProfileGraphQL,
     val profileWebapi: ProfileWebapi,
     val comments: List<Comment>

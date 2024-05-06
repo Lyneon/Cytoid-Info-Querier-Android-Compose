@@ -108,6 +108,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
+import java.io.File
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -243,22 +244,32 @@ fun ProfileCompose() {
 //                                        ID格式正确，开始处理
                                         textFieldIsError = false
                                         isQueryingFinished = false
+                                        val lastQueryTime =
+                                            mmkv.decodeLong("lastQueryProfileTime_${cytoidID}", -1)
+                                        val cacheProfileDirectory =
+                                            context.externalCacheDir?.run {
+                                                File(this.path + "/profile/${cytoidID}")
+                                            }
+                                        val cacheProfileFile =
+                                            cacheProfileDirectory?.run {
+                                                if (!this.exists()) this.mkdirs()
+                                                File(this, lastQueryTime.toString())
+                                            }
 //                                        检查是否有已缓存的数据
-                                        if (System.currentTimeMillis() - mmkv.decodeLong(
-                                                "lastQueryProfileTime_${cytoidID}",
-                                                -1
-                                            ) <= (6 * 60 * 60 * 1000) && !ignoreCache
+                                        if (lastQueryTime != -1L &&
+                                            cacheProfileFile != null &&
+                                            cacheProfileFile.exists() &&
+                                            System.currentTimeMillis() - lastQueryTime <= (6 * 60 * 60 * 1000) &&
+                                            !ignoreCache
                                         ) {
 //                                            存在已缓存的数据，从硬盘中读取缓存数据
                                             val integratedDataModelString =
-                                                mmkv.decodeString("profileScreenIntegratedData_${cytoidID}")
+                                                cacheProfileFile.inputStream().bufferedReader()
+                                                    .use {
+                                                        it.readText()
+                                                    }
                                             val integratedDataModel: ProfileScreenIntegratedDataModel =
-                                                if (integratedDataModelString != null) {
-                                                    json.decodeFromString(integratedDataModelString)
-                                                } else {
-                                                    error = "Local cache profile data is null"
-                                                    return@TextButton
-                                                }
+                                                json.decodeFromString(integratedDataModelString)
                                             integratedData = integratedDataModel
                                             isQueryingFinished = true
                                             "6小时内有查询记录，使用已缓存的数据".showToast()
@@ -282,23 +293,29 @@ fun ProfileCompose() {
                                                             async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
                                                         integratedData =
                                                             ProfileScreenIntegratedDataModel(
-                                                                System.currentTimeMillis(),
                                                                 profileGraphQL,
                                                                 profileWebapi,
                                                                 comments
                                                             )
                                                         isQueryingFinished = true
-                                                        mmkv.run {
 //                                                        缓存数据至本地
-                                                            encode(
-                                                                "lastQueryProfileTime_${cytoidID}",
-                                                                System.currentTimeMillis()
-                                                            )
-                                                            encode(
-                                                                "profileScreenIntegratedData_${cytoidID}",
-                                                                json.encodeToString(integratedData)
-                                                            )
-                                                        }
+                                                        val currentTime = System.currentTimeMillis()
+                                                        mmkv.encode(
+                                                            "lastQueryProfileTime_${cytoidID}",
+                                                            System.currentTimeMillis()
+                                                        )
+                                                        val cacheProfileFileToBeSaved = File(
+                                                            cacheProfileDirectory,
+                                                            currentTime.toString()
+                                                        )
+                                                        cacheProfileFileToBeSaved.outputStream()
+                                                            .bufferedWriter().use {
+                                                                it.write(
+                                                                    json.encodeToString(
+                                                                        integratedData
+                                                                    )
+                                                                )
+                                                            }
                                                     } catch (e: Exception) {
                                                         error = e.stackTraceToString()
                                                         Sentry.captureException(e)

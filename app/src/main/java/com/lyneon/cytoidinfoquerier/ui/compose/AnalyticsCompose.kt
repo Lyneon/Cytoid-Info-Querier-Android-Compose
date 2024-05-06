@@ -58,6 +58,7 @@ import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import io.sentry.Sentry
+import java.io.File
 import kotlin.concurrent.thread
 
 lateinit var response: AnalyticsScreenDataModel
@@ -312,55 +313,70 @@ fun AnalyticsCompose() {
                                                 .showToast()
                                             querySettingsMenuIsExpanded = true
                                         } else {
+//                                            ID格式正确，开始查询
                                             textFieldIsError = false
                                             isQueryingFinished = false
-                                            if (System.currentTimeMillis() - mmkv.decodeLong(
-                                                    "lastQueryAnalyticsTime_${cytoidID}_${queryType}",
+                                            val lastQueryTime =
+                                                mmkv.decodeLong(
+                                                    "lastQueryAnalyticsTime_${cytoidID}",
                                                     -1
-                                                ) <= (6 * 60 * 60 * 1000) && !ignoreCache
+                                                )
+                                            val cacheAnalyticsDirectory =
+                                                context.externalCacheDir?.run {
+                                                    File(this.path + "/analytics/${cytoidID}")
+                                                }
+                                            val cacheAnalyticsFile = cacheAnalyticsDirectory?.run {
+                                                if (!this.exists()) this.mkdirs()
+                                                File(this, lastQueryTime.toString())
+                                            }
+//                                            检查是否存在已缓存的数据
+                                            if (lastQueryTime != -1L &&
+                                                cacheAnalyticsFile != null &&
+                                                cacheAnalyticsFile.exists() &&
+                                                System.currentTimeMillis() - lastQueryTime <= (6 * 60 * 60 * 1000) &&
+                                                !ignoreCache
                                             ) {
+//                                                存在已缓存的数据，从本地读取
                                                 response = try {
                                                     var toIndex: Int
-                                                    val profileString =
-                                                        mmkv.decodeString("analyticsString_${cytoidID}_${queryType}")
-                                                    if (profileString == null) {
-                                                        error = "Failed to find cache data"
-                                                        return@TextButton
-                                                    }
+                                                    val analyticsString =
+                                                        cacheAnalyticsFile.inputStream()
+                                                            .bufferedReader().use { it.readText() }
                                                     val analytics =
-                                                        Analytics.decodeFromJSONString(profileString)
-                                                            .apply {
-                                                                if (this.data.profile != null) {
-                                                                    val profile = this.data.profile
-                                                                    if (queryType == QueryType.bestRecords) {
-                                                                        toIndex =
-                                                                            if (queryCount.toInt() <= profile.bestRecords.size) queryCount.toInt()
-                                                                            else profile.bestRecords.size
-                                                                        profile.bestRecords =
-                                                                            ArrayList(
-                                                                                profile.bestRecords.subList(
-                                                                                    0,
-                                                                                    toIndex
-                                                                                )
+                                                        Analytics.decodeFromJSONString(
+                                                            analyticsString
+                                                        ).apply {
+                                                            if (this.data.profile != null) {
+                                                                val profile = this.data.profile
+                                                                if (queryType == QueryType.bestRecords) {
+                                                                    toIndex =
+                                                                        if (queryCount.toInt() <= profile.bestRecords.size) queryCount.toInt()
+                                                                        else profile.bestRecords.size
+                                                                    profile.bestRecords =
+                                                                        ArrayList(
+                                                                            profile.bestRecords.subList(
+                                                                                0,
+                                                                                toIndex
                                                                             )
-                                                                    } else {
-                                                                        toIndex =
-                                                                            if (queryCount.toInt() <= profile.recentRecords.size) queryCount.toInt()
-                                                                            else profile.recentRecords.size
-                                                                        profile.recentRecords =
-                                                                            ArrayList(
-                                                                                profile.recentRecords.subList(
-                                                                                    0,
-                                                                                    toIndex
-                                                                                )
-                                                                            )
-                                                                    }
+                                                                        )
                                                                 } else {
-                                                                    error =
-                                                                        "local cache data.profile is null!"
-                                                                    return@TextButton
+                                                                    toIndex =
+                                                                        if (queryCount.toInt() <= profile.recentRecords.size) queryCount.toInt()
+                                                                        else profile.recentRecords.size
+                                                                    profile.recentRecords =
+                                                                        ArrayList(
+                                                                            profile.recentRecords.subList(
+                                                                                0,
+                                                                                toIndex
+                                                                            )
+                                                                        )
                                                                 }
+                                                            } else {
+                                                                error =
+                                                                    "local cache data.profile is null!"
+                                                                return@TextButton
                                                             }
+                                                        }
                                                     "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
                                                     AnalyticsScreenDataModel(analytics)
                                                 } catch (e: Exception) {
@@ -370,10 +386,11 @@ fun AnalyticsCompose() {
                                                 }
                                                 isQueryingFinished = true
                                             } else {
+//                                                不存在已缓存的数据，从服务器获取数据并缓存至本地
                                                 "开始查询$cytoidID".showToast()
                                                 thread {
                                                     try {
-                                                        val profileString =
+                                                        val analyticsString =
                                                             NetRequest.getGQLResponseJSONString(
                                                                 GraphQL.getQueryString(
                                                                     if (queryType == QueryType.bestRecords) {
@@ -394,27 +411,36 @@ fun AnalyticsCompose() {
                                                         response =
                                                             AnalyticsScreenDataModel(
                                                                 Analytics.decodeFromJSONString(
-                                                                    profileString
+                                                                    analyticsString
                                                                 )
                                                             )
                                                         if (response.analytics.data.profile == null) {
                                                             error = "data.profile is null!"
                                                             return@thread
                                                         } else {
-                                                            mmkv.encode(
-                                                                "lastQueryAnalyticsTime_${cytoidID}_${queryType}",
-                                                                System.currentTimeMillis()
-                                                            )
-                                                            mmkv.encode(
-                                                                "analyticsString_${cytoidID}_${queryType}",
-                                                                profileString
-                                                            )
                                                             Looper.prepare()
                                                             "查询${cytoidID}完成，共查询到${
                                                                 if (queryType == QueryType.bestRecords) response.analytics.data.profile!!.bestRecords.size
                                                                 else response.analytics.data.profile!!.recentRecords.size
                                                             }条数据".showToast()
                                                             isQueryingFinished = true
+//                                                            缓存数据至本地
+                                                            val currentTime =
+                                                                System.currentTimeMillis()
+                                                            mmkv.encode(
+                                                                "lastQueryAnalyticsTime_${cytoidID}",
+                                                                currentTime
+                                                            )
+                                                            cacheAnalyticsDirectory?.run {
+                                                                if (!exists()) mkdirs()
+                                                                File(
+                                                                    this,
+                                                                    currentTime.toString()
+                                                                ).outputStream().bufferedWriter()
+                                                                    .use {
+                                                                        it.write(analyticsString)
+                                                                    }
+                                                            }
                                                         }
                                                     } catch (e: Exception) {
                                                         error = "查询失败：${e.stackTraceToString()}"
