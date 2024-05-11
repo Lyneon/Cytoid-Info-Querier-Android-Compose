@@ -86,15 +86,20 @@ fun AnalyticsCompose(navController: NavController, navBackStackEntry: NavBackSta
     var querySettingsMenuIsExpanded by remember { mutableStateOf(false) }
     var hideInput by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
+    var hasLoadedCache by remember { mutableStateOf(false) }
 
-    initArguments?.let {
+    if (!hasLoadedCache) initArguments?.let {
         val initCytoidID = it.getString("initCytoidID")
         val initCacheTime = it.getString("initCacheTime")?.toLong()
         val cacheFile =
             File(context.externalCacheDir, "/analytics/${initCytoidID}/${initCacheTime}")
 
+        if (initCytoidID != null) {
+            cytoidID = initCytoidID
+        }
         response = json.decodeFromString(cacheFile.readText())
         isQueryingFinished = true
+        hasLoadedCache = true
     }
 
     Column {

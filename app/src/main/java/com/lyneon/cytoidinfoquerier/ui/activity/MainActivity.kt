@@ -43,7 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.lyneon.cytoidinfoquerier.BaseActivity
-import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
+import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.mainActivityDrawerState
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
@@ -95,8 +95,7 @@ class MainActivity : BaseActivity() {
                 ) {
                     val navController = rememberNavController()
                     var currentNavRoute by remember { mutableStateOf(MainActivityScreens.Home.name) }
-                    globalDrawerState =
-                        rememberDrawerState(initialValue = DrawerValue.Closed)
+                    mainActivityDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                     val selfPackageInfo =
                         context.packageManager.getPackageInfo(context.packageName, 0)
                     val cytoidPackageInfo = try {
@@ -106,7 +105,7 @@ class MainActivity : BaseActivity() {
                     }
 
                     ModalNavigationDrawer(
-                        drawerState = globalDrawerState,
+                        drawerState = mainActivityDrawerState,
                         drawerContent = {
                             ModalDrawerSheet {
                                 Column(
@@ -160,7 +159,7 @@ class MainActivity : BaseActivity() {
                                                 }
                                                 currentNavRoute = MainActivityScreens.Home.name
                                                 scope.launch {
-                                                    globalDrawerState.close()
+                                                    mainActivityDrawerState.close()
                                                 }
                                             }
                                         )
@@ -182,7 +181,7 @@ class MainActivity : BaseActivity() {
                                                 }
                                                 currentNavRoute = MainActivityScreens.Analytics.name
                                                 scope.launch {
-                                                    globalDrawerState.close()
+                                                    mainActivityDrawerState.close()
                                                 }
                                             }
                                         )
@@ -204,7 +203,7 @@ class MainActivity : BaseActivity() {
                                                 }
                                                 currentNavRoute = MainActivityScreens.Profile.name
                                                 scope.launch {
-                                                    globalDrawerState.close()
+                                                    mainActivityDrawerState.close()
                                                 }
                                             }
                                         )
@@ -227,7 +226,7 @@ class MainActivity : BaseActivity() {
                                         }
                                         currentNavRoute = MainActivityScreens.Settings.name
                                         scope.launch {
-                                            globalDrawerState.close()
+                                            mainActivityDrawerState.close()
                                         }
                                     }) {
                                         Column {
@@ -254,12 +253,18 @@ class MainActivity : BaseActivity() {
                         }
                     ) {
                         Column {
+                            val scope = rememberCoroutineScope()
+
                             NavHost(
                                 navController = navController,
                                 startDestination = MainActivityScreens.Home.name
                             ) {
                                 composable(MainActivityScreens.Home.name) {
-                                    HomeCompose()
+                                    HomeCompose {
+                                        scope.launch {
+                                            mainActivityDrawerState.open()
+                                        }
+                                    }
                                 }
                                 composable(MainActivityScreens.Analytics.name) {
                                     AnalyticsCompose(navController, null)

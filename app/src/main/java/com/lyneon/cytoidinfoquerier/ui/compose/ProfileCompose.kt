@@ -135,15 +135,20 @@ fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStack
     var ignoreCache by remember { mutableStateOf(false) }
     var keep2DecimalPlace by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
+    var hasLoadedCache by remember { mutableStateOf(false) }
 
-    initArguments?.let {
+    if (!hasLoadedCache) initArguments?.let {
         val initCytoidID = it.getString("initCytoidID")
         val initCacheTime = it.getString("initCacheTime")?.toLong()
         val cacheFile =
             File(context.externalCacheDir, "/profile/${initCytoidID}/${initCacheTime}")
 
+        if (initCytoidID != null) {
+            cytoidID = initCytoidID
+        }
         integratedData = json.decodeFromString(cacheFile.readText())
         isQueryingFinished = true
+        hasLoadedCache = true
     }
 
     Column {

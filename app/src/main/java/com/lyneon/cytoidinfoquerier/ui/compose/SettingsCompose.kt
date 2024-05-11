@@ -36,10 +36,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
+import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
@@ -49,7 +51,7 @@ import kotlin.concurrent.thread
 
 
 @Composable
-fun SettingsCompose(onNavigateToGridColumnsSetting: () -> Unit) {
+fun SettingsCompose(navController: NavController) {
     val mmkv = MMKV.defaultMMKV()
     val scope = rememberCoroutineScope()
     var enableSentry by remember {
@@ -171,12 +173,14 @@ fun SettingsCompose(onNavigateToGridColumnsSetting: () -> Unit) {
                 Text(text = stringResource(id = R.string.test_crash))
             }
 
-            SettingsItem(onClick = { onNavigateToGridColumnsSetting() }, icon = {
-                Icon(
-                    imageVector = Icons.Default.StayPrimaryPortrait,
-                    contentDescription = stringResource(R.string.grid_columns_count)
-                )
-            }) {
+            SettingsItem(
+                onClick = { navController.navigate(MainActivityScreens.GridColumnsSetting.name) },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.StayPrimaryPortrait,
+                        contentDescription = stringResource(R.string.grid_columns_count)
+                    )
+                }) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
