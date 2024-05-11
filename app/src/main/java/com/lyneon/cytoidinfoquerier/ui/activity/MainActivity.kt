@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -42,7 +43,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.lyneon.cytoidinfoquerier.BaseActivity
-import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
@@ -50,6 +50,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.GridColumnsSettingCompose
+import com.lyneon.cytoidinfoquerier.ui.compose.HistoryCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.ProfileCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.SettingsCompose
@@ -85,6 +86,8 @@ class MainActivity : BaseActivity() {
         }
 
         setContent {
+            val context = LocalContext.current as MainActivity
+
             CytoidInfoQuerierComposeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -151,7 +154,10 @@ class MainActivity : BaseActivity() {
                                             },
                                             selected = currentNavRoute == MainActivityScreens.Home.name,
                                             onClick = {
-                                                navController.navigate(MainActivityScreens.Home.name)
+                                                navController.navigate(MainActivityScreens.Home.name) {
+                                                    launchSingleTop = true
+                                                    this.popUpTo(MainActivityScreens.Home.name)
+                                                }
                                                 currentNavRoute = MainActivityScreens.Home.name
                                                 scope.launch {
                                                     globalDrawerState.close()
@@ -170,7 +176,10 @@ class MainActivity : BaseActivity() {
                                             },
                                             selected = currentNavRoute == MainActivityScreens.Analytics.name,
                                             onClick = {
-                                                navController.navigate(MainActivityScreens.Analytics.name)
+                                                navController.navigate(MainActivityScreens.Analytics.name) {
+                                                    launchSingleTop = true
+                                                    this.popUpTo(MainActivityScreens.Analytics.name)
+                                                }
                                                 currentNavRoute = MainActivityScreens.Analytics.name
                                                 scope.launch {
                                                     globalDrawerState.close()
@@ -189,7 +198,10 @@ class MainActivity : BaseActivity() {
                                             },
                                             selected = currentNavRoute == MainActivityScreens.Profile.name,
                                             onClick = {
-                                                navController.navigate(MainActivityScreens.Profile.name)
+                                                navController.navigate(MainActivityScreens.Profile.name) {
+                                                    launchSingleTop = true
+                                                    this.popUpTo(MainActivityScreens.Profile.name)
+                                                }
                                                 currentNavRoute = MainActivityScreens.Profile.name
                                                 scope.launch {
                                                     globalDrawerState.close()
@@ -209,7 +221,10 @@ class MainActivity : BaseActivity() {
                                 ) {
                                     val scope = rememberCoroutineScope()
                                     Button(onClick = {
-                                        navController.navigate(MainActivityScreens.Settings.name)
+                                        navController.navigate(MainActivityScreens.Settings.name) {
+                                            launchSingleTop = true
+                                            this.popUpTo(MainActivityScreens.Settings.name)
+                                        }
                                         currentNavRoute = MainActivityScreens.Settings.name
                                         scope.launch {
                                             globalDrawerState.close()
@@ -247,10 +262,19 @@ class MainActivity : BaseActivity() {
                                     HomeCompose()
                                 }
                                 composable(MainActivityScreens.Analytics.name) {
-                                    AnalyticsCompose()
+                                    AnalyticsCompose(navController, null)
+                                }
+                                composable(MainActivityScreens.Analytics.name + "/{initCytoidID}/{initCacheTime}") {
+                                    AnalyticsCompose(navController, it)
                                 }
                                 composable(MainActivityScreens.Profile.name) {
-                                    ProfileCompose()
+                                    ProfileCompose(navController, null)
+                                }
+                                composable(MainActivityScreens.Profile.name + "/{initCytoidID}/{initCacheTime}") {
+                                    ProfileCompose(navController, it)
+                                }
+                                composable(MainActivityScreens.History.name + "/{type}") {
+                                    HistoryCompose(navController, it)
                                 }
                                 navigation(
                                     startDestination = MainActivityScreens.Settings.name,

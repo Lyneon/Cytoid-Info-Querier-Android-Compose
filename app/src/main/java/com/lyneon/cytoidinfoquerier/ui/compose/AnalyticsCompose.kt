@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,11 +44,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.GraphQL
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
+import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.data.model.graphql.Analytics
 import com.lyneon.cytoidinfoquerier.data.model.ui.AnalyticsScreenDataModel
+import com.lyneon.cytoidinfoquerier.json
 import com.lyneon.cytoidinfoquerier.logic.network.NetRequest
 import com.lyneon.cytoidinfoquerier.logic.service.ImageGenerateService
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
@@ -58,13 +63,15 @@ import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import io.sentry.Sentry
+import kotlinx.serialization.encodeToString
 import java.io.File
 import kotlin.concurrent.thread
 
 lateinit var response: AnalyticsScreenDataModel
 
 @Composable
-fun AnalyticsCompose() {
+fun AnalyticsCompose(navController: NavController, navBackStackEntry: NavBackStackEntry?) {
+    val initArguments = navBackStackEntry?.arguments
     val context = LocalContext.current as MainActivity
     var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
@@ -80,6 +87,16 @@ fun AnalyticsCompose() {
     var hideInput by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
 
+    initArguments?.let {
+        val initCytoidID = it.getString("initCytoidID")
+        val initCacheTime = it.getString("initCacheTime")?.toLong()
+        val cacheFile =
+            File(context.externalCacheDir, "/analytics/${initCytoidID}/${initCacheTime}")
+
+        response = json.decodeFromString(cacheFile.readText())
+        isQueryingFinished = true
+    }
+
     Column {
         TopBar(
             title = stringResource(id = R.string.analytics),
@@ -91,7 +108,7 @@ fun AnalyticsCompose() {
                     )
                 }
             },
-            actionsDropDownMenuContent = {
+            actionsDropDownMenuContent = { menuIsExpanded: MutableState<Boolean> ->
                 DropdownMenuItem(
                     text = { Text(text = stringResource(R.string.history)) },
                     leadingIcon = {
@@ -100,7 +117,10 @@ fun AnalyticsCompose() {
                             contentDescription = stringResource(id = R.string.history)
                         )
                     },
-                    onClick = { }
+                    onClick = {
+                        navController.navigate(MainActivityScreens.History.name + "/analytics")
+                        menuIsExpanded.value = false
+                    }
                 )
             }
         )
@@ -340,14 +360,14 @@ fun AnalyticsCompose() {
                                                 response = try {
                                                     var toIndex: Int
                                                     val analyticsString =
-                                                        cacheAnalyticsFile.inputStream()
-                                                            .bufferedReader().use { it.readText() }
-                                                    val analytics =
-                                                        Analytics.decodeFromJSONString(
+                                                        cacheAnalyticsFile.readText()
+                                                    val analyticsScreenDataModel =
+                                                        json.decodeFromString<AnalyticsScreenDataModel>(
                                                             analyticsString
                                                         ).apply {
-                                                            if (this.data.profile != null) {
-                                                                val profile = this.data.profile
+                                                            if (this.analytics.data.profile != null) {
+                                                                val profile =
+                                                                    this.analytics.data.profile
                                                                 if (queryType == QueryType.bestRecords) {
                                                                     toIndex =
                                                                         if (queryCount.toInt() <= profile.bestRecords.size) queryCount.toInt()
@@ -378,7 +398,7 @@ fun AnalyticsCompose() {
                                                             }
                                                         }
                                                     "6小时内有查询记录，使用已缓存的数据，共${toIndex}条数据".showToast()
-                                                    AnalyticsScreenDataModel(analytics)
+                                                    analyticsScreenDataModel
                                                 } catch (e: Exception) {
                                                     error = e.stackTraceToString()
                                                     Sentry.captureException(e)
@@ -438,7 +458,11 @@ fun AnalyticsCompose() {
                                                                     currentTime.toString()
                                                                 ).outputStream().bufferedWriter()
                                                                     .use {
-                                                                        it.write(analyticsString)
+                                                                        it.write(
+                                                                            json.encodeToString<AnalyticsScreenDataModel>(
+                                                                                response
+                                                                            )
+                                                                        )
                                                                     }
                                                             }
                                                         }

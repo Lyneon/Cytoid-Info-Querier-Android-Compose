@@ -57,9 +57,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.ui.ProfileScreenIntegratedDataModel
 import com.lyneon.cytoidinfoquerier.data.model.webapi.Comment
@@ -116,13 +119,13 @@ val chartEntryModelProducer = ChartEntryModelProducer()
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun ProfileCompose() {
+fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStackEntry?) {
+    val initArguments = navBackStackEntry?.arguments
     val context = LocalContext.current as MainActivity
     val mmkv = MMKV.defaultMMKV()
     var integratedData by remember<MutableState<ProfileScreenIntegratedDataModel?>> {
         mutableStateOf(null)
     }
-
     var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
     var textFieldIsError by remember { mutableStateOf(false) }
@@ -132,6 +135,16 @@ fun ProfileCompose() {
     var ignoreCache by remember { mutableStateOf(false) }
     var keep2DecimalPlace by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
+
+    initArguments?.let {
+        val initCytoidID = it.getString("initCytoidID")
+        val initCacheTime = it.getString("initCacheTime")?.toLong()
+        val cacheFile =
+            File(context.externalCacheDir, "/profile/${initCytoidID}/${initCacheTime}")
+
+        integratedData = json.decodeFromString(cacheFile.readText())
+        isQueryingFinished = true
+    }
 
     Column {
         TopBar(
@@ -144,7 +157,7 @@ fun ProfileCompose() {
                     )
                 }
             },
-            actionsDropDownMenuContent = {
+            actionsDropDownMenuContent = { menuIsExpanded: MutableState<Boolean> ->
                 DropdownMenuItem(
                     text = { Text(text = stringResource(R.string.history)) },
                     leadingIcon = {
@@ -153,7 +166,10 @@ fun ProfileCompose() {
                             contentDescription = stringResource(id = R.string.history)
                         )
                     },
-                    onClick = { }
+                    onClick = {
+                        navController.navigate(MainActivityScreens.History.name + "/profile")
+                        menuIsExpanded.value = false
+                    }
                 )
             }
         )

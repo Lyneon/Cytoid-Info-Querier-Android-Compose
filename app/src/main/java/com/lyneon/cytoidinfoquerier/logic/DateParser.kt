@@ -22,4 +22,7 @@ object DateParser {
         dateFormat.timeZone = TimeZone.getDefault()
         return dateFormat.format(this)
     }
+
+    fun Long.timeStampToString(pattern: String = "yyyy-MM-dd HH:mm:ss"): String =
+        Date(this).formatToTimeString(pattern)
 }

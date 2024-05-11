@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeCompose() {
     Column {
-        TopBar(title = stringResource(id = R.string.home) )
+        TopBar(title = stringResource(id = R.string.home))
         Column(
             modifier = Modifier
                 .fillMaxSize()
