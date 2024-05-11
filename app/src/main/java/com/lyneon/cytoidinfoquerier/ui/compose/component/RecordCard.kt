@@ -187,15 +187,13 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                                         cacheBackgroundImageFile?.run {
                                                             this.createNewFile()
                                                             FileOutputStream(this)
-                                                        }?.let { output ->
+                                                        }?.use { output ->
                                                             successState.result.drawable.toBitmap()
                                                                 .compress(
                                                                     Bitmap.CompressFormat.PNG,
                                                                     100,
                                                                     output
                                                                 )
-                                                            output.flush()
-                                                            output.close()
                                                         }
                                                     } catch (e: Exception) {
                                                         e.printStackTrace()

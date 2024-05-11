@@ -47,6 +47,7 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import kotlin.concurrent.thread
 
 
@@ -133,11 +134,12 @@ fun SettingsCompose(navController: NavController) {
                     )) {
                         Dismissed -> {}
                         ActionPerformed -> {
-                            val cacheDir = context.externalCacheDir?.listFiles()
-                            cacheDir?.run {
-                                for (file in cacheDir) {
-                                    file.delete()
-                                }
+                            val imageCacheDirs = listOf(
+                                File(context.externalCacheDir, "/backgroundImage"),
+                                File(context.externalCacheDir, "/avatar")
+                            )
+                            imageCacheDirs.forEach {
+                                it.deleteRecursively()
                             }
                         }
                     }

@@ -2,10 +2,13 @@ package com.lyneon.cytoidinfoquerier.ui.compose
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.text.Spannable
 import android.text.style.ForegroundColorSpan
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,10 +56,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -112,6 +117,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import java.io.File
+import java.io.FileOutputStream
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -136,6 +142,10 @@ fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStack
     var keep2DecimalPlace by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
     var hasLoadedCache by remember { mutableStateOf(false) }
+
+    File(context.externalCacheDir, "/avatar").let {
+        if (!it.exists()) it.mkdirs()
+    }
 
     if (!hasLoadedCache) initArguments?.let {
         val initCytoidID = it.getString("initCytoidID")
@@ -409,23 +419,65 @@ fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStack
 @Composable
 private fun HeaderBar(profileWebapi: ProfileWebapi, keep2DecimalPlace: Boolean) {
     Row {
-        AsyncImage(
-            model = getImageRequestBuilderForCytoid(profileWebapi.user.avatar.large)
-                .build(),
-            contentDescription = profileWebapi.user.uid,
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    BaseApplication.context.startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://cytoid.io/profile/${profileWebapi.user.uid}")
+        val profileCacheAvatarFile =
+            File(BaseApplication.context.externalCacheDir, "/avatar/${profileWebapi.user.uid}")
+
+        if (profileCacheAvatarFile.exists() && profileCacheAvatarFile.isFile) {
+            Image(
+                bitmap = BitmapFactory.decodeStream(profileCacheAvatarFile.inputStream())
+                    .asImageBitmap(),
+                contentDescription = profileWebapi.user.uid,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable {
+                        BaseApplication.context.startActivity(
+                            Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://cytoid.io/profile/${profileWebapi.user.uid}")
+                            )
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                .addCategory(Intent.CATEGORY_BROWSABLE)
                         )
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            .addCategory(Intent.CATEGORY_BROWSABLE)
-                    )
-                }
-        )
+                    }
+            )
+        } else {
+            AsyncImage(
+                model = getImageRequestBuilderForCytoid(profileWebapi.user.avatar.large)
+                    .build(),
+                contentDescription = profileWebapi.user.uid,
+                onSuccess = { successState ->
+                    try {
+                        profileCacheAvatarFile.run {
+                            this.createNewFile()
+                            FileOutputStream(this)
+                        }.use { output ->
+                            successState.result.drawable.toBitmap()
+                                .compress(
+                                    Bitmap.CompressFormat.PNG,
+                                    100,
+                                    output
+                                )
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        e.stackTraceToString().showToast()
+                        Sentry.captureException(e)
+                    }
+                },
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable {
+                        BaseApplication.context.startActivity(
+                            Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://cytoid.io/profile/${profileWebapi.user.uid}")
+                            )
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                .addCategory(Intent.CATEGORY_BROWSABLE)
+                        )
+                    }
+            )
+        }
         Spacer(modifier = Modifier.width(6.dp))
         Column {
             Text(
@@ -1066,17 +1118,62 @@ private fun CommentsColumn(comments: List<Comment>) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                comments.forEach {
+                comments.forEach { comment ->
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        AsyncImage(
-                            model = getImageRequestBuilderForCytoid(it.owner.avatar.medium).build(),
-                            contentDescription = it.owner.uid,
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(CircleShape)
-                        )
+                        val commentCacheAvatarFile =
+                            File(
+                                BaseApplication.context.externalCacheDir,
+                                "/avatar/${comment.owner.uid}"
+                            )
+
+                        if (commentCacheAvatarFile.exists() && commentCacheAvatarFile.isFile) {
+                            Image(
+                                bitmap = BitmapFactory.decodeStream(commentCacheAvatarFile.inputStream())
+                                    .asImageBitmap(),
+                                contentDescription = comment.owner.uid,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        BaseApplication.context.startActivity(
+                                            Intent(
+                                                Intent.ACTION_VIEW,
+                                                Uri.parse("https://cytoid.io/profile/${comment.owner.uid}")
+                                            )
+                                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                .addCategory(Intent.CATEGORY_BROWSABLE)
+                                        )
+                                    }
+                            )
+                        } else {
+                            AsyncImage(
+                                model = getImageRequestBuilderForCytoid(comment.owner.avatar.medium).build(),
+                                onSuccess = { successState ->
+                                    try {
+                                        commentCacheAvatarFile.run {
+                                            this.createNewFile()
+                                            FileOutputStream(this)
+                                        }.use { output ->
+                                            successState.result.drawable.toBitmap()
+                                                .compress(
+                                                    Bitmap.CompressFormat.PNG,
+                                                    100,
+                                                    output
+                                                )
+                                        }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        e.stackTraceToString().showToast()
+                                        Sentry.captureException(e)
+                                    }
+                                },
+                                contentDescription = comment.owner.uid,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(CircleShape)
+                            )
+                        }
                         Card(
                             Modifier.weight(9f)
                         ) {
@@ -1085,7 +1182,7 @@ private fun CommentsColumn(comments: List<Comment>) {
                             ) {
                                 Row {
                                     Text(
-                                        text = it.owner.uid,
+                                        text = comment.owner.uid,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -1093,14 +1190,14 @@ private fun CommentsColumn(comments: List<Comment>) {
                                     Text(
                                         text = "${
                                             (System.currentTimeMillis() - DateParser.parseISO8601Date(
-                                                it.date
+                                                comment.date
                                             ).time)
                                                 .milliseconds.inWholeDays
                                         }天前"
                                     )
                                 }
                                 Text(
-                                    text = it.content,
+                                    text = comment.content,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             }

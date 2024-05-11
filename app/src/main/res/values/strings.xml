@@ -36,7 +36,7 @@
     <string name="enable_sentry">启用Sentry</string>
     <string name="changes_need_restart_to_enable">需要重启应用程序使更改生效</string>
     <string name="delete_cache_image">删除缓存图像</string>
-    <string name="delete_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等。删除后仍可重新下载</string>
+    <string name="delete_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等图像缓存</string>
     <string name="cytoid_resource_declare">本应用中的部分图片资源来自于Cytoid项目，数据来源于cytoid.io。在GNU General Public License v3.0许可证下使用</string>
     <string name="fail">操作失败</string>
     <string name="all_contents">全部内容</string>
