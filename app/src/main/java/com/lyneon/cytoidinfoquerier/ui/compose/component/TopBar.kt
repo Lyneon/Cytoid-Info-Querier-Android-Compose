@@ -10,11 +10,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
@@ -26,7 +25,7 @@ import kotlinx.coroutines.launch
 fun TopBar(
     title: String = BaseApplication.context.getString(R.string.app_name),
     actionsAlwaysShow: @Composable (() -> Unit)? = null,
-    actionsDropDownMenuContent: @Composable (() -> Unit)? = null
+    actionsDropDownMenuContent: @Composable ((menuIsExpanded: MutableState<Boolean>) -> Unit)? = null
 ) {
     val scope = rememberCoroutineScope()
     CenterAlignedTopAppBar(
@@ -44,19 +43,21 @@ fun TopBar(
             }
         },
         actions = {
-            var menuIsExpanded by remember { mutableStateOf(false) }
+            val menuIsExpanded = remember { mutableStateOf(false) }
             actionsAlwaysShow?.let { it() }
             actionsDropDownMenuContent?.let {
-                IconButton(onClick = { menuIsExpanded = !menuIsExpanded }) {
+                IconButton(onClick = { menuIsExpanded.value = !menuIsExpanded.value }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "选项菜单"
                     )
                 }
                 DropdownMenu(
-                    expanded = menuIsExpanded,
-                    onDismissRequest = { menuIsExpanded = false }
-                ) { it() }
+                    expanded = menuIsExpanded.value,
+                    onDismissRequest = { menuIsExpanded.value = false }
+                ) {
+                    it(menuIsExpanded)
+                }
             }
         }
     )

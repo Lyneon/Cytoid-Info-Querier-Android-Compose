@@ -11,7 +11,7 @@ data class Comment(
     val content: String,
     val date: String,
     val owner: Owner
-) {
+) : WebapiJSONDataModel() {
     @Serializable
     data class Owner(
         val uid: String,

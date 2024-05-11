@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ProfileGraphQL(
     val data: ProfileData
-) {
+) : GraphQLJSONDataModel() {
     @Serializable
     data class ProfileData(
         val profile: Profile

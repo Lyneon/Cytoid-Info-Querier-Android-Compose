@@ -44,7 +44,7 @@ class ImageGenerateService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (responseIsInitialized() && response.data.profile != null) {
+        if (responseIsInitialized() && response.analytics.data.profile != null) {
             if (intent == null) throw Exception("intent cannot be null")
             val cytoidID =
                 intent.getStringExtra("cytoidID") ?: throw Exception("cytoidID extra needed")
@@ -80,11 +80,11 @@ class ImageGenerateService : Service() {
             thread {
                 CytoidRecordsImageHandler2.getRecordsImage(
                     ProfileWebapi.get(cytoidID),
-                    if (queryType == QueryType.bestRecords) response.data.profile!!.bestRecords.subList(
+                    if (queryType == QueryType.bestRecords) response.analytics.data.profile!!.bestRecords.subList(
                         0,
                         queryCount
                     )
-                    else response.data.profile!!.recentRecords.subList(0, queryCount),
+                    else response.analytics.data.profile!!.recentRecords.subList(0, queryCount),
                     queryType,
                     columnsCount,
                     keep2DecimalPlaces

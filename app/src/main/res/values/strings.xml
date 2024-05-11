@@ -63,4 +63,5 @@
     <string name="rotate">旋转</string>
     <string name="decrease">减少</string>
     <string name="increase">增加</string>
+    <string name="history">历史记录</string>
 </resources>

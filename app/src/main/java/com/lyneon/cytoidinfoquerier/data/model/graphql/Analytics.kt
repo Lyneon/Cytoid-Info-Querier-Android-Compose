@@ -12,7 +12,7 @@ import java.util.Locale
 @Serializable
 data class Analytics(
     val data: Data
-) {
+) : GraphQLJSONDataModel() {
     @Serializable
     data class Data(
         val profile: Profile?

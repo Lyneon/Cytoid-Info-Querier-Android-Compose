@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
@@ -40,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,10 +57,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
+import com.lyneon.cytoidinfoquerier.data.model.ui.ProfileScreenIntegratedDataModel
 import com.lyneon.cytoidinfoquerier.data.model.webapi.Comment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.json
@@ -105,6 +111,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
+import java.io.File
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -112,17 +119,12 @@ val chartEntryModelProducer = ChartEntryModelProducer()
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun ProfileCompose() {
+fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStackEntry?) {
+    val initArguments = navBackStackEntry?.arguments
     val context = LocalContext.current as MainActivity
     val mmkv = MMKV.defaultMMKV()
-    var profileGraphQL by remember {
-        mutableStateOf(ProfileGraphQL.getDefaultInstance())
-    }
-    var profileWebapi by remember {
-        mutableStateOf(ProfileWebapi.getDefaultInstance())
-    }
-    var comments by remember {
-        mutableStateOf(ArrayList<Comment>())
+    var integratedData by remember<MutableState<ProfileScreenIntegratedDataModel?>> {
+        mutableStateOf(null)
     }
     var cytoidID by remember { mutableStateOf("") }
     var isQueryingFinished by remember { mutableStateOf(false) }
@@ -134,6 +136,16 @@ fun ProfileCompose() {
     var keep2DecimalPlace by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
 
+    initArguments?.let {
+        val initCytoidID = it.getString("initCytoidID")
+        val initCacheTime = it.getString("initCacheTime")?.toLong()
+        val cacheFile =
+            File(context.externalCacheDir, "/profile/${initCytoidID}/${initCacheTime}")
+
+        integratedData = json.decodeFromString(cacheFile.readText())
+        isQueryingFinished = true
+    }
+
     Column {
         TopBar(
             title = stringResource(id = R.string.profile),
@@ -144,6 +156,21 @@ fun ProfileCompose() {
                         contentDescription = stringResource(id = R.string.unfold)
                     )
                 }
+            },
+            actionsDropDownMenuContent = { menuIsExpanded: MutableState<Boolean> ->
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.history)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = stringResource(id = R.string.history)
+                        )
+                    },
+                    onClick = {
+                        navController.navigate(MainActivityScreens.History.name + "/profile")
+                        menuIsExpanded.value = false
+                    }
+                )
             }
         )
         Column(
@@ -230,38 +257,40 @@ fun ProfileCompose() {
                                             .showToast()
                                         textFieldIsError = true
                                     } else {
+//                                        ID格式正确，开始处理
                                         textFieldIsError = false
                                         isQueryingFinished = false
-                                        if (System.currentTimeMillis() - mmkv.decodeLong(
-                                                "lastQueryProfileTime_${cytoidID}",
-                                                -1
-                                            ) <= (6 * 60 * 60 * 1000) && !ignoreCache
+                                        val lastQueryTime =
+                                            mmkv.decodeLong("lastQueryProfileTime_${cytoidID}", -1)
+                                        val cacheProfileDirectory =
+                                            context.externalCacheDir?.run {
+                                                File(this.path + "/profile/${cytoidID}")
+                                            }
+                                        val cacheProfileFile =
+                                            cacheProfileDirectory?.run {
+                                                if (!this.exists()) this.mkdirs()
+                                                File(this, lastQueryTime.toString())
+                                            }
+//                                        检查是否有已缓存的数据
+                                        if (lastQueryTime != -1L &&
+                                            cacheProfileFile != null &&
+                                            cacheProfileFile.exists() &&
+                                            System.currentTimeMillis() - lastQueryTime <= (6 * 60 * 60 * 1000) &&
+                                            !ignoreCache
                                         ) {
-                                            val profileGraphQLString =
-                                                mmkv.decodeString("profileGraphQLString_${cytoidID}")
-                                            val profileWebapiString =
-                                                mmkv.decodeString("profileWebapiString_${cytoidID}")
-                                            val commentsString =
-                                                mmkv.decodeString("commentsString_${cytoidID}")
-                                            if (profileGraphQLString != null) profileGraphQL =
-                                                json.decodeFromString(profileGraphQLString)
-                                            else {
-                                                error = "Local cache profile data is null"
-                                                return@TextButton
-                                            }
-                                            if (profileWebapiString != null) profileWebapi =
-                                                json.decodeFromString(profileWebapiString)
-                                            else {
-                                                error = "Local cache profile data is null"
-                                                return@TextButton
-                                            }
-                                            comments =
-                                                if (commentsString != null)
-                                                    json.decodeFromString(commentsString)
-                                                else arrayListOf()
+//                                            存在已缓存的数据，从硬盘中读取缓存数据
+                                            val integratedDataModelString =
+                                                cacheProfileFile.inputStream().bufferedReader()
+                                                    .use {
+                                                        it.readText()
+                                                    }
+                                            val integratedDataModel: ProfileScreenIntegratedDataModel =
+                                                json.decodeFromString(integratedDataModelString)
+                                            integratedData = integratedDataModel
                                             isQueryingFinished = true
                                             "6小时内有查询记录，使用已缓存的数据".showToast()
                                         } else {
+//                                            没有缓存数据，从服务器获取数据并缓存至本地
                                             "开始查询$cytoidID".showToast()
                                             thread {
                                                 val job = Job()
@@ -272,30 +301,37 @@ fun ProfileCompose() {
                                                                 async { ProfileGraphQL.get(cytoidID) },
                                                                 async { ProfileWebapi.get(cytoidID) }
                                                             )
-                                                        profileGraphQL =
+                                                        val profileGraphQL =
                                                             profiles[0] as ProfileGraphQL
-                                                        profileWebapi = profiles[1] as ProfileWebapi
-                                                        comments =
+                                                        val profileWebapi =
+                                                            profiles[1] as ProfileWebapi
+                                                        val comments =
                                                             async { Comment.get(profileGraphQL.data.profile.user.id) }.await()
+                                                        integratedData =
+                                                            ProfileScreenIntegratedDataModel(
+                                                                profileGraphQL,
+                                                                profileWebapi,
+                                                                comments
+                                                            )
                                                         isQueryingFinished = true
-                                                        mmkv.run {
-                                                            encode(
-                                                                "lastQueryProfileTime_${cytoidID}",
-                                                                System.currentTimeMillis()
-                                                            )
-                                                            encode(
-                                                                "profileGraphQLString_${cytoidID}",
-                                                                json.encodeToString(profileGraphQL)
-                                                            )
-                                                            encode(
-                                                                "profileWebapiString_${cytoidID}",
-                                                                json.encodeToString(profileWebapi)
-                                                            )
-                                                            encode(
-                                                                "commentsString_${cytoidID}",
-                                                                json.encodeToString(comments)
-                                                            )
-                                                        }
+//                                                        缓存数据至本地
+                                                        val currentTime = System.currentTimeMillis()
+                                                        mmkv.encode(
+                                                            "lastQueryProfileTime_${cytoidID}",
+                                                            System.currentTimeMillis()
+                                                        )
+                                                        val cacheProfileFileToBeSaved = File(
+                                                            cacheProfileDirectory,
+                                                            currentTime.toString()
+                                                        )
+                                                        cacheProfileFileToBeSaved.outputStream()
+                                                            .bufferedWriter().use {
+                                                                it.write(
+                                                                    json.encodeToString(
+                                                                        integratedData
+                                                                    )
+                                                                )
+                                                            }
                                                     } catch (e: Exception) {
                                                         error = e.stackTraceToString()
                                                         Sentry.captureException(e)
@@ -328,33 +364,35 @@ fun ProfileCompose() {
             if (error.isNotEmpty()) {
                 AlertCard(message = error, modifier = Modifier.padding(vertical = 6.dp))
             } else {
-                AnimatedVisibility(visible = isQueryingFinished) {
+                AnimatedVisibility(visible = isQueryingFinished && integratedData != null) {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        item {
-                            HeaderBar(
-                                profileWebapi = profileWebapi,
-                                keep2DecimalPlace = keep2DecimalPlace
-                            )
+                        integratedData?.let {
+                            item {
+                                HeaderBar(
+                                    profileWebapi = it.profileWebapi,
+                                    keep2DecimalPlace = keep2DecimalPlace
+                                )
+                            }
+                            item { BiographyCard(profileGraphQL = it.profileGraphQL) }
+                            item { BadgesCard(profileGraphQL = it.profileGraphQL) }
+                            item {
+                                RecentRecordsCard(
+                                    profileGraphQL = it.profileGraphQL,
+                                    keep2DecimalPlace = keep2DecimalPlace
+                                )
+                            }
+                            item {
+                                DetailsCard(
+                                    profileWebapi = it.profileWebapi,
+                                    keep2DecimalPlace = keep2DecimalPlace
+                                )
+                            }
+                            item { CollectionsCard(profileGraphQL = it.profileGraphQL) }
+                            item { LevelsCard(profileGraphQL = it.profileGraphQL) }
+                            item { CommentsColumn(comments = it.comments) }
                         }
-                        item { BiographyCard(profileGraphQL = profileGraphQL) }
-                        item { BadgesCard(profileGraphQL = profileGraphQL) }
-                        item {
-                            RecentRecordsCard(
-                                profileGraphQL = profileGraphQL,
-                                keep2DecimalPlace = keep2DecimalPlace
-                            )
-                        }
-                        item {
-                            DetailsCard(
-                                profileWebapi = profileWebapi,
-                                keep2DecimalPlace = keep2DecimalPlace
-                            )
-                        }
-                        item { CollectionsCard(profileGraphQL = profileGraphQL) }
-                        item { LevelsCard(profileGraphQL = profileGraphQL) }
-                        item { CommentsColumn(comments = comments) }
                     }
                 }
             }
@@ -991,7 +1029,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL) {
 }
 
 @Composable
-private fun CommentsColumn(comments: ArrayList<Comment>) {
+private fun CommentsColumn(comments: List<Comment>) {
     Column(
         modifier = Modifier.padding(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)

@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -43,13 +43,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.lyneon.cytoidinfoquerier.BaseActivity
-import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
+import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.globalDrawerState
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.ui.compose.AnalyticsCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.GridColumnsSettingCompose
+import com.lyneon.cytoidinfoquerier.ui.compose.HistoryCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.HomeCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.ProfileCompose
 import com.lyneon.cytoidinfoquerier.ui.compose.SettingsCompose
@@ -62,12 +63,8 @@ import io.sentry.android.core.SentryAndroid
 import io.sentry.android.core.SentryAndroidOptions
 import kotlinx.coroutines.launch
 
+
 class MainActivity : BaseActivity() {
-
-    companion object {
-        lateinit var drawerState: DrawerState
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -89,15 +86,17 @@ class MainActivity : BaseActivity() {
         }
 
         setContent {
+            val context = LocalContext.current as MainActivity
+
             CytoidInfoQuerierComposeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-                    var currentRoute by remember { mutableStateOf(MainActivityScreens.Home.name) }
-                    val scope = rememberCoroutineScope()
+                    var currentNavRoute by remember { mutableStateOf(MainActivityScreens.Home.name) }
+                    globalDrawerState =
+                        rememberDrawerState(initialValue = DrawerValue.Closed)
                     val selfPackageInfo =
                         context.packageManager.getPackageInfo(context.packageName, 0)
                     val cytoidPackageInfo = try {
@@ -107,7 +106,7 @@ class MainActivity : BaseActivity() {
                     }
 
                     ModalNavigationDrawer(
-                        drawerState = drawerState,
+                        drawerState = globalDrawerState,
                         drawerContent = {
                             ModalDrawerSheet {
                                 Column(
@@ -115,6 +114,7 @@ class MainActivity : BaseActivity() {
                                         .weight(1f)
                                         .verticalScroll(rememberScrollState())
                                 ) {
+                                    val scope = rememberCoroutineScope()
                                     Column(
                                         modifier = Modifier.padding(16.dp)
                                     ) {
@@ -152,19 +152,16 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.home)
                                                 )
                                             },
-                                            selected = currentRoute == MainActivityScreens.Home.name,
+                                            selected = currentNavRoute == MainActivityScreens.Home.name,
                                             onClick = {
                                                 navController.navigate(MainActivityScreens.Home.name) {
-                                                    popUpTo(MainActivityScreens.Home.name) {
-                                                        inclusive = false
-                                                    }
                                                     launchSingleTop = true
+                                                    this.popUpTo(MainActivityScreens.Home.name)
                                                 }
+                                                currentNavRoute = MainActivityScreens.Home.name
                                                 scope.launch {
-                                                    drawerState.close()
+                                                    globalDrawerState.close()
                                                 }
-                                                currentRoute =
-                                                    navController.currentDestination?.route ?: ""
                                             }
                                         )
                                         NavigationDrawerItem(
@@ -177,19 +174,16 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.analytics)
                                                 )
                                             },
-                                            selected = currentRoute == MainActivityScreens.Analytics.name,
+                                            selected = currentNavRoute == MainActivityScreens.Analytics.name,
                                             onClick = {
                                                 navController.navigate(MainActivityScreens.Analytics.name) {
-                                                    popUpTo(MainActivityScreens.Analytics.name) {
-                                                        inclusive = false
-                                                    }
                                                     launchSingleTop = true
+                                                    this.popUpTo(MainActivityScreens.Analytics.name)
                                                 }
+                                                currentNavRoute = MainActivityScreens.Analytics.name
                                                 scope.launch {
-                                                    drawerState.close()
+                                                    globalDrawerState.close()
                                                 }
-                                                currentRoute =
-                                                    navController.currentDestination?.route ?: ""
                                             }
                                         )
                                         NavigationDrawerItem(
@@ -202,19 +196,16 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.profile)
                                                 )
                                             },
-                                            selected = currentRoute == MainActivityScreens.Profile.name,
+                                            selected = currentNavRoute == MainActivityScreens.Profile.name,
                                             onClick = {
                                                 navController.navigate(MainActivityScreens.Profile.name) {
-                                                    popUpTo(MainActivityScreens.Profile.name) {
-                                                        inclusive = false
-                                                    }
                                                     launchSingleTop = true
+                                                    this.popUpTo(MainActivityScreens.Profile.name)
                                                 }
+                                                currentNavRoute = MainActivityScreens.Profile.name
                                                 scope.launch {
-                                                    drawerState.close()
+                                                    globalDrawerState.close()
                                                 }
-                                                currentRoute =
-                                                    navController.currentDestination?.route ?: ""
                                             }
                                         )
                                     }
@@ -228,18 +219,16 @@ class MainActivity : BaseActivity() {
                                         .padding(6.dp)
                                         .fillMaxWidth(),
                                 ) {
+                                    val scope = rememberCoroutineScope()
                                     Button(onClick = {
                                         navController.navigate(MainActivityScreens.Settings.name) {
-                                            popUpTo(MainActivityScreens.Settings.name) {
-                                                inclusive = false
-                                            }
                                             launchSingleTop = true
+                                            this.popUpTo(MainActivityScreens.Settings.name)
                                         }
+                                        currentNavRoute = MainActivityScreens.Settings.name
                                         scope.launch {
-                                            drawerState.close()
+                                            globalDrawerState.close()
                                         }
-                                        currentRoute =
-                                            navController.currentDestination?.route ?: ""
                                     }) {
                                         Column {
                                             Icon(
@@ -270,35 +259,32 @@ class MainActivity : BaseActivity() {
                                 startDestination = MainActivityScreens.Home.name
                             ) {
                                 composable(MainActivityScreens.Home.name) {
-                                    HomeCompose {
-                                        scope.launch {
-                                            drawerState.open()
-                                        }
-                                    }
+                                    HomeCompose()
                                 }
                                 composable(MainActivityScreens.Analytics.name) {
-                                    AnalyticsCompose()
+                                    AnalyticsCompose(navController, null)
+                                }
+                                composable(MainActivityScreens.Analytics.name + "/{initCytoidID}/{initCacheTime}") {
+                                    AnalyticsCompose(navController, it)
                                 }
                                 composable(MainActivityScreens.Profile.name) {
-                                    ProfileCompose()
+                                    ProfileCompose(navController, null)
+                                }
+                                composable(MainActivityScreens.Profile.name + "/{initCytoidID}/{initCacheTime}") {
+                                    ProfileCompose(navController, it)
+                                }
+                                composable(MainActivityScreens.History.name + "/{type}") {
+                                    HistoryCompose(navController, it)
                                 }
                                 navigation(
                                     startDestination = MainActivityScreens.Settings.name,
                                     route = MainActivityScreens.SettingsNavigation.name
                                 ) {
                                     composable(MainActivityScreens.Settings.name) {
-                                        SettingsCompose(onNavigateToGridColumnsSetting = {
-                                            navController.navigate(MainActivityScreens.GridColumnsSetting.name)
-                                            currentRoute =
-                                                navController.currentDestination?.route ?: ""
-                                        })
+                                        SettingsCompose(navController)
                                     }
                                     composable(MainActivityScreens.GridColumnsSetting.name) {
-                                        GridColumnsSettingCompose(onNavigateBack = {
-                                            navController.popBackStack()
-                                            currentRoute =
-                                                navController.currentDestination?.route ?: ""
-                                        })
+                                        GridColumnsSettingCompose(navController)
                                     }
                                 }
                             }
