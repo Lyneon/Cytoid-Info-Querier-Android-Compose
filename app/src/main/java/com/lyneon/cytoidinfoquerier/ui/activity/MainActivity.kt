@@ -29,20 +29,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.lyneon.cytoidinfoquerier.BaseActivity
+import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.mainActivityDrawerState
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
@@ -86,15 +84,13 @@ class MainActivity : BaseActivity() {
         }
 
         setContent {
-            val context = LocalContext.current as MainActivity
-
             CytoidInfoQuerierComposeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    var currentNavRoute by remember { mutableStateOf(MainActivityScreens.Home.name) }
+                    val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
                     mainActivityDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                     val selfPackageInfo =
                         context.packageManager.getPackageInfo(context.packageName, 0)
@@ -151,13 +147,12 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.home)
                                                 )
                                             },
-                                            selected = currentNavRoute == MainActivityScreens.Home.name,
+                                            selected = currentNavBackStackEntry?.destination?.route == MainActivityScreens.Home.name,
                                             onClick = {
                                                 navController.navigate(MainActivityScreens.Home.name) {
                                                     launchSingleTop = true
                                                     this.popUpTo(MainActivityScreens.Home.name)
                                                 }
-                                                currentNavRoute = MainActivityScreens.Home.name
                                                 scope.launch {
                                                     mainActivityDrawerState.close()
                                                 }
@@ -173,13 +168,12 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.analytics)
                                                 )
                                             },
-                                            selected = currentNavRoute == MainActivityScreens.Analytics.name,
+                                            selected = currentNavBackStackEntry?.destination?.route == MainActivityScreens.Analytics.name,
                                             onClick = {
                                                 navController.navigate(MainActivityScreens.Analytics.name) {
                                                     launchSingleTop = true
                                                     this.popUpTo(MainActivityScreens.Analytics.name)
                                                 }
-                                                currentNavRoute = MainActivityScreens.Analytics.name
                                                 scope.launch {
                                                     mainActivityDrawerState.close()
                                                 }
@@ -195,13 +189,12 @@ class MainActivity : BaseActivity() {
                                                     stringResource(R.string.profile)
                                                 )
                                             },
-                                            selected = currentNavRoute == MainActivityScreens.Profile.name,
+                                            selected = currentNavBackStackEntry?.destination?.route == MainActivityScreens.Profile.name,
                                             onClick = {
                                                 navController.navigate(MainActivityScreens.Profile.name) {
                                                     launchSingleTop = true
                                                     this.popUpTo(MainActivityScreens.Profile.name)
                                                 }
-                                                currentNavRoute = MainActivityScreens.Profile.name
                                                 scope.launch {
                                                     mainActivityDrawerState.close()
                                                 }
@@ -224,7 +217,6 @@ class MainActivity : BaseActivity() {
                                             launchSingleTop = true
                                             this.popUpTo(MainActivityScreens.Settings.name)
                                         }
-                                        currentNavRoute = MainActivityScreens.Settings.name
                                         scope.launch {
                                             mainActivityDrawerState.close()
                                         }
