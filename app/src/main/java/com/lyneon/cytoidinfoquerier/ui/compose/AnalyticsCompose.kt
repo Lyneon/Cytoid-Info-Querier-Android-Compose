@@ -60,6 +60,7 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.util.extension.lastQueryAnalyticsTime
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import io.sentry.Sentry
@@ -341,11 +342,7 @@ fun AnalyticsCompose(navController: NavController, navBackStackEntry: NavBackSta
 //                                            ID格式正确，开始查询
                                             textFieldIsError = false
                                             isQueryingFinished = false
-                                            val lastQueryTime =
-                                                mmkv.decodeLong(
-                                                    "lastQueryAnalyticsTime_${cytoidID}",
-                                                    -1
-                                                )
+                                            val lastQueryTime = cytoidID.lastQueryAnalyticsTime
                                             val cacheAnalyticsDirectory =
                                                 context.externalCacheDir?.run {
                                                     File(this.path + "/analytics/${cytoidID}")
@@ -452,10 +449,7 @@ fun AnalyticsCompose(navController: NavController, navBackStackEntry: NavBackSta
 //                                                            缓存数据至本地
                                                             val currentTime =
                                                                 System.currentTimeMillis()
-                                                            mmkv.encode(
-                                                                "lastQueryAnalyticsTime_${cytoidID}",
-                                                                currentTime
-                                                            )
+                                                            cytoidID.lastQueryAnalyticsTime = currentTime
                                                             cacheAnalyticsDirectory?.run {
                                                                 if (!exists()) mkdirs()
                                                                 File(

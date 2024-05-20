@@ -83,6 +83,7 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.TopBar
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.util.extension.lastQueryProfileTime
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
@@ -108,7 +109,6 @@ import com.patrykandpatrick.vico.core.entry.entryOf
 import com.patrykandpatrick.vico.core.extension.appendCompat
 import com.patrykandpatrick.vico.core.extension.transformToSpannable
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
-import com.tencent.mmkv.MMKV
 import io.sentry.Sentry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -128,7 +128,6 @@ val chartEntryModelProducer = ChartEntryModelProducer()
 fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStackEntry?) {
     val initArguments = navBackStackEntry?.arguments
     val context = LocalContext.current as MainActivity
-    val mmkv = MMKV.defaultMMKV()
     var integratedData by remember<MutableState<ProfileScreenIntegratedDataModel?>> {
         mutableStateOf(null)
     }
@@ -275,8 +274,7 @@ fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStack
 //                                        ID格式正确，开始处理
                                         textFieldIsError = false
                                         isQueryingFinished = false
-                                        val lastQueryTime =
-                                            mmkv.decodeLong("lastQueryProfileTime_${cytoidID}", -1)
+                                        val lastQueryTime = cytoidID.lastQueryProfileTime
                                         val cacheProfileDirectory =
                                             context.externalCacheDir?.run {
                                                 File(this.path + "/profile/${cytoidID}")
@@ -331,10 +329,7 @@ fun ProfileCompose(navController: NavController, navBackStackEntry: NavBackStack
                                                         isQueryingFinished = true
 //                                                        缓存数据至本地
                                                         val currentTime = System.currentTimeMillis()
-                                                        mmkv.encode(
-                                                            "lastQueryProfileTime_${cytoidID}",
-                                                            System.currentTimeMillis()
-                                                        )
+                                                        cytoidID.lastQueryProfileTime = currentTime
                                                         val cacheProfileFileToBeSaved = File(
                                                             cacheProfileDirectory,
                                                             currentTime.toString()
