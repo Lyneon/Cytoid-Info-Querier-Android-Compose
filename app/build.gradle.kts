@@ -60,22 +60,24 @@ android {
 dependencies {
     val navVersion = "2.7.7"
     val media3Version = "1.3.1"
-    val composeBomVersion = "2024.04.00"
+    val composeBomVersion = "2024.05.00"
 
     implementation("io.sentry:sentry-android:7.8.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.tencent:mmkv:1.3.3")
     implementation("androidx.navigation:navigation-compose:$navVersion")
-    implementation("androidx.compose.material:material-icons-extended:1.6.5")
+    implementation("androidx.compose.material:material-icons-extended:1.6.7")
     implementation("dev.shreyaspatil:capturable:1.0.3")
     implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
     implementation("androidx.media3:media3-exoplayer:$media3Version")
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.1")
+    implementation("androidx.activity:activity-compose:1.9.0")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")

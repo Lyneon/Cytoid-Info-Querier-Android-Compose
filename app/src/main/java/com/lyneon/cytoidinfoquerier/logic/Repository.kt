@@ -58,47 +58,48 @@ object Repository {
 
     suspend fun getAnalyticsScreenDataModel(
         cytoidID: String,
-        useCache: Boolean,
+        ignoreCache: Boolean,
         bestRecordsCount: Int,
         recentRecordsCount: Int
-    ): AnalyticsScreenDataModel = if (useCache) {
-        // 从本地缓存中获取数据
-        val analyticsCacheFile = File(
-            BaseApplication.context.externalCacheDir,
-            "analytics/${cytoidID}/${cytoidID.lastQueryAnalyticsTime}"
-        )
-        json.decodeFromString(analyticsCacheFile.readText())
-    } else {
-        // 从网络服务器获取数据并缓存到本地
-        withContext(Dispatchers.IO) {
-            val analytics = getAnalytics(
-                cytoidID,
-                bestRecordsCount,
-                recentRecordsCount,
-                RecordQuerySort.Date,
-                RecordQueryOrder.DESC
+    ): AnalyticsScreenDataModel =
+        if (shouldLoadFromCache(cytoidID.lastQueryAnalyticsTime, ignoreCache)) {
+            // 从本地缓存中获取数据
+            val analyticsCacheFile = File(
+                BaseApplication.context.externalCacheDir,
+                "analytics/${cytoidID}/${cytoidID.lastQueryAnalyticsTime}"
             )
-            AnalyticsScreenDataModel(analytics).apply {
-                val analyticsCacheFile = File(
-                    BaseApplication.context.externalCacheDir,
-                    "analytics/${cytoidID}/${System.currentTimeMillis()}"
+            json.decodeFromString(analyticsCacheFile.readText())
+        } else {
+            // 从网络服务器获取数据并缓存到本地
+            withContext(Dispatchers.IO) {
+                val analytics = getAnalytics(
+                    cytoidID,
+                    bestRecordsCount,
+                    recentRecordsCount,
+                    RecordQuerySort.Date,
+                    RecordQueryOrder.DESC
                 )
-                analyticsCacheFile.parentFile?.mkdirs()
-                analyticsCacheFile.writeText(json.encodeToString(this))
+                AnalyticsScreenDataModel(analytics).apply {
+                    val analyticsCacheFile = File(
+                        BaseApplication.context.externalCacheDir,
+                        "analytics/${cytoidID}/${System.currentTimeMillis()}"
+                    )
+                    analyticsCacheFile.parentFile?.mkdirs()
+                    analyticsCacheFile.writeText(json.encodeToString(this))
+                }
             }
         }
-    }
 
 
     suspend fun getProfileGraphQL(cytoidID: String): ProfileGraphQL = withContext(Dispatchers.IO) {
         async {
-            json.decodeFromString<ProfileGraphQL>(
-                NetRequest.getGQLResponseJSONString(
-                    GraphQL.getQueryString(
-                        ProfileGraphQL.getQueryString(cytoidID)
-                    )
+            val response = NetRequest.getGQLResponseJSONString(
+                GraphQL.getQueryString(
+                    ProfileGraphQL.getQueryString(cytoidID)
                 )
             )
+            if (response == null) throw Exception("Response is null")
+            json.decodeFromString<ProfileGraphQL>(response)
         }.await()
     }
 
@@ -111,8 +112,8 @@ object Repository {
         recentRecordsOrder: RecordQueryOrder
     ): Analytics = withContext(Dispatchers.IO) {
         async {
-            Analytics.decodeFromJSONString(
-                NetRequest.getGQLResponseJSONString(
+            val response = NetRequest.getGQLResponseJSONString(
+                GraphQL.getQueryString(
                     Analytics.getQueryString(
                         cytoidID,
                         recentRecordsCount,
@@ -122,6 +123,8 @@ object Repository {
                     )
                 )
             )
+            if (response == null) throw Exception("Response is null")
+            Analytics.decodeFromJSONString(response)
         }.await()
     }
 

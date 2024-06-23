@@ -194,14 +194,15 @@ data class ProfileGraphQL(
                 }
             }"""
 
-        fun get(cytoidID: String): ProfileGraphQL =
-            json.decodeFromString(
-                NetRequest.getGQLResponseJSONString(
-                    GraphQL.getQueryString(
-                        getQueryString(cytoidID)
-                    )
+        fun get(cytoidID: String): ProfileGraphQL {
+            val response = NetRequest.getGQLResponseJSONString(
+                GraphQL.getQueryString(
+                    getQueryString(cytoidID)
                 )
             )
+            if (response == null) throw Exception("Response is null")
+            return json.decodeFromString(response)
+        }
 
         fun getDefaultInstance(): ProfileGraphQL = ProfileGraphQL(
             ProfileData(

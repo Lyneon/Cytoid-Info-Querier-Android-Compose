@@ -7,6 +7,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import com.lyneon.cytoidinfoquerier.BaseApplication
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 operator fun String.times(n: Int) = this.repeat(n)
 
@@ -25,7 +27,13 @@ fun String.showDialog(
     additionalParameters?.let { this.it() }
 }.create().show()
 
-fun String.isValidCytoidID() = this.matches("^[a-z0-9_-]*$".toRegex())
+@OptIn(ExperimentalContracts::class)
+fun String?.isValidCytoidID(): Boolean {
+    contract {
+        returns(true) implies (this@isValidCytoidID != null)
+    }
+    return if (this.isNullOrEmpty()) false else this.matches("^[a-z0-9_-]*$".toRegex())
+}
 
 fun String.saveIntoClipboard(label: String = "") {
     val clipboardManager =

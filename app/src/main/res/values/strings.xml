@@ -64,4 +64,5 @@
     <string name="decrease">减少</string>
     <string name="increase">增加</string>
     <string name="history">历史记录</string>
+    <string name="query_type_declaration">实际查询时会获取两种类型的数据，你可以在这里选择要查看的类型</string>
 </resources>
