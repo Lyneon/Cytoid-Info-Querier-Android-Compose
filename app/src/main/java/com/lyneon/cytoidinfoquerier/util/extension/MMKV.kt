@@ -13,3 +13,9 @@ var String.lastQueryProfileTime
     set(value) {
         MMKV.defaultMMKV().encode("lastQueryProfileTime_$this", value)
     }
+
+inline fun <reified T> String.getLastCacheTime(): Long =
+    MMKV.defaultMMKV().decodeLong("last${T::class.simpleName}CacheTime_$this", -1)
+
+inline fun <reified T> String.setLastCacheTime(timeStamp: Long) =
+    MMKV.defaultMMKV().encode("last${T::class.simpleName}CacheTime_$this", timeStamp)

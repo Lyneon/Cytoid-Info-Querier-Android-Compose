@@ -4,9 +4,9 @@ import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Profile(
+data class ProfileGraphQL(
     val data: ProfileData
-) {
+)  {
     @Serializable
     data class ProfileData(
         val profile: Profile?
@@ -98,5 +98,98 @@ data class Profile(
                 val description: String?
             )
         }
+    }
+
+    companion object {
+        fun getRequestBodyString(cytoidID: String) = """{
+                profile(uid: "$cytoidID") {
+                    user {
+                        id
+                        uid
+                        registrationDate
+                        lastSeen
+                        avatar {
+                            original
+                            large
+                        }
+                        levelsCount
+                        levels {
+                            uid
+                            title
+                            metadata {
+                                artist {
+                                    name
+                                }
+                            }
+                            bundle {
+                                music
+                                musicPreview
+                                backgroundImage {
+                                    original
+                                    thumbnail
+                                }
+                            }
+                            charts {
+                                name
+                                type
+                                difficulty
+                                notesCount
+                            }
+                        }
+                        collectionsCount
+                        collections {
+                            title
+                            slogan
+                            levelCount
+                            cover {
+                                original
+                                thumbnail
+                            }
+                        }
+                    }
+                    bio
+                    badges {
+                        title
+                        description
+                    }
+                    recentRecords(limit: 10) {
+                        ...UserRecord
+                    }
+                }
+            }
+            
+            fragment UserRecord on UserRecord {
+                score
+                accuracy
+                mods
+                details {
+                    perfect
+                    great
+                    good
+                    bad
+                    miss
+                    maxCombo
+                }
+                rating
+                date
+                chart {
+                    difficulty
+                    type
+                    name
+                    notesCount
+                    level {
+                        uid
+                        title
+                        bundle {
+                            backgroundImage {
+                                thumbnail
+                                original
+                            }
+                            music
+                            musicPreview
+                        }
+                    }
+                }
+            }"""
     }
 }

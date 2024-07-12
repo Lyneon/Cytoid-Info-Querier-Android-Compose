@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql
+package com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.type
 
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
@@ -16,7 +16,7 @@ data class UserRecord(
     val rating: Float,
     val date: String,
     val chart: RecordChart?
-) {
+)  {
     @Serializable
     data class RecordDetails(
         val perfect: Int,
