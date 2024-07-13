@@ -42,7 +42,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.data.model.ui.AnalyticsScreenDataModel
 import com.lyneon.cytoidinfoquerier.data.model.ui.ProfileScreenIntegratedDataModel
 import com.lyneon.cytoidinfoquerier.json
-import com.lyneon.cytoidinfoquerier.logic.DateParser.timeStampToString
+import com.lyneon.cytoidinfoquerier.util.DateParser.timeStampToString
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)

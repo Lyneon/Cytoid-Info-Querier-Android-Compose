@@ -20,8 +20,9 @@ import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 import com.lyneon.cytoidinfoquerier.data.constant.toIntArray
 import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
-import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
+import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.ColumnBitmap
+import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.RowBitmap
 import com.lyneon.cytoidinfoquerier.util.extension.enableAntiAlias
 import com.lyneon.cytoidinfoquerier.util.extension.isMaxCytoidGrade

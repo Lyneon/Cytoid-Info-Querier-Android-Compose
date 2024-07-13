@@ -76,8 +76,8 @@ import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
-import com.lyneon.cytoidinfoquerier.logic.DateParser
-import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
+import com.lyneon.cytoidinfoquerier.util.DateParser
+import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore

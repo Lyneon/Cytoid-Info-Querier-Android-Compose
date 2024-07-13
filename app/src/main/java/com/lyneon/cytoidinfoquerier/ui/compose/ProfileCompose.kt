@@ -73,8 +73,8 @@ import com.lyneon.cytoidinfoquerier.data.model.ui.ProfileScreenIntegratedDataMod
 import com.lyneon.cytoidinfoquerier.data.model.webapi.Comment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.json
-import com.lyneon.cytoidinfoquerier.logic.DateParser
-import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
+import com.lyneon.cytoidinfoquerier.util.DateParser
+import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.AlertCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCard

@@ -2,8 +2,8 @@ package com.lyneon.cytoidinfoquerier.data.model.graphql
 
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
-import com.lyneon.cytoidinfoquerier.logic.DateParser
-import com.lyneon.cytoidinfoquerier.logic.DateParser.formatToTimeString
+import com.lyneon.cytoidinfoquerier.util.DateParser
+import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
