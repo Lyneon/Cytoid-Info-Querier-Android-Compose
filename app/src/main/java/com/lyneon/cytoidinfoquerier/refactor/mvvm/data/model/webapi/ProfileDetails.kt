@@ -17,6 +17,7 @@ data class ProfileDetails(
 ) {
     @Serializable
     data class User(
+        val id: String,
         val uid: String,
         val avatar: Avatar
     ) {
