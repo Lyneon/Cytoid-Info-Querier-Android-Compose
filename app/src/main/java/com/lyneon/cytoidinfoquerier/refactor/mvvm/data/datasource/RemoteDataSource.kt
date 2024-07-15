@@ -1,6 +1,7 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource
 
 import android.util.Log
+import com.lyneon.cytoidinfoquerier.data.GraphQL
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
@@ -39,18 +40,25 @@ object RemoteDataSource {
         val requestBody =
             when (T::class) {
                 BestRecords::class -> {
-                    BestRecords.getRequestBodyString(cytoidID = cytoidID, bestRecordsLimit = count)
+                    GraphQL.getQueryString(
+                        BestRecords.getRequestBodyString(
+                            cytoidID = cytoidID,
+                            bestRecordsLimit = count
+                        )
+                    )
                 }
 
                 RecentRecords::class -> {
-                    RecentRecords.getRequestBodyString(
-                        cytoidID = cytoidID,
-                        recentRecordsLimit = count
+                    GraphQL.getQueryString(
+                        RecentRecords.getRequestBodyString(
+                            cytoidID = cytoidID,
+                            recentRecordsLimit = count
+                        )
                     )
                 }
 
                 ProfileGraphQL::class ->
-                    ProfileGraphQL.getRequestBodyString(cytoidID = cytoidID)
+                    GraphQL.getQueryString(ProfileGraphQL.getRequestBodyString(cytoidID = cytoidID))
 
                 ProfileComments::class -> null
                 ProfileDetails::class -> null

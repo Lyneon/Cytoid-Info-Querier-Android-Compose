@@ -5,25 +5,22 @@ import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.RemoteDataSour
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.getLastCacheTime
 
-class ProfileDetailsRepository(
-    private val localDataSource: LocalDataSource,
-    private val remoteDataSource: RemoteDataSource
-) {
+class ProfileDetailsRepository {
     suspend fun getProfileDetails(
         cytoidID: String,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        remoteDataSource.fetchProfileDetails(cytoidID)
+        RemoteDataSource.fetchProfileDetails(cytoidID)
     else {
         val lastProfileDetailsCacheTime = cytoidID.getLastCacheTime<ProfileDetails>()
         if (System.currentTimeMillis() - lastProfileDetailsCacheTime <= 1000 * 60 * 60 * 6)
-            localDataSource.load<ProfileDetails>(
+            LocalDataSource.load<ProfileDetails>(
                 cytoidID,
                 lastProfileDetailsCacheTime
             )
         else
-            remoteDataSource.fetchProfileDetails(cytoidID).also {
-                localDataSource.save(cytoidID, it)
+            RemoteDataSource.fetchProfileDetails(cytoidID).also {
+                LocalDataSource.save(cytoidID, it)
             }
     }
 }

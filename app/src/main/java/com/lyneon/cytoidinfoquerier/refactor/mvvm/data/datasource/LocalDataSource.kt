@@ -24,10 +24,11 @@ object LocalDataSource {
                 BaseApplication.context.getExternalFilesDir(T::class.simpleName)
             val currentTimeStamp = System.currentTimeMillis()
             val targetUserTDir = File(localTDir, cytoidID)
-            cytoidID.setLastCacheTime<T>(currentTimeStamp)
+            if (!targetUserTDir.exists()) targetUserTDir.mkdirs()
             val targetUserTFile =
                 File(targetUserTDir, "${currentTimeStamp}.json")
             targetUserTFile.writeText(Json.encodeToString(data))
+            cytoidID.setLastCacheTime<T>(currentTimeStamp)
             return@withContext true
         }
 }

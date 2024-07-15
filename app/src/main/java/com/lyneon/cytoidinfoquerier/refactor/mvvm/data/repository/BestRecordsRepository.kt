@@ -5,26 +5,23 @@ import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.RemoteDataSour
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.util.extension.getLastCacheTime
 
-class BestRecordsRepository(
-    private val localDataSource: LocalDataSource,
-    private val remoteDataSource: RemoteDataSource
-) {
+class BestRecordsRepository {
     suspend fun getBestRecords(
         cytoidID: String,
         count: Int,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        remoteDataSource.fetchBestRecords(cytoidID, count)
+        RemoteDataSource.fetchBestRecords(cytoidID, count)
     else {
         val lastBestRecordsCacheTime = cytoidID.getLastCacheTime<BestRecords>()
         if (System.currentTimeMillis() - lastBestRecordsCacheTime <= 1000 * 60 * 60 * 6)
-            localDataSource.load<BestRecords>(
+            LocalDataSource.load<BestRecords>(
                 cytoidID,
                 lastBestRecordsCacheTime
             )
         else
-            remoteDataSource.fetchBestRecords(cytoidID, count).also {
-                localDataSource.save(cytoidID, it)
+            RemoteDataSource.fetchBestRecords(cytoidID, count).also {
+                LocalDataSource.save(cytoidID, it)
             }
     }
 }

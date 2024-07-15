@@ -5,26 +5,23 @@ import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.RemoteDataSour
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.util.extension.getLastCacheTime
 
-class RecentRecordsRepository(
-    private val localDataSource: LocalDataSource,
-    private val remoteDataSource: RemoteDataSource
-) {
+class RecentRecordsRepository {
     suspend fun getRecentRecords(
         cytoidID: String,
         count: Int,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        remoteDataSource.fetchRecentRecords(cytoidID, count)
+        RemoteDataSource.fetchRecentRecords(cytoidID, count)
     else {
         val lastRecentRecordsCacheTime = cytoidID.getLastCacheTime<RecentRecords>()
         if (System.currentTimeMillis() - lastRecentRecordsCacheTime <= 1000 * 60 * 60 * 6)
-            localDataSource.load<RecentRecords>(
+            LocalDataSource.load<RecentRecords>(
                 cytoidID,
                 lastRecentRecordsCacheTime
             )
         else
-            remoteDataSource.fetchRecentRecords(cytoidID, count).also {
-                localDataSource.save(cytoidID, it)
+            RemoteDataSource.fetchRecentRecords(cytoidID, count).also {
+                LocalDataSource.save(cytoidID, it)
             }
     }
 }
