@@ -1,6 +1,9 @@
 package com.lyneon.cytoidinfoquerier.util.extension
 
+import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URL
@@ -13,3 +16,11 @@ fun URL.toBitmap() = BitmapFactory.decodeStream(
             .build()
     ).execute().body?.byteStream()
 ) ?: throw Exception()
+
+fun URL.openInBrowser() {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse(this@openInBrowser.toString())
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    }
+    BaseApplication.context.startActivity(intent)
+}
