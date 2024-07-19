@@ -34,7 +34,7 @@
             android:exported="false"
             android:theme="@style/Theme.CytoidInfoQuerierCompose" />
         <activity
-            android:name=".refactor.mvvm.ui.activity.MainActivity"
+            android:name="com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.CytoidInfoQuerierCompose">
             <intent-filter>

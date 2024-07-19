@@ -1,5 +1,6 @@
-package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.screen
+package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +19,11 @@ import androidx.compose.material.icons.filled.Upgrade
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,29 +40,38 @@ import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.util.extension.openInBrowser
 import java.net.URL
 
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        AppInfoCard()
-        CytoidInfoCard()
-        Card(
-            modifier = Modifier.fillMaxWidth()
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(title = { Text(text = stringResource(id = R.string.home)) })
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            AppInfoCard()
+            CytoidInfoCard()
+            Card(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(imageVector = Icons.Default.Info, contentDescription = null)
-                Text(text = "此应用处于测试阶段，可能遇到错误和异常。欢迎反馈，但不一定会及时修复，你的催更也不会加快开发")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                    Text(text = "此应用处于测试阶段，可能遇到错误和异常。欢迎反馈，但不一定会及时修复，你的催更也不会加快开发")
+                }
             }
         }
     }
