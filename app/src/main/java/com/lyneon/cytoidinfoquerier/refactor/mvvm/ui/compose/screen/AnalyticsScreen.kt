@@ -262,6 +262,7 @@ private fun ResultDisplayList(
                         val record = profile.bestRecords[i]
                         item {
                             RecordCard(
+                                cytoidId = uiState.cytoidID,
                                 record = record,
                                 recordIndex = i + 1,
                                 keep2DecimalPlaces = uiState.keep2DecimalPlaces,
@@ -280,6 +281,7 @@ private fun ResultDisplayList(
                         val record = profile.recentRecords[i]
                         item {
                             RecordCard(
+                                cytoidId = uiState.cytoidID,
                                 record = record,
                                 recordIndex = i + 1,
                                 keep2DecimalPlaces = uiState.keep2DecimalPlaces,
