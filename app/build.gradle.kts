@@ -59,21 +59,19 @@ android {
 }
 
 dependencies {
-    val navVersion = "2.7.7"
-    val media3Version = "1.3.1"
     val composeBomVersion = "2024.06.00"
 
-    implementation("io.sentry:sentry-android:7.8.0")
+    implementation("io.sentry:sentry-android:7.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("io.coil-kt:coil-compose:2.6.0")
-    implementation("com.tencent:mmkv:1.3.3")
-    implementation("androidx.navigation:navigation-compose:$navVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.tencent:mmkv:1.3.7")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
-    implementation("dev.shreyaspatil:capturable:1.0.3")
-    implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
-    implementation("androidx.media3:media3-exoplayer:$media3Version")
+    implementation("dev.shreyaspatil:capturable:2.1.0")
+    implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
     implementation("androidx.compose.material3:material3-window-size-class:1.2.1")
 
     implementation("androidx.core:core-ktx:1.13.1")

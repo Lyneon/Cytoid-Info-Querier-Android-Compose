@@ -3,7 +3,7 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ProfileComments(
+data class ProfileComment(
     val content: String,
     val date: String,
     val owner: Owner

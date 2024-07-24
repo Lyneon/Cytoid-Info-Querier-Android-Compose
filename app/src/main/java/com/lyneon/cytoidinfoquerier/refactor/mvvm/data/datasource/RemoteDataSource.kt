@@ -2,112 +2,114 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource
 
 import android.util.Log
 import com.lyneon.cytoidinfoquerier.data.GraphQL
+import com.lyneon.cytoidinfoquerier.json
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComments
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.network.OkHttpSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 
 object RemoteDataSource {
-    suspend fun fetchBestRecords(cytoidID: String, count: Int) =
-        fetch<BestRecords>(cytoidID = cytoidID, count = count)
+    suspend fun fetchBestRecords(cytoidID: String, count: Int): BestRecords {
+        val requestBody = GraphQL.getQueryString(
+            BestRecords.getRequestBodyString(
+                cytoidID = cytoidID,
+                bestRecordsLimit = count
+            )
+        )
+        return fetch<BestRecords>(
+            Request.Builder()
+                .url("https://services.cytoid.io/graphql")
+                .post(requestBody.toRequestBody("application/json".toMediaType()))
+                .cytoidHeader()
+                .build()
+        )
+    }
 
-    suspend fun fetchRecentRecords(cytoidID: String, count: Int) =
-        fetch<RecentRecords>(cytoidID = cytoidID, count = count)
+    suspend fun fetchRecentRecords(cytoidID: String, count: Int): RecentRecords {
+        val requestBody = GraphQL.getQueryString(
+            RecentRecords.getRequestBodyString(
+                cytoidID = cytoidID,
+                recentRecordsLimit = count
+            )
+        )
+        return fetch<RecentRecords>(
+            Request.Builder()
+                .url("https://services.cytoid.io/graphql")
+                .post(requestBody.toRequestBody("application/json".toMediaType()))
+                .cytoidHeader()
+                .build()
+        )
+    }
 
-    suspend fun fetchProfileGraphQL(cytoidID: String) =
-        fetch<ProfileGraphQL>(cytoidID = cytoidID)
-
-    suspend fun fetchProfileComments(id: String) =
-        fetch<ProfileComments>(id = id)
-
-    suspend fun fetchProfileDetails(cytoidID: String) =
-        fetch<ProfileDetails>(cytoidID = cytoidID)
-
-    suspend inline fun <reified T> fetch(
-        cytoidID: String = "",
-        count: Int = 30,
-        id: String = ""
-    ): T {
-        val okhttpClient = OkHttpSingleton.instance
+    suspend fun fetchProfileGraphQL(cytoidID: String): ProfileGraphQL {
         val requestBody =
-            when (T::class) {
-                BestRecords::class -> {
-                    GraphQL.getQueryString(
-                        BestRecords.getRequestBodyString(
-                            cytoidID = cytoidID,
-                            bestRecordsLimit = count
-                        )
-                    )
-                }
+            GraphQL.getQueryString(ProfileGraphQL.getRequestBodyString(cytoidID = cytoidID))
+        return fetch<ProfileGraphQL>(
+            Request.Builder()
+                .url("https://services.cytoid.io/graphql")
+                .post(requestBody.toRequestBody("application/json".toMediaType()))
+                .cytoidHeader()
+                .build()
+        )
+    }
 
-                RecentRecords::class -> {
-                    GraphQL.getQueryString(
-                        RecentRecords.getRequestBodyString(
-                            cytoidID = cytoidID,
-                            recentRecordsLimit = count
-                        )
-                    )
-                }
+    suspend fun fetchProfileCommentList(id: String): List<ProfileComment> {
+        return fetch<List<ProfileComment>>(
+            Request.Builder()
+                .url("https://services.cytoid.io/threads/profile/$id")
+                .cytoidHeader()
+                .build()
+        )
+    }
 
-                ProfileGraphQL::class ->
-                    GraphQL.getQueryString(ProfileGraphQL.getRequestBodyString(cytoidID = cytoidID))
+    suspend fun fetchProfileDetails(cytoidID: String): ProfileDetails {
+        return fetch<ProfileDetails>(
+            Request.Builder()
+                .url("https://services.cytoid.io/profile/$cytoidID/details")
+                .cytoidHeader()
+                .build()
+        )
+    }
 
-                ProfileComments::class -> null
-                ProfileDetails::class -> null
+    private fun Request.Builder.cytoidHeader() = this.header("User-Agent", "CytoidClient/2.1.1")
 
-                else -> throw IllegalArgumentException("Unsupported type: ${T::class.simpleName}")
-            }
-        val requestBuilder = Request.Builder().header("User-Agent", "CytoidClient/2.1.1")
-        val request =
-            if (requestBody == null)
-                requestBuilder
-                    .url(
-                        when (T::class) {
-                            ProfileComments::class -> "https://services.cytoid.io/threads/profile/$id"
-
-                            ProfileDetails::class -> "https://services.cytoid.io/profile/$cytoidID/details"
-
-                            else -> throw IllegalArgumentException("Unsupported type: ${T::class.simpleName}")
-                        }
-                    )
-                    .build()
-            else
-                requestBuilder
-                    .url("https://services.cytoid.io/graphql")
-                    .post(requestBody.toRequestBody("application/json".toMediaType()))
-                    .build()
+    private suspend inline fun <reified T> fetch(request: Request): T {
         val response = withContext(Dispatchers.IO) {
-            okhttpClient.newCall(request).execute()
+            OkHttpSingleton.instance.newCall(request).execute()
         }
         if (response.isSuccessful) {
-            val responseBody = response.body!!.string()
-            val data = try {
-                Json.decodeFromString<T>(responseBody)
-            } catch (e: Exception) {
-                Log.e(
-                    "RemoteDataSource",
-                    "Error decoding ${T::class.simpleName} from response body: $responseBody"
-                )
-                throw e
-            } finally {
-                response.close()
+            response.use {
+                val responseBody = response.body!!
+                return responseBody.decode<T>()
             }
-            return data
         } else {
             Log.e(
                 "RemoteDataSource",
-                "Error getting ${T::class.simpleName} from remote, status code: ${response.code}"
+                "Error getting response from remote, status code: ${response.code}"
             )
-            Log.i("RemoteDataSource", "Original request body: $requestBody")
-            throw IllegalStateException("Error getting ${T::class.simpleName} from remote, status code: ${response.code}")
+            Log.i("RemoteDataSource", "Original request body: ${request.body}")
+            throw IllegalStateException("Error getting response from remote, status code: ${response.code}")
         }
+    }
+
+    private inline fun <reified T> ResponseBody.decode(): T {
+        val data = try {
+            json.decodeFromString<T>(this.string())
+        } catch (e: Exception) {
+            Log.e(
+                "RemoteDataSource",
+                "Error decoding data from response body: $this"
+            )
+            throw e
+        }
+        return data
     }
 }

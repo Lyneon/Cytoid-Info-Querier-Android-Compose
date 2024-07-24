@@ -1,32 +1,26 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComments
+import androidx.lifecycle.ViewModel
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileCommentsRepository
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileCommentListRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileDetailsRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class ProfileViewModel(
-    private val profileDetailsRepository: ProfileDetailsRepository,
-    private val profileCommentsRepository: ProfileCommentsRepository
-) {
-    private val _profileDetails = MutableLiveData<ProfileDetails?>().apply { value = null }
-    val profileDetails: LiveData<ProfileDetails?> get() = _profileDetails
+    private val profileDetailsRepository: ProfileDetailsRepository = ProfileDetailsRepository(),
+    private val profileCommentListRepository: ProfileCommentListRepository = ProfileCommentListRepository()
+) : ViewModel() {
+    private val _profileDetails = MutableStateFlow<ProfileDetails?>(null)
+    val profileDetails: StateFlow<ProfileDetails?> get() = _profileDetails.asStateFlow()
 
-    private val _profileComments = MutableLiveData<ProfileComments?>().apply { value = null }
-    val profileComments: LiveData<ProfileComments?> get() = _profileComments
+    private val _profileCommentList = MutableStateFlow<List<ProfileComment>?>(null)
+    val profileCommentList: StateFlow<List<ProfileComment>?> get() = _profileCommentList.asStateFlow()
 
-    private val _uiState = MutableLiveData<ProfileUiState>().apply {
-        value = ProfileUiState(
-            cytoidID = "",
-            foldTextFiled = false,
-            expandQueryOptionsDropdownMenu = false,
-            ignoreLocalCacheData = false,
-            keep2DecimalPlaces = true
-        )
-    }
-    val uiState: LiveData<ProfileUiState> get() = _uiState
+    private val _uiState = MutableStateFlow(ProfileUiState())
+    val uiState: StateFlow<ProfileUiState> get() = _uiState.asStateFlow()
 
     fun setCytoidID(cytoidID: String) {
         updateUIState { copy(cytoidID = cytoidID) }
@@ -49,12 +43,12 @@ class ProfileViewModel(
     }
 
     suspend fun enqueueQuery() {
-        uiState.value?.let { uiState ->
+        uiState.value.let { uiState ->
             _profileDetails.value = profileDetailsRepository.getProfileDetails(
                 cytoidID = uiState.cytoidID,
                 disableLocalCache = uiState.ignoreLocalCacheData
             )
-            _profileComments.value = profileCommentsRepository.getProfileComments(
+            _profileCommentList.value = profileCommentListRepository.getProfileCommentList(
                 cytoidID = uiState.cytoidID,
                 id = _profileDetails.value?.user?.id ?: return@let,
                 disableLocalCache = uiState.ignoreLocalCacheData
@@ -63,14 +57,14 @@ class ProfileViewModel(
     }
 
     private fun updateUIState(update: ProfileUiState.() -> ProfileUiState) {
-        _uiState.value = _uiState.value?.update()
+        _uiState.value = _uiState.value.update()
     }
 
     data class ProfileUiState(
-        val cytoidID: String,
-        val foldTextFiled: Boolean,
-        val expandQueryOptionsDropdownMenu: Boolean,
-        val ignoreLocalCacheData: Boolean,
-        val keep2DecimalPlaces: Boolean
+        val cytoidID: String = "",
+        val foldTextFiled: Boolean = false,
+        val expandQueryOptionsDropdownMenu: Boolean = false,
+        val ignoreLocalCacheData: Boolean = false,
+        val keep2DecimalPlaces: Boolean = true
     )
 }
