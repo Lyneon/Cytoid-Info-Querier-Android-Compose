@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,6 +31,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,9 +48,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -132,7 +139,7 @@ fun AnalyticsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 16.dp)
         ) {
             AnalyticsInputField(uiState, viewModel)
@@ -141,7 +148,8 @@ fun AnalyticsScreen(
                 bestRecords,
                 recentRecords,
                 exoPlayer,
-                playbackState
+                playbackState,
+                paddingValues.calculateBottomPadding()
             )
         }
     }
@@ -155,7 +163,7 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
     AnimatedVisibility(visible = !uiState.foldTextFiled) {
         TextField(
             value = uiState.cytoidID,
-            onValueChange = { viewModel.setCytoidID(it) },
+            onValueChange = { if (it.length <= 16) viewModel.setCytoidID(it) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = !uiState.cytoidID.isValidCytoidID() && uiState.cytoidID.isNotEmpty(),
@@ -197,6 +205,12 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
     ) {
+        Text(
+            text = stringResource(id = R.string.query_type),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray,
+            modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding)
+        )
         DropdownMenuItem(
             text = {
                 Row(
@@ -229,6 +243,74 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             },
             onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RECENT_RECORDS) }
         )
+        TextField(
+            modifier = Modifier.padding(8.dp),
+            value = uiState.queryCount,
+            onValueChange = {
+                if (it.isDigitsOnly() && it.length <= 3) viewModel.setQueryCount(it)
+            },
+            isError = uiState.queryCount.isEmpty() or !uiState.queryCount.isDigitsOnly(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            label = { Text(text = stringResource(id = R.string.query_count)) }
+        )
+        Text(
+            text = stringResource(id = R.string.query_options),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray,
+            modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding)
+        )
+        DropdownMenuItem(
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(id = R.string.ignore_cache))
+                    Checkbox(
+                        checked = uiState.ignoreLocalCacheData,
+                        onCheckedChange = { viewModel.setIgnoreLocalCacheData(it) })
+                }
+            },
+            onClick = { viewModel.setIgnoreLocalCacheData(!uiState.ignoreLocalCacheData) }
+        )
+        DropdownMenuItem(
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(id = R.string.keep_2_decimal_places))
+                    Checkbox(
+                        checked = uiState.keep2DecimalPlaces,
+                        onCheckedChange = { viewModel.setKeep2DecimalPlaces(it) })
+                }
+            },
+            onClick = { viewModel.setKeep2DecimalPlaces(!uiState.keep2DecimalPlaces) }
+        )
+        TextField(
+            modifier = Modifier.padding(8.dp),
+            value = uiState.imageGenerationColumns,
+            onValueChange = {
+                if (it.isDigitsOnly() && it.length <= 3) viewModel.setImageGenerationColumns(it)
+            },
+            isError = uiState.imageGenerationColumns.isEmpty() or !uiState.imageGenerationColumns.isDigitsOnly(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            label = { Text(text = stringResource(id = R.string.columns_count)) },
+            trailingIcon = {
+                TextButton(
+                    onClick = {
+                        viewModel.saveRecordsAsPicture()
+                    },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(text = stringResource(id = R.string.save_as_picture))
+                }
+            }
+        )
     }
 }
 
@@ -238,7 +320,8 @@ private fun ResultDisplayList(
     bestRecords: BestRecords?,
     recentRecords: RecentRecords?,
     exoPlayer: ExoPlayer,
-    playbackState: Int
+    playbackState: Int,
+    bottomPadding: Dp
 ) {
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
@@ -250,13 +333,14 @@ private fun ResultDisplayList(
                     else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
                 )
             ),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = bottomPadding),
             verticalItemSpacing = 8.dp,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (uiState.queryType == AnalyticsUIState.QueryType.BEST_RECORDS) {
                 bestRecords?.data?.profile?.let { profile ->
-                    var remainRecordsToShowCount = uiState.queryCount
+                    var remainRecordsToShowCount =
+                        uiState.queryCount.run { if (this.isNotEmpty() && this.isDigitsOnly()) this.toInt() else 0 }
                     for (i in 0 until profile.bestRecords.size) {
                         if (remainRecordsToShowCount <= 0) break
                         val record = profile.bestRecords[i]
@@ -275,7 +359,8 @@ private fun ResultDisplayList(
                 }
             } else {
                 recentRecords?.data?.profile?.let { profile ->
-                    var remainRecordsToShowCount = uiState.queryCount
+                    var remainRecordsToShowCount =
+                        uiState.queryCount.run { if (this.isNotEmpty() && this.isDigitsOnly()) this.toInt() else 0 }
                     for (i in 0 until profile.recentRecords.size) {
                         if (remainRecordsToShowCount <= 0) break
                         val record = profile.recentRecords[i]

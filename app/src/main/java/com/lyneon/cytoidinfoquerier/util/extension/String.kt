@@ -32,7 +32,7 @@ fun String?.isValidCytoidID(): Boolean {
     contract {
         returns(true) implies (this@isValidCytoidID != null)
     }
-    return if (this.isNullOrEmpty()) false else this.matches("^[a-z0-9_-]*$".toRegex())
+    return if (this.isNullOrEmpty()) false else (this.matches("^[a-z0-9_-]*$".toRegex()) && this.length in 3..16)
 }
 
 fun String.saveIntoClipboard(label: String = "") {

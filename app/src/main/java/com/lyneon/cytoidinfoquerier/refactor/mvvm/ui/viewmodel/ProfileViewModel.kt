@@ -42,6 +42,10 @@ class ProfileViewModel(
         updateUIState { copy(keep2DecimalPlaces = keep2DecimalPlaces) }
     }
 
+    fun setErrorMessage(errorMessage: String) {
+        updateUIState { copy(errorMessage = errorMessage) }
+    }
+
     suspend fun enqueueQuery() {
         uiState.value.let { uiState ->
             _profileDetails.value = profileDetailsRepository.getProfileDetails(
@@ -59,12 +63,13 @@ class ProfileViewModel(
     private fun updateUIState(update: ProfileUiState.() -> ProfileUiState) {
         _uiState.value = _uiState.value.update()
     }
-
-    data class ProfileUiState(
-        val cytoidID: String = "",
-        val foldTextFiled: Boolean = false,
-        val expandQueryOptionsDropdownMenu: Boolean = false,
-        val ignoreLocalCacheData: Boolean = false,
-        val keep2DecimalPlaces: Boolean = true
-    )
 }
+
+data class ProfileUiState(
+    val cytoidID: String = "",
+    val foldTextFiled: Boolean = false,
+    val expandQueryOptionsDropdownMenu: Boolean = false,
+    val ignoreLocalCacheData: Boolean = false,
+    val keep2DecimalPlaces: Boolean = true,
+    val errorMessage: String = ""
+)

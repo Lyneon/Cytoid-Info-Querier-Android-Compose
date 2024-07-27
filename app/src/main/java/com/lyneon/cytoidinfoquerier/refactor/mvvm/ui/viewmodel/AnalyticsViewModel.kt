@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.BestRecordsRepository
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileDetailsRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.RecentRecordsRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState.QueryType.BEST_RECORDS
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState.QueryType.RECENT_RECORDS
@@ -15,7 +16,8 @@ import kotlinx.coroutines.withContext
 
 class AnalyticsViewModel(
     private val bestRecordsRepository: BestRecordsRepository = BestRecordsRepository(),
-    private val recentRecordsRepository: RecentRecordsRepository = RecentRecordsRepository()
+    private val recentRecordsRepository: RecentRecordsRepository = RecentRecordsRepository(),
+    private val profileDetailsRepository: ProfileDetailsRepository = ProfileDetailsRepository()
 ) : ViewModel() {
     private val _bestRecords = MutableStateFlow<BestRecords?>(null)
     val bestRecords: StateFlow<BestRecords?> get() = _bestRecords.asStateFlow()
@@ -42,8 +44,8 @@ class AnalyticsViewModel(
         updateUIState { copy(queryType = queryType) }
     }
 
-    fun setQueryAmount(queryAmount: Int) {
-        updateUIState { copy(queryCount = queryAmount) }
+    fun setQueryCount(queryCount: String) {
+        updateUIState { copy(queryCount = queryCount) }
     }
 
     fun setIgnoreLocalCacheData(ignoreLocalCacheData: Boolean) {
@@ -54,7 +56,7 @@ class AnalyticsViewModel(
         updateUIState { copy(keep2DecimalPlaces = keep2DecimalPlaces) }
     }
 
-    fun setImageGenerationColumns(imageGenerationColumns: Int) {
+    fun setImageGenerationColumns(imageGenerationColumns: String) {
         updateUIState { copy(imageGenerationColumns = imageGenerationColumns) }
     }
 
@@ -73,7 +75,7 @@ class AnalyticsViewModel(
         uiState.value.let { uiState ->
             _bestRecords.value = bestRecordsRepository.getBestRecords(
                 cytoidID = uiState.cytoidID,
-                count = uiState.queryCount,
+                count = uiState.queryCount.toInt(),
                 disableLocalCache = uiState.ignoreLocalCacheData
             )
         }
@@ -83,7 +85,7 @@ class AnalyticsViewModel(
         uiState.value.let { uiState ->
             _recentRecords.value = recentRecordsRepository.getRecentRecords(
                 cytoidID = uiState.cytoidID,
-                count = uiState.queryCount,
+                count = uiState.queryCount.toInt(),
                 disableLocalCache = uiState.ignoreLocalCacheData
             )
         }
@@ -92,6 +94,10 @@ class AnalyticsViewModel(
     private fun updateUIState(update: AnalyticsUIState.() -> AnalyticsUIState) {
         _uiState.value = _uiState.value.update()
     }
+
+    fun saveRecordsAsPicture() {
+        //TODO: Implement this function
+    }
 }
 
 data class AnalyticsUIState(
@@ -99,10 +105,10 @@ data class AnalyticsUIState(
     val foldTextFiled: Boolean = false,
     val expandQueryOptionsDropdownMenu: Boolean = false,
     val queryType: QueryType = BEST_RECORDS,
-    val queryCount: Int = 30,
+    val queryCount: String = "30",
     val ignoreLocalCacheData: Boolean = false,
     val keep2DecimalPlaces: Boolean = true,
-    val imageGenerationColumns: Int = 6,
+    val imageGenerationColumns: String = "6",
     val errorMessage: String = ""
 ) {
     enum class QueryType {

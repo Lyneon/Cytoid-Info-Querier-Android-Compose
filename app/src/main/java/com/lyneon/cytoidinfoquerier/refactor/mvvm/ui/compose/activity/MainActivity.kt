@@ -1,8 +1,16 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.WindowInsetsController
+import android.view.WindowManager
 import androidx.activity.compose.setContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,10 +37,18 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,10 +67,17 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
+            val mainActivity = LocalContext.current as MainActivity
             val navHostController = rememberNavController()
 
             CytoidInfoQuerierComposeTheme {
+                mainActivity.window.apply {
+                    navigationBarColor = Color.Transparent.toArgb()
+                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -86,6 +109,12 @@ class MainActivity : BaseActivity() {
 
 @Composable
 private fun DrawerContent(navHostController: NavHostController, onExitButtonClick: () -> Unit) {
+    var currentScreenRoute by remember { mutableStateOf(MainActivity.Screen.Home.route) }
+
+    navHostController.addOnDestinationChangedListener { _, destination, _ ->
+        currentScreenRoute = destination.route.toString()
+    }
+
     ModalDrawerSheet {
         Column(
             modifier = Modifier
@@ -99,7 +128,7 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                 NavigationDrawerItem(
                     label = { Text(text = stringResource(R.string.home)) },
                     icon = { Icon(imageVector = Icons.Default.Home, contentDescription = null) },
-                    selected = navHostController.currentDestination?.route == MainActivity.Screen.Home.route,
+                    selected = currentScreenRoute == MainActivity.Screen.Home.route,
                     onClick = {
                         navHostController.navigate(MainActivity.Screen.Home.route) {
                             launchSingleTop = true
@@ -115,7 +144,7 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             contentDescription = null
                         )
                     },
-                    selected = navHostController.currentDestination?.route == MainActivity.Screen.Analytics.route,
+                    selected = currentScreenRoute == MainActivity.Screen.Analytics.route,
                     onClick = {
                         navHostController.navigate(MainActivity.Screen.Analytics.route) {
                             launchSingleTop = true
@@ -131,7 +160,7 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             contentDescription = null
                         )
                     },
-                    selected = navHostController.currentDestination?.route == MainActivity.Screen.Profile.route,
+                    selected = currentScreenRoute == MainActivity.Screen.Profile.route,
                     onClick = {
                         navHostController.navigate(MainActivity.Screen.Profile.route) {
                             launchSingleTop = true
@@ -142,13 +171,8 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(
-                    6.dp,
-                    Alignment.End
-                ),
-                modifier = Modifier
-                    .padding(6.dp)
-                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Button(onClick = {
                     navHostController.navigate(MainActivityScreens.Settings.name) {
@@ -185,7 +209,13 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
 private fun MainContent(navHostController: NavHostController) {
     NavHost(
         navController = navHostController,
-        startDestination = MainActivity.Screen.Home.route
+        startDestination = MainActivity.Screen.Home.route,
+        enterTransition = {
+            fadeIn() + scaleIn(initialScale = 0.8f)
+        },
+        exitTransition = {
+            fadeOut() + scaleOut(targetScale = 0.8f)
+        }
     ) {
         composable(MainActivity.Screen.Home.route) { HomeScreen() }
         composable(MainActivity.Screen.Analytics.route) { AnalyticsScreen() }
