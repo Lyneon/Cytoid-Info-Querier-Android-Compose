@@ -48,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -63,10 +64,13 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.component.RecordCard
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.component.UserDetailsHeader
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsViewModel
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
@@ -79,6 +83,7 @@ fun AnalyticsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val bestRecords by viewModel.bestRecords.collectAsState()
     val recentRecords by viewModel.recentRecords.collectAsState()
+    val profileDetails by viewModel.profileDetails.collectAsState()
     var playbackState by remember { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
     var isPlaying by remember { mutableStateOf(false) }
     val exoPlayer by remember {
@@ -147,6 +152,7 @@ fun AnalyticsScreen(
                 uiState,
                 bestRecords,
                 recentRecords,
+                profileDetails,
                 exoPlayer,
                 playbackState,
                 paddingValues.calculateBottomPadding()
@@ -171,6 +177,7 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
             trailingIcon = {
                 Row(
                     modifier = Modifier.padding(end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
                         Icon(
@@ -185,13 +192,26 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
                         )
                         QuerySettingsDropDownMenu(uiState = uiState, viewModel = viewModel)
                     }
-                    TextButton(onClick = {
-                        if (uiState.cytoidID.isEmpty()) {
-                            viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
+                    if (uiState.isQuerying) {
+                        CircularProgressIndicator(modifier = Modifier.scale(0.8f))
+                    } else {
+                        TextButton(onClick = {
+                            if (uiState.cytoidID.isEmpty()) {
+                                viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
+                            }
+                            scope.launch {
+                                try {
+                                    viewModel.setIsQuerying(true)
+                                    viewModel.enqueueQuery()
+                                } catch (e: Exception) {
+                                    viewModel.setErrorMessage(e.message.toString())
+                                } finally {
+                                    viewModel.setIsQuerying(false)
+                                }
+                            }
+                        }) {
+                            Text(text = stringResource(id = R.string.query))
                         }
-                        scope.launch { viewModel.enqueueQuery() }
-                    }) {
-                        Text(text = stringResource(id = R.string.query))
                     }
                 }
             }
@@ -201,6 +221,8 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
 
 @Composable
 private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: AnalyticsViewModel) {
+    val scope = rememberCoroutineScope()
+
     DropdownMenu(
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
@@ -303,7 +325,14 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             trailingIcon = {
                 TextButton(
                     onClick = {
-                        viewModel.saveRecordsAsPicture()
+                        if (uiState.imageGenerationColumns.isEmpty()) {
+                            "列数不能为空".showToast()
+                            return@TextButton
+                        }
+                        "正在保存图片".showToast()
+                        scope.launch {
+                            viewModel.saveRecordsAsPicture()
+                        }
                     },
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
@@ -319,6 +348,7 @@ private fun ResultDisplayList(
     uiState: AnalyticsUIState,
     bestRecords: BestRecords?,
     recentRecords: RecentRecords?,
+    profileDetails: ProfileDetails?,
     exoPlayer: ExoPlayer,
     playbackState: Int,
     bottomPadding: Dp
@@ -337,6 +367,15 @@ private fun ResultDisplayList(
             verticalItemSpacing = 8.dp,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            profileDetails?.let {
+                item {
+                    UserDetailsHeader(
+                        cytoidID = uiState.cytoidID,
+                        profileDetails = profileDetails,
+                        keep2DecimalPlaces = uiState.keep2DecimalPlaces
+                    )
+                }
+            }
             if (uiState.queryType == AnalyticsUIState.QueryType.BEST_RECORDS) {
                 bestRecords?.data?.profile?.let { profile ->
                     var remainRecordsToShowCount =
@@ -385,7 +424,8 @@ private fun ResultDisplayList(
 @Composable
 private fun ErrorMessageCard(errorMessage: String) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.padding(top = 8.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

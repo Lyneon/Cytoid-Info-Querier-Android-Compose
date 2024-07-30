@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
@@ -96,7 +95,6 @@ class ImageGenerateService : Service() {
                 columnsCount,
                 keep2DecimalPlaces
             ).saveIntoMediaStore()
-            Looper.prepare()
             BaseApplication.context.resources.getString(
                 R.string.saved
             ).showToast()

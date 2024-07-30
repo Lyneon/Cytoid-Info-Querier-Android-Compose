@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Looper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,16 +37,17 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -68,6 +68,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.type.UserRecord
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
@@ -77,11 +78,10 @@ import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
-import dev.shreyaspatil.capturable.Capturable
+import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -89,6 +89,7 @@ import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeApi::class)
 @Composable
 fun RecordCard(
     cytoidId: String,
@@ -103,55 +104,42 @@ fun RecordCard(
     var showCopyDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    Capturable(
-        controller = captureController,
-        onCaptured = { imageBitmap: ImageBitmap?, throwable: Throwable? ->
-            coroutineScope.launch {
-                withContext(Dispatchers.IO) {
-                    imageBitmap?.asAndroidBitmap()?.let {
-                        it.saveIntoMediaStore()
-                        BaseApplication.context.getString(R.string.saved).showToast()
-                    }
-                    throwable?.let { throw it }
-                }
-            }
-        }
-    ) {
-        Card(
-            modifier = Modifier.pointerInput(Unit) {
+    Card(
+        modifier = Modifier
+            .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         showActionsDialog = true
                     }
                 )
             }
+            .capturable(captureController)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                record.chart?.level?.let { level ->
-                    Box {
-                        RecordCardBackgroundImage(level = level)
-                        Box(
-                            modifier = Modifier.align(Alignment.TopEnd)
-                        ) {
-                            if (exoPlayer != null && playbackState != null) {
-                                RecordCardMusicPreviewButton(
-                                    exoPlayer = exoPlayer,
-                                    playbackState = playbackState,
-                                    musicPreviewUrl = record.chart.level.bundle?.musicPreview.toString()
-                                )
-                            }
+            record.chart?.level?.let { level ->
+                Box {
+                    RecordCardBackgroundImage(level = level)
+                    Box(
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        if (exoPlayer != null && playbackState != null) {
+                            RecordCardMusicPreviewButton(
+                                exoPlayer = exoPlayer,
+                                playbackState = playbackState,
+                                musicPreviewUrl = record.chart.level.bundle?.musicPreview.toString()
+                            )
                         }
                     }
                 }
-                RecordCardDetails(
-                    cytoidId = cytoidId,
-                    record = record,
-                    recordIndex = recordIndex,
-                    keep2DecimalPlaces = keep2DecimalPlaces
-                )
             }
+            RecordCardDetails(
+                cytoidId = cytoidId,
+                record = record,
+                recordIndex = recordIndex,
+                keep2DecimalPlaces = keep2DecimalPlaces
+            )
         }
     }
 
@@ -218,12 +206,10 @@ fun RecordCard(
                                                 ContentValues()
                                             )
                                     }.onSuccess {
-                                        Looper.prepare()
                                         BaseApplication.context
                                             .getString(R.string.saved_into_gallery)
                                             .showToast()
                                     }.onFailure {
-                                        Looper.prepare()
                                         BaseApplication.context.getString(R.string.fail)
                                             .showToast()
                                     }
@@ -237,7 +223,11 @@ fun RecordCard(
                             BaseApplication.context
                                 .getString(R.string.saving)
                                 .showToast()
-                            captureController.capture()
+                            coroutineScope.launch(Dispatchers.IO) {
+                                val bitmap = captureController.captureAsync().await()
+                                bitmap.asAndroidBitmap().saveIntoMediaStore()
+                                BaseApplication.context.getString(R.string.saved).showToast()
+                            }
                         }
                     )
                 }
@@ -296,13 +286,14 @@ fun RecordCard(
 
 @Composable
 private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel) {
-    val localBackgroundImagesDir =
-        BaseApplication.context.getExternalFilesDir("/background_images")
-    val currentLevelLocalBackgroundImageFile = localBackgroundImagesDir?.run {
+    val currentLevelLocalBackgroundImageFile = LocalDataSource.getBackgroundImageBitmapFile(
+        level.uid,
+        LocalDataSource.BackgroundImageSize.ORIGINAL
+    ).run {
         if (!this.exists()) this.mkdirs()
         File(this, level.uid)
     }
-    if (currentLevelLocalBackgroundImageFile != null && currentLevelLocalBackgroundImageFile.isFile) {
+    if (currentLevelLocalBackgroundImageFile.isFile) {
         val bitmap = FileInputStream(currentLevelLocalBackgroundImageFile).use {
             BitmapFactory.decodeStream(it)
         }
@@ -321,16 +312,16 @@ private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel)
                     modifier = Modifier.align(Alignment.Center)
                 )
                 AsyncImage(
-                    model = getImageRequestBuilderForCytoid(level.bundle?.backgroundImage?.thumbnail.toString())
+                    model = getImageRequestBuilderForCytoid(level.bundle?.backgroundImage?.original.toString())
                         .build(),
                     modifier = Modifier.fillMaxWidth(),
                     contentDescription = level.title,
                     onSuccess = { successState ->
                         try {
-                            currentLevelLocalBackgroundImageFile?.run {
+                            currentLevelLocalBackgroundImageFile.run {
                                 this.createNewFile()
                                 FileOutputStream(this)
-                            }?.use { output ->
+                            }.use { output ->
                                 successState.result.drawable.toBitmap()
                                     .compress(
                                         Bitmap.CompressFormat.PNG,

@@ -3,7 +3,6 @@ package com.lyneon.cytoidinfoquerier.ui.compose.component
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
-import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -254,7 +253,6 @@ fun LevelCard(level: ProfileGraphQL.ProfileData.Profile.User.UserLevel) {
                                         )
                                 }
                                 .onSuccess {
-                                    Looper.prepare()
                                     context
                                         .getString(R.string.saved_into_gallery)
                                         .showToast()

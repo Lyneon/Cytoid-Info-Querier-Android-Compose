@@ -1,13 +1,17 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.lyneon.cytoidinfoquerier.logic.AnalyticsImageHandler
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.BestRecordsRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileDetailsRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.RecentRecordsRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState.QueryType.BEST_RECORDS
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState.QueryType.RECENT_RECORDS
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +28,9 @@ class AnalyticsViewModel(
 
     private val _recentRecords = MutableStateFlow<RecentRecords?>(null)
     val recentRecords: StateFlow<RecentRecords?> get() = _recentRecords.asStateFlow()
+
+    private val _profileDetails = MutableStateFlow<ProfileDetails?>(null)
+    val profileDetails: StateFlow<ProfileDetails?> get() = _profileDetails.asStateFlow()
 
     private val _uiState = MutableStateFlow(AnalyticsUIState())
     val uiState: StateFlow<AnalyticsUIState> get() = _uiState.asStateFlow()
@@ -64,11 +71,16 @@ class AnalyticsViewModel(
         updateUIState { copy(errorMessage = errorMessage) }
     }
 
+    fun setIsQuerying(isQuerying: Boolean) {
+        updateUIState { copy(isQuerying = isQuerying) }
+    }
+
     suspend fun enqueueQuery() = withContext(Dispatchers.IO) {
         when (uiState.value.queryType) {
             BEST_RECORDS -> updateBestRecords()
             RECENT_RECORDS -> updateRecentRecords()
         }
+        updateProfileDetails()
     }
 
     private suspend fun updateBestRecords() {
@@ -91,12 +103,33 @@ class AnalyticsViewModel(
         }
     }
 
+    suspend fun updateProfileDetails() {
+        uiState.value.let { uiState ->
+            _profileDetails.value = profileDetailsRepository.getProfileDetails(
+                cytoidID = uiState.cytoidID,
+                disableLocalCache = uiState.ignoreLocalCacheData
+            )
+        }
+    }
+
     private fun updateUIState(update: AnalyticsUIState.() -> AnalyticsUIState) {
         _uiState.value = _uiState.value.update()
     }
 
-    fun saveRecordsAsPicture() {
-        //TODO: Implement this function
+    suspend fun saveRecordsAsPicture() {
+        require(_profileDetails.value != null)
+        withContext(Dispatchers.IO) {
+            AnalyticsImageHandler.getRecordsImage(
+                profileDetails = profileDetails.value!!,
+                records = (if (uiState.value.queryType == BEST_RECORDS)
+                    bestRecords.value!!.data.profile?.bestRecords
+                else recentRecords.value!!.data.profile?.recentRecords) ?: emptyList(),
+                recordsType = uiState.value.queryType,
+                columnsCount = uiState.value.imageGenerationColumns.toInt(),
+                keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
+            ).saveIntoMediaStore()
+            "图片已保存至媒体库".showToast()
+        }
     }
 }
 
@@ -109,10 +142,11 @@ data class AnalyticsUIState(
     val ignoreLocalCacheData: Boolean = false,
     val keep2DecimalPlaces: Boolean = true,
     val imageGenerationColumns: String = "6",
-    val errorMessage: String = ""
+    val errorMessage: String = "",
+    val isQuerying: Boolean = false
 ) {
-    enum class QueryType {
-        BEST_RECORDS,
-        RECENT_RECORDS
+    enum class QueryType(val value: String) {
+        BEST_RECORDS("Best Records"),
+        RECENT_RECORDS("Recent Records")
     }
 }

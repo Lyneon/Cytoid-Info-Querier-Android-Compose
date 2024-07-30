@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -493,7 +492,6 @@ fun RecordCard(record: UserRecord, recordIndex: Int? = null, keep2DecimalPlaces:
                                                 )
                                         }
                                         .onSuccess {
-                                            Looper.prepare()
                                             context
                                                 .getString(R.string.saved_into_gallery)
                                                 .showToast()

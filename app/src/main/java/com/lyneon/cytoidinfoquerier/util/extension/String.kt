@@ -7,13 +7,19 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import com.lyneon.cytoidinfoquerier.BaseApplication
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 operator fun String.times(n: Int) = this.repeat(n)
 
-fun String.showToast(duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(BaseApplication.context, this, duration).show()
+fun String.showToast(duration: Int = Toast.LENGTH_SHORT) {
+    CoroutineScope(Dispatchers.Main).launch {
+        Toast.makeText(BaseApplication.context, this@showToast, duration).show()
+    }
+}
 
 fun String.showDialog(
     activity: Activity,
