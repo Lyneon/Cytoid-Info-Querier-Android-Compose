@@ -49,10 +49,9 @@ fun UserDetailsHeader(
     keep2DecimalPlaces: Boolean
 ) {
     Row(
-        modifier = Modifier.padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        UserAvatar(cytoidID = cytoidID, profileDetails = profileDetails)
+        UserAvatar(profileDetails = profileDetails)
         Column(
             modifier = Modifier.fillMaxHeight()
         ) {
@@ -107,9 +106,9 @@ fun UserDetailsHeader(
 }
 
 @Composable
-private fun UserAvatar(cytoidID: String, profileDetails: ProfileDetails) {
+private fun UserAvatar(profileDetails: ProfileDetails) {
     val localAvatarFile =
-        LocalDataSource.getAvatarBitmapFile(cytoidID, LocalDataSource.AvatarSize.LARGE)
+        LocalDataSource.getAvatarBitmapFile(profileDetails.user.uid, LocalDataSource.AvatarSize.LARGE)
     if (localAvatarFile.exists() && localAvatarFile.isFile) {
         val bitmap = FileInputStream(localAvatarFile).use {
             BitmapFactory.decodeStream(it)

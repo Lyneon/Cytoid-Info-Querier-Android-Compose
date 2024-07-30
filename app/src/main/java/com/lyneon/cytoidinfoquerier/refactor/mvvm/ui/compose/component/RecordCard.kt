@@ -2,7 +2,6 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.component
 
 import android.content.ContentValues
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
@@ -82,9 +81,7 @@ import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
@@ -286,13 +283,12 @@ fun RecordCard(
 
 @Composable
 private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel) {
+    val scope = rememberCoroutineScope()
+
     val currentLevelLocalBackgroundImageFile = LocalDataSource.getBackgroundImageBitmapFile(
         level.uid,
         LocalDataSource.BackgroundImageSize.ORIGINAL
-    ).run {
-        if (!this.exists()) this.mkdirs()
-        File(this, level.uid)
-    }
+    )
     if (currentLevelLocalBackgroundImageFile.isFile) {
         val bitmap = FileInputStream(currentLevelLocalBackgroundImageFile).use {
             BitmapFactory.decodeStream(it)
@@ -318,16 +314,12 @@ private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel)
                     contentDescription = level.title,
                     onSuccess = { successState ->
                         try {
-                            currentLevelLocalBackgroundImageFile.run {
-                                this.createNewFile()
-                                FileOutputStream(this)
-                            }.use { output ->
-                                successState.result.drawable.toBitmap()
-                                    .compress(
-                                        Bitmap.CompressFormat.PNG,
-                                        100,
-                                        output
-                                    )
+                            scope.launch(Dispatchers.IO) {
+                                LocalDataSource.saveBackgroundImageBitmap(
+                                    level.uid,
+                                    LocalDataSource.BackgroundImageSize.ORIGINAL,
+                                    successState.result.drawable.toBitmap()
+                                )
                             }
                         } catch (e: Exception) {
                             e.message?.showToast()
