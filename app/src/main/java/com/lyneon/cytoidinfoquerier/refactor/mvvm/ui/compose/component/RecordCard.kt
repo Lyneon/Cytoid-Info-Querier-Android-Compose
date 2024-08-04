@@ -113,7 +113,7 @@ fun RecordCard(
             .capturable(captureController)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             record.chart?.level?.let { level ->
                 Box {
@@ -357,7 +357,7 @@ private fun RecordCardMusicPreviewButton(
                 }
             },
             modifier = Modifier
-                .padding(8.dp),
+                .padding(4.dp),
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Icon(

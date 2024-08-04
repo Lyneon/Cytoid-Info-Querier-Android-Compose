@@ -130,7 +130,7 @@ fun AnalyticsScreen(
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
                 FloatingActionButton(onClick = { exoPlayer.stop() }) {
                     if (playbackState == ExoPlayer.STATE_BUFFERING) {
-                        CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                        CircularProgressIndicator(modifier = Modifier.padding(12.dp))
                     } else {
                         Icon(
                             imageVector = Icons.Default.Stop,
@@ -145,7 +145,7 @@ fun AnalyticsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 12.dp)
         ) {
             AnalyticsInputField(uiState, viewModel)
             ResultDisplayList(
@@ -196,17 +196,19 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
                         CircularProgressIndicator(modifier = Modifier.scale(0.8f))
                     } else {
                         TextButton(onClick = {
+                            viewModel.setErrorMessage("")
                             if (uiState.cytoidID.isEmpty()) {
                                 viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
-                            }
-                            scope.launch {
-                                try {
-                                    viewModel.setIsQuerying(true)
-                                    viewModel.enqueueQuery()
-                                } catch (e: Exception) {
-                                    viewModel.setErrorMessage(e.message.toString())
-                                } finally {
-                                    viewModel.setIsQuerying(false)
+                            } else {
+                                scope.launch {
+                                    try {
+                                        viewModel.setIsQuerying(true)
+                                        viewModel.enqueueQuery()
+                                    } catch (e: Exception) {
+                                        viewModel.setErrorMessage(e.message.toString())
+                                    } finally {
+                                        viewModel.setIsQuerying(false)
+                                    }
                                 }
                             }
                         }) {
