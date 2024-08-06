@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository
 
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.RemoteDataSource
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.util.extension.getLastBestRecordsCacheTime
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 
@@ -21,5 +22,9 @@ class BestRecordsRepository {
             RemoteDataSource.fetchBestRecords(cytoidID, count).also {
                 LocalDataSource.saveBestRecords(cytoidID, it)
             }
+    }
+
+    suspend fun getSpecificCacheBestRecords(cytoidID: String, timeStamp: Long): BestRecords {
+        return LocalDataSource.loadBestRecords(cytoidID, timeStamp)
     }
 }

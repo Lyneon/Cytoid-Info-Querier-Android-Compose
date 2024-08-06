@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,8 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.ProfileUiState
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.ProfileViewModel
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
@@ -48,7 +53,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel(),
+    navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val profileDetails by viewModel.profileDetails.collectAsState()
@@ -89,6 +95,31 @@ fun ProfileScreen(
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowDown,
                                 contentDescription = "展开输入框"
+                            )
+                        }
+                    }
+                    IconButton(onClick = {
+                        viewModel.setExpandAnalyticsOptionsDropdownMenu(true)
+                    }) {
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
+                        DropdownMenu(
+                            expanded = uiState.expandAnalyticsOptionsDropdownMenu,
+                            onDismissRequest = {
+                                viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                            }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(text = stringResource(id = R.string.history)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.History,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    navController.navigate(MainActivity.Screen.ProfileHistory.route)
+                                    viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                                }
                             )
                         }
                     }

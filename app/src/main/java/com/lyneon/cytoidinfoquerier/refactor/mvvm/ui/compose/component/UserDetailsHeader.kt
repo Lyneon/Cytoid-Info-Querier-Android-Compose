@@ -44,12 +44,12 @@ import java.io.FileOutputStream
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UserDetailsHeader(
-    cytoidID: String,
     profileDetails: ProfileDetails,
     keep2DecimalPlaces: Boolean
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.heightIn(max = 96.dp)
     ) {
         UserAvatar(profileDetails = profileDetails)
         Column(
@@ -108,7 +108,10 @@ fun UserDetailsHeader(
 @Composable
 private fun UserAvatar(profileDetails: ProfileDetails) {
     val localAvatarFile =
-        LocalDataSource.getAvatarBitmapFile(profileDetails.user.uid, LocalDataSource.AvatarSize.LARGE)
+        LocalDataSource.getAvatarBitmapFile(
+            profileDetails.user.uid,
+            LocalDataSource.AvatarSize.LARGE
+        )
     if (localAvatarFile.exists() && localAvatarFile.isFile) {
         val bitmap = FileInputStream(localAvatarFile).use {
             BitmapFactory.decodeStream(it)
@@ -132,7 +135,8 @@ private fun UserAvatar(profileDetails: ProfileDetails) {
         )
     } else {
         Box(
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.heightIn(max = 96.dp)
         ) {
             CircularProgressIndicator()
             AsyncImage(

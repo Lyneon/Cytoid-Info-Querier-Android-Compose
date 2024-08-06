@@ -34,6 +34,10 @@ class ProfileViewModel(
         updateUIState { copy(expandQueryOptionsDropdownMenu = expandQueryOptionsDropdownMenu) }
     }
 
+    fun setExpandAnalyticsOptionsDropdownMenu(expandAnalyticsOptionsDropdownMenu: Boolean) {
+        updateUIState { copy(expandAnalyticsOptionsDropdownMenu = expandAnalyticsOptionsDropdownMenu) }
+    }
+
     fun setIgnoreLocalCacheData(ignoreLocalCacheData: Boolean) {
         updateUIState { copy(ignoreLocalCacheData = ignoreLocalCacheData) }
     }
@@ -69,6 +73,7 @@ data class ProfileUiState(
     val cytoidID: String = "",
     val foldTextFiled: Boolean = false,
     val expandQueryOptionsDropdownMenu: Boolean = false,
+    val expandAnalyticsOptionsDropdownMenu: Boolean = false,
     val ignoreLocalCacheData: Boolean = false,
     val keep2DecimalPlaces: Boolean = true,
     val errorMessage: String = ""

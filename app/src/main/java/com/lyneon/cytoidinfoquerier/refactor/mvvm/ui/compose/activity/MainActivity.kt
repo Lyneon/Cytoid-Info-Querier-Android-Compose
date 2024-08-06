@@ -1,11 +1,7 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowInsetsController
-import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -57,6 +53,7 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.AnalyticsScreen
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.HistoryScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.HomeScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.ProfileScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.SettingsScreen
@@ -103,7 +100,10 @@ class MainActivity : BaseActivity() {
         Home("home"),
         Analytics("analytics"),
         Profile("profile"),
-        Settings("settings")
+        Settings("settings"),
+        History("history/{type}"),
+        AnalyticsHistory("history/analytics"),
+        ProfileHistory("history/profile")
     }
 }
 
@@ -144,7 +144,7 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             contentDescription = null
                         )
                     },
-                    selected = currentScreenRoute == MainActivity.Screen.Analytics.route,
+                    selected = currentScreenRoute.startsWith(MainActivity.Screen.Analytics.route),
                     onClick = {
                         navHostController.navigate(MainActivity.Screen.Analytics.route) {
                             launchSingleTop = true
@@ -160,7 +160,7 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             contentDescription = null
                         )
                     },
-                    selected = currentScreenRoute == MainActivity.Screen.Profile.route,
+                    selected = currentScreenRoute.startsWith(MainActivity.Screen.Profile.route),
                     onClick = {
                         navHostController.navigate(MainActivity.Screen.Profile.route) {
                             launchSingleTop = true
@@ -218,8 +218,26 @@ private fun MainContent(navHostController: NavHostController) {
         }
     ) {
         composable(MainActivity.Screen.Home.route) { HomeScreen() }
-        composable(MainActivity.Screen.Analytics.route) { AnalyticsScreen() }
-        composable(MainActivity.Screen.Profile.route) { ProfileScreen() }
+        composable(MainActivity.Screen.Analytics.route) {
+            AnalyticsScreen(
+                navController = navHostController,
+                navBackStackEntry = it
+            )
+        }
+        composable(MainActivity.Screen.Analytics.route + "/{initialCytoidID}/{initialCacheType}/{initialCacheTime}") {
+            AnalyticsScreen(
+                navController = navHostController,
+                navBackStackEntry = it,
+                withInitials = true
+            )
+        }
+        composable(MainActivity.Screen.Profile.route) { ProfileScreen(navController = navHostController) }
         composable(MainActivity.Screen.Settings.route) { SettingsScreen() }
+        composable(MainActivity.Screen.History.route) {
+            HistoryScreen(
+                navController = navHostController,
+                navBackStackEntry = it
+            )
+        }
     }
 }

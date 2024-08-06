@@ -15,8 +15,10 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
@@ -59,12 +61,15 @@ import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.component.UserDetailsHeader
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState
@@ -78,7 +83,10 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AnalyticsScreen(
-    viewModel: AnalyticsViewModel = viewModel()
+    viewModel: AnalyticsViewModel = viewModel(),
+    navController: NavController,
+    navBackStackEntry: NavBackStackEntry,
+    withInitials: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val bestRecords by viewModel.bestRecords.collectAsState()
@@ -102,6 +110,23 @@ fun AnalyticsScreen(
         })
     }
 
+    if (withInitials) {
+        val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
+        val initialCacheType = navBackStackEntry.arguments?.getString("initialCacheType")
+        val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+        if (initialCytoidID != null && initialCacheType != null && initialCacheTime != null) {
+            viewModel.setCytoidID(initialCytoidID)
+            viewModel.updateProfileDetailsWithInnerScope()
+            if (initialCacheType == "BestRecords") {
+                viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                viewModel.loadSpecificCacheBestRecords(initialCacheTime)
+            } else {
+                viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
+            }
+        }
+    }
+
     LaunchedEffect(exoPlayer) {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(newPlaybackState: Int) {
@@ -123,6 +148,36 @@ fun AnalyticsScreen(
                             )
                         }
                     }
+                    IconButton(onClick = {
+                        viewModel.setExpandAnalyticsOptionsDropdownMenu(true)
+                    }) {
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
+                        DropdownMenu(
+                            expanded = uiState.expandAnalyticsOptionsDropdownMenu,
+                            onDismissRequest = {
+                                viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                            }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(text = stringResource(id = R.string.history)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.History,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    navController.navigate(MainActivity.Screen.AnalyticsHistory.route) {
+                                        launchSingleTop = true
+                                        popUpTo(MainActivity.Screen.AnalyticsHistory.route) {
+                                            inclusive = true
+                                        }
+                                    }
+                                    viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                                }
+                            )
+                        }
+                    }
                 }
             )
         },
@@ -130,7 +185,11 @@ fun AnalyticsScreen(
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
                 FloatingActionButton(onClick = { exoPlayer.stop() }) {
                     if (playbackState == ExoPlayer.STATE_BUFFERING) {
-                        CircularProgressIndicator(modifier = Modifier.padding(12.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .scale(0.8f)
+                        )
                     } else {
                         Icon(
                             imageVector = Icons.Default.Stop,
@@ -206,8 +265,6 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
                                         viewModel.enqueueQuery()
                                     } catch (e: Exception) {
                                         viewModel.setErrorMessage(e.message.toString())
-                                    } finally {
-                                        viewModel.setIsQuerying(false)
                                     }
                                 }
                             }
@@ -242,14 +299,14 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(id = R.string.best_records))
+                    Text(text = AnalyticsUIState.QueryType.BestRecords.displayName)
                     RadioButton(
-                        selected = uiState.queryType == AnalyticsUIState.QueryType.BEST_RECORDS,
-                        onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BEST_RECORDS) }
+                        selected = uiState.queryType == AnalyticsUIState.QueryType.BestRecords,
+                        onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) }
                     )
                 }
             },
-            onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BEST_RECORDS) }
+            onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) }
         )
         DropdownMenuItem(
             text = {
@@ -258,14 +315,14 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(id = R.string.recent_records))
+                    Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName)
                     RadioButton(
-                        selected = uiState.queryType == AnalyticsUIState.QueryType.RECENT_RECORDS,
-                        onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RECENT_RECORDS) }
+                        selected = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords,
+                        onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) }
                     )
                 }
             },
-            onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RECENT_RECORDS) }
+            onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) }
         )
         TextField(
             modifier = Modifier.padding(8.dp),
@@ -372,13 +429,12 @@ private fun ResultDisplayList(
             profileDetails?.let {
                 item {
                     UserDetailsHeader(
-                        cytoidID = uiState.cytoidID,
                         profileDetails = profileDetails,
                         keep2DecimalPlaces = uiState.keep2DecimalPlaces
                     )
                 }
             }
-            if (uiState.queryType == AnalyticsUIState.QueryType.BEST_RECORDS) {
+            if (uiState.queryType == AnalyticsUIState.QueryType.BestRecords) {
                 bestRecords?.data?.profile?.let { profile ->
                     var remainRecordsToShowCount =
                         uiState.queryCount.run { if (this.isNotEmpty() && this.isDigitsOnly()) this.toInt() else 0 }

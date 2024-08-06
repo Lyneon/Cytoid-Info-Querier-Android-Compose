@@ -732,7 +732,7 @@ object AnalyticsImageHandler {
                     textSize = 70f
                 })
                 addText(
-                    "${records.size} ${recordsType.value}",
+                    "${records.size} ${recordsType.displayName}",
                     getDefaultPaint().apply { textSize = 50f })
             }.getBitmap()
         )
