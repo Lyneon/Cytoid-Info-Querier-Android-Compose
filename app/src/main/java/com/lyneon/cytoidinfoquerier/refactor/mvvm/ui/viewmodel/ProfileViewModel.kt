@@ -1,6 +1,5 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.ProfileGraphQL
@@ -74,16 +73,12 @@ class ProfileViewModel(
                         cytoidID = uiState.cytoidID,
                         disableLocalCache = uiState.ignoreLocalCacheData
                     )
-                    Log.i("ProfileViewModel", "Profile details fetched")
-                    Log.i("ProfileViewModel", _profileDetails.value.toString())
                 }
                 val profileGraphQLJob = async {
                     _profileGraphQL.value = profileGraphQLRepository.getProfileGraphQL(
                         cytoidID = uiState.cytoidID,
                         disableLocalCache = uiState.ignoreLocalCacheData
                     )
-                    Log.i("ProfileViewModel", "Profile GraphQL fetched")
-                    Log.i("ProfileViewModel", _profileGraphQL.value.toString())
                 }
                 val profileCommentListJob = async {
                     awaitAll(profileDetailsJob)
@@ -92,8 +87,6 @@ class ProfileViewModel(
                         id = _profileDetails.value?.user?.id,
                         disableLocalCache = uiState.ignoreLocalCacheData
                     )
-                    Log.i("ProfileViewModel", "Profile comment list fetched")
-                    Log.i("ProfileViewModel", _profileCommentList.value.toString())
                 }
                 awaitAll(profileDetailsJob, profileGraphQLJob, profileCommentListJob)
                 updateUIState { copy(isQuerying = false) }
