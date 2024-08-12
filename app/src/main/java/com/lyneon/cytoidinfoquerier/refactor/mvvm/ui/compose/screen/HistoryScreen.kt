@@ -32,7 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,31 +72,8 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = stringResource(R.string.history))
-                        when (uiState.historyType) {
-                            HistoryUIState.HistoryType.AnalyticsBestRecords -> "Analytics"
-                            HistoryUIState.HistoryType.AnalyticsRecentRecords -> "Analytics"
-                            HistoryUIState.HistoryType.Profile -> "Profile"
-                        }.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                }
+                title = { TopAppBarTitle(uiState) },
+                navigationIcon = { TopAppBarBackNavigationIcon(navController) }
             )
         }
     ) { paddingValues ->
@@ -108,19 +85,7 @@ fun HistoryScreen(
                     BaseApplication.context.getExternalFilesDir(type.directoryName)
                 when (type) {
                     HistoryUIState.HistoryType.AnalyticsBestRecords, HistoryUIState.HistoryType.AnalyticsRecentRecords -> {
-                        PrimaryTabRow(selectedTabIndex = type.ordinal) {
-                            Tab(
-                                selected = type.ordinal == HistoryUIState.HistoryType.AnalyticsBestRecords.ordinal,
-                                onClick = { viewModel.setHistoryType(HistoryUIState.HistoryType.AnalyticsBestRecords) },
-                                text = { Text(text = HistoryUIState.HistoryType.AnalyticsBestRecords.displayName) }
-                            )
-                            Tab(
-                                selected = type.ordinal == HistoryUIState.HistoryType.AnalyticsRecentRecords.ordinal,
-                                onClick = { viewModel.setHistoryType(HistoryUIState.HistoryType.AnalyticsRecentRecords) },
-                                text = { Text(text = HistoryUIState.HistoryType.AnalyticsRecentRecords.displayName) }
-                            )
-                        }
-
+                        AnalyticsHistoryTypeTabRow(selectedType = type, viewModel = viewModel)
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
@@ -171,7 +136,7 @@ private fun HistoryUserCard(
     historyType: HistoryUIState.HistoryType,
     navController: NavController
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val userHistoryFiles = userHistoryDir.listFiles()
 
     if (!userHistoryFiles.isNullOrEmpty()) {
@@ -249,16 +214,14 @@ private fun HistoryItemCard(
 
     Card(
         onClick = {
+            repeat(2) { navController.navigateUp() }
             when (historyType) {
                 HistoryUIState.HistoryType.AnalyticsBestRecords -> {
                     navController.navigate(
                         MainActivity.Screen.Analytics.route + "/${cytoidID}/BestRecords/${
                             historyItemFile.name.removeSuffix(".json")
                         }"
-                    ) {
-                        launchSingleTop = true
-                        popUpTo(MainActivity.Screen.Analytics.route) { inclusive = true }
-                    }
+                    )
                 }
 
                 HistoryUIState.HistoryType.AnalyticsRecentRecords -> {
@@ -266,14 +229,11 @@ private fun HistoryItemCard(
                         MainActivity.Screen.Analytics.route + "/${cytoidID}/RecentRecords/${
                             historyItemFile.name.removeSuffix(".json")
                         }"
-                    ) {
-                        launchSingleTop = true
-                        popUpTo(MainActivity.Screen.Analytics.route) { inclusive = true }
-                    }
+                    )
                 }
 
                 HistoryUIState.HistoryType.Profile -> {
-
+                    // TODO: Implement profile details screen
                 }
             }
         }
@@ -298,5 +258,54 @@ private fun HistoryItemCard(
                 else -> Unit
             }
         }
+    }
+}
+
+@Composable
+private fun TopAppBarTitle(uiState: HistoryUIState) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = stringResource(R.string.history))
+        when (uiState.historyType) {
+            HistoryUIState.HistoryType.AnalyticsBestRecords -> "Analytics"
+            HistoryUIState.HistoryType.AnalyticsRecentRecords -> "Analytics"
+            HistoryUIState.HistoryType.Profile -> "Profile"
+        }.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun TopAppBarBackNavigationIcon(navController: NavController) {
+    IconButton(onClick = { navController.navigateUp() }) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+            contentDescription = stringResource(R.string.back)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AnalyticsHistoryTypeTabRow(
+    selectedType: HistoryUIState.HistoryType,
+    viewModel: HistoryViewModel
+) {
+    PrimaryTabRow(selectedTabIndex = selectedType.ordinal) {
+        Tab(
+            selected = selectedType.ordinal == HistoryUIState.HistoryType.AnalyticsBestRecords.ordinal,
+            onClick = { viewModel.setHistoryType(HistoryUIState.HistoryType.AnalyticsBestRecords) },
+            text = { Text(text = HistoryUIState.HistoryType.AnalyticsBestRecords.displayName) }
+        )
+        Tab(
+            selected = selectedType.ordinal == HistoryUIState.HistoryType.AnalyticsRecentRecords.ordinal,
+            onClick = { viewModel.setHistoryType(HistoryUIState.HistoryType.AnalyticsRecentRecords) },
+            text = { Text(text = HistoryUIState.HistoryType.AnalyticsRecentRecords.displayName) }
+        )
     }
 }

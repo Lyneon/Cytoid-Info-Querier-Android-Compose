@@ -125,7 +125,7 @@ fun RecordCard(
                             RecordCardMusicPreviewButton(
                                 exoPlayer = exoPlayer,
                                 playbackState = playbackState,
-                                musicPreviewUrl = record.chart.level.bundle?.musicPreview.toString()
+                                musicPreviewUrl = level.bundle?.musicPreview ?: level.bundle?.music
                             )
                         }
                     }
@@ -337,23 +337,27 @@ private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel)
 private fun RecordCardMusicPreviewButton(
     exoPlayer: ExoPlayer,
     playbackState: Int,
-    musicPreviewUrl: String
+    musicPreviewUrl: String?
 ) {
     AnimatedVisibility(visible = playbackState == ExoPlayer.STATE_IDLE || playbackState == ExoPlayer.STATE_ENDED) {
         IconButton(
             onClick = {
-                exoPlayer.apply {
-                    setMediaSource(
-                        ProgressiveMediaSource.Factory(
-                            DefaultHttpDataSource.Factory()
-                                .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
-                        ).createMediaSource(
-                            MediaItem.Builder()
-                                .setUri(Uri.parse(musicPreviewUrl)).build()
+                if (musicPreviewUrl == null) {
+                    "没有音乐预览！".showToast()
+                } else {
+                    exoPlayer.apply {
+                        setMediaSource(
+                            ProgressiveMediaSource.Factory(
+                                DefaultHttpDataSource.Factory()
+                                    .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
+                            ).createMediaSource(
+                                MediaItem.Builder()
+                                    .setUri(Uri.parse(musicPreviewUrl)).build()
+                            )
                         )
-                    )
-                    prepare()
-                    play()
+                        prepare()
+                        play()
+                    }
                 }
             },
             modifier = Modifier

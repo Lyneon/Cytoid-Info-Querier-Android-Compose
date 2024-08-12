@@ -43,6 +43,9 @@ class AnalyticsViewModel(
 
     fun setCytoidID(cytoidID: String) {
         updateUIState { copy(cytoidID = cytoidID) }
+        clearBestRecords()
+        clearRecentRecords()
+        clearProfileDetails()
     }
 
     fun setFoldTextFiled(foldTextFiled: Boolean) {
@@ -119,6 +122,29 @@ class AnalyticsViewModel(
                 )
             }
         }
+    }
+
+    fun clearBestRecords() {
+        _bestRecords.value = null
+    }
+
+    fun clearRecentRecords() {
+        _recentRecords.value = null
+    }
+
+    fun clearProfileDetails() {
+        _profileDetails.value = null
+    }
+
+    fun clearUIState() {
+        _uiState.value = AnalyticsUIState()
+    }
+
+    fun clearAll() {
+        clearBestRecords()
+        clearRecentRecords()
+        clearProfileDetails()
+        clearUIState()
     }
 
     private suspend fun updateBestRecords() {

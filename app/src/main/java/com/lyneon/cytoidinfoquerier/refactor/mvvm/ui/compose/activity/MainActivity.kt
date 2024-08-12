@@ -1,8 +1,10 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -10,10 +12,16 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ShowChart
@@ -26,12 +34,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.PermanentNavigationDrawer
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,10 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -60,11 +65,10 @@ import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.SettingsScre
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 
 class MainActivity : BaseActivity() {
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
 
         setContent {
             val mainActivity = LocalContext.current as MainActivity
@@ -79,18 +83,22 @@ class MainActivity : BaseActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (calculateWindowSizeClass(this).widthSizeClass == WindowWidthSizeClass.Expanded)
-                        PermanentNavigationDrawer(
-                            drawerContent = { DrawerContent(navHostController) { this.finish() } }
-                        ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                            RailContent(
+                                navHostController = navHostController
+                            ) { mainActivity.finish() }
                             MainContent(navHostController = navHostController)
-                        }
-                    else
-                        ModalNavigationDrawer(
-                            drawerContent = { DrawerContent(navHostController) { this.finish() } }
-                        ) {
-                            MainContent(navHostController = navHostController)
-                        }
+                        } else
+                            ModalNavigationDrawer(
+                                drawerContent = { DrawerContent(navHostController) { mainActivity.finish() } },
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                MainContent(navHostController = navHostController)
+                            }
+                    }
                 }
             }
         }
@@ -198,6 +206,113 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                         )
                         Text(text = stringResource(id = R.string.exit))
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RailContent(
+    navHostController: NavHostController,
+    onExitButtonClick: () -> Unit
+) {
+    var currentScreenRoute by remember { mutableStateOf(MainActivity.Screen.Home.route) }
+
+    navHostController.addOnDestinationChangedListener { _, destination, _ ->
+        currentScreenRoute = destination.route.toString()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(
+                top = WindowInsets.statusBars
+                    .asPaddingValues()
+                    .calculateTopPadding(),
+                bottom = WindowInsets.navigationBars
+                    .asPaddingValues()
+                    .calculateBottomPadding()
+            )
+            .padding(8.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            NavigationRailItem(
+                selected = currentScreenRoute == MainActivity.Screen.Home.route,
+                onClick = {
+                    navHostController.navigate(MainActivity.Screen.Home.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.Home.route)
+                    }
+                },
+                icon = { Icon(imageVector = Icons.Default.Home, contentDescription = null) },
+                label = { Text(text = stringResource(R.string.home)) }
+            )
+            NavigationRailItem(
+                selected = currentScreenRoute.startsWith(MainActivity.Screen.Analytics.route),
+                onClick = {
+                    navHostController.navigate(MainActivity.Screen.Analytics.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.Analytics.route)
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ShowChart,
+                        contentDescription = null
+                    )
+                },
+                label = { Text(text = stringResource(R.string.analytics)) }
+            )
+            NavigationRailItem(
+                selected = currentScreenRoute.startsWith(MainActivity.Screen.Profile.route),
+                onClick = {
+                    navHostController.navigate(MainActivity.Screen.Profile.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.Profile.route)
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null
+                    )
+                },
+                label = { Text(text = stringResource(R.string.profile)) }
+            )
+        }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            NavigationRailItem(
+                selected = currentScreenRoute == MainActivity.Screen.Settings.route,
+                onClick = {
+                    navHostController.navigate(MainActivityScreens.Settings.name) {
+                        launchSingleTop = true
+                        this.popUpTo(MainActivityScreens.Settings.name)
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                },
+                label = { Text(text = stringResource(R.string.settings)) }
+            )
+            Button(onClick = onExitButtonClick) {
+                Column {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    Text(text = stringResource(id = R.string.exit))
                 }
             }
         }
