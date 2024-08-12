@@ -1,20 +1,32 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileCommentListRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileDetailsRepository
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileGraphQLRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class ProfileViewModel(
     private val profileDetailsRepository: ProfileDetailsRepository = ProfileDetailsRepository(),
+    private val profileGraphQLRepository: ProfileGraphQLRepository = ProfileGraphQLRepository(),
     private val profileCommentListRepository: ProfileCommentListRepository = ProfileCommentListRepository()
 ) : ViewModel() {
     private val _profileDetails = MutableStateFlow<ProfileDetails?>(null)
     val profileDetails: StateFlow<ProfileDetails?> get() = _profileDetails.asStateFlow()
+
+    private val _profileGraphQL = MutableStateFlow<ProfileGraphQL?>(null)
+    val profileGraphQL: StateFlow<ProfileGraphQL?> get() = _profileGraphQL.asStateFlow()
 
     private val _profileCommentList = MutableStateFlow<List<ProfileComment>?>(null)
     val profileCommentList: StateFlow<List<ProfileComment>?> get() = _profileCommentList.asStateFlow()
@@ -50,17 +62,42 @@ class ProfileViewModel(
         updateUIState { copy(errorMessage = errorMessage) }
     }
 
+    fun setIsQuerying(isQuerying: Boolean) {
+        updateUIState { copy(isQuerying = isQuerying) }
+    }
+
     suspend fun enqueueQuery() {
-        uiState.value.let { uiState ->
-            _profileDetails.value = profileDetailsRepository.getProfileDetails(
-                cytoidID = uiState.cytoidID,
-                disableLocalCache = uiState.ignoreLocalCacheData
-            )
-            _profileCommentList.value = profileCommentListRepository.getProfileCommentList(
-                cytoidID = uiState.cytoidID,
-                id = _profileDetails.value?.user?.id ?: return@let,
-                disableLocalCache = uiState.ignoreLocalCacheData
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            uiState.value.let { uiState ->
+                val profileDetailsJob = async {
+                    _profileDetails.value = profileDetailsRepository.getProfileDetails(
+                        cytoidID = uiState.cytoidID,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
+                    Log.i("ProfileViewModel", "Profile details fetched")
+                    Log.i("ProfileViewModel", _profileDetails.value.toString())
+                }
+                val profileGraphQLJob = async {
+                    _profileGraphQL.value = profileGraphQLRepository.getProfileGraphQL(
+                        cytoidID = uiState.cytoidID,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
+                    Log.i("ProfileViewModel", "Profile GraphQL fetched")
+                    Log.i("ProfileViewModel", _profileGraphQL.value.toString())
+                }
+                val profileCommentListJob = async {
+                    awaitAll(profileDetailsJob)
+                    _profileCommentList.value = profileCommentListRepository.getProfileCommentList(
+                        cytoidID = uiState.cytoidID,
+                        id = _profileDetails.value?.user?.id,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
+                    Log.i("ProfileViewModel", "Profile comment list fetched")
+                    Log.i("ProfileViewModel", _profileCommentList.value.toString())
+                }
+                awaitAll(profileDetailsJob, profileGraphQLJob, profileCommentListJob)
+                updateUIState { copy(isQuerying = false) }
+            }
         }
     }
 
@@ -76,5 +113,6 @@ data class ProfileUiState(
     val expandAnalyticsOptionsDropdownMenu: Boolean = false,
     val ignoreLocalCacheData: Boolean = false,
     val keep2DecimalPlaces: Boolean = true,
-    val errorMessage: String = ""
+    val errorMessage: String = "",
+    val isQuerying: Boolean = false
 )

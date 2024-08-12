@@ -48,6 +48,7 @@ fun UserAvatar(
             Image(
                 modifier = Modifier
                     .heightIn(max = 96.dp)
+                    .clip(CircleShape)
                     .clickable {
                         BaseApplication.context.startActivity(
                             Intent(
@@ -57,8 +58,7 @@ fun UserAvatar(
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 .addCategory(Intent.CATEGORY_BROWSABLE)
                         )
-                    }
-                    .clip(CircleShape),
+                    },
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null
             )
@@ -71,6 +71,7 @@ fun UserAvatar(
                 AsyncImage(
                     modifier = Modifier
                         .heightIn(max = 96.dp)
+                        .clip(CircleShape)
                         .clickable {
                             BaseApplication.context.startActivity(
                                 Intent(
@@ -80,8 +81,7 @@ fun UserAvatar(
                                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     .addCategory(Intent.CATEGORY_BROWSABLE)
                             )
-                        }
-                        .clip(CircleShape),
+                        },
                     model = getImageRequestBuilderForCytoid(remoteAvatarUrl)
                         .build(),
                     contentDescription = null,

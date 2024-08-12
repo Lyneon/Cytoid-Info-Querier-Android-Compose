@@ -116,6 +116,7 @@ data class ProfileGraphQL(
                         levels {
                             uid
                             title
+                            description
                             metadata {
                                 artist {
                                     name

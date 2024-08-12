@@ -7,9 +7,9 @@ import com.lyneon.cytoidinfoquerier.util.extension.getLastProfileCommentListCach
 class ProfileCommentListRepository {
     suspend fun getProfileCommentList(
         cytoidID: String,
-        id: String,
+        id: String?,
         disableLocalCache: Boolean = false
-    ) = if (disableLocalCache)
+    ) = if (id == null) emptyList() else if (disableLocalCache)
         RemoteDataSource.fetchProfileCommentList(id)
     else {
         val lastProfileCommentListCacheTime = cytoidID.getLastProfileCommentListCacheTime()

@@ -223,7 +223,10 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    AnimatedVisibility(visible = !uiState.foldTextFiled) {
+    AnimatedVisibility(
+        modifier = Modifier.fillMaxWidth(),
+        visible = !uiState.foldTextFiled
+    ) {
         TextField(
             value = uiState.cytoidID,
             onValueChange = { if (it.length <= 16) viewModel.setCytoidID(it) },
@@ -257,7 +260,7 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
                             if (uiState.cytoidID.isEmpty()) {
                                 viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
                             } else {
-                                scope.launch {
+                                scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
                                     try {
                                         viewModel.setIsQuerying(true)
                                         viewModel.enqueueQuery()
