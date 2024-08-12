@@ -1,6 +1,7 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen
 
 import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -114,7 +115,16 @@ private fun AppInfoCard() {
             Text(
                 text = stringResource(id = R.string.app_name)
             )
-            Text(text = "版本 ${packageInfo.versionName}(${packageInfo.versionCode})")
+            Text(
+                text = "版本 ${packageInfo.versionName}(${
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        packageInfo.longVersionCode
+                    } else {
+                        @Suppress("DEPRECATION")
+                        packageInfo.versionCode
+                    }
+                })"
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -219,7 +229,16 @@ private fun CytoidInfoCard() {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(text = "Cytoid")
-                    Text(text = "版本 ${cytoidPackageInfo.versionName}(${cytoidPackageInfo.versionCode})")
+                    Text(
+                        text = "版本 ${cytoidPackageInfo.versionName}(${
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                cytoidPackageInfo.longVersionCode
+                            } else {
+                                @Suppress("DEPRECATION")
+                                cytoidPackageInfo.versionCode
+                            }
+                        })"
+                    )
                 }
             }
         }
