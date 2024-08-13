@@ -36,7 +36,7 @@
     <string name="enable_sentry">启用Sentry</string>
     <string name="changes_need_restart_to_enable">需要重启应用程序使更改生效</string>
     <string name="delete_cache_image">删除缓存图像</string>
-    <string name="delete_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等。删除后仍可重新下载</string>
+    <string name="delete_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等图像缓存</string>
     <string name="cytoid_resource_declare">本应用中的部分图片资源来自于Cytoid项目，数据来源于cytoid.io。在GNU General Public License v3.0许可证下使用</string>
     <string name="fail">操作失败</string>
     <string name="all_contents">全部内容</string>
@@ -63,4 +63,9 @@
     <string name="rotate">旋转</string>
     <string name="decrease">减少</string>
     <string name="increase">增加</string>
+    <string name="history">历史记录</string>
+    <string name="query_type_declaration">实际查询时会获取两种类型的数据，你可以在这里选择要查看的类型</string>
+    <string name="query_type">查询类型</string>
+    <string name="query_options">查询选项</string>
+    <string name="sentry_description">启用Sentry后，应用中未捕获的异常信息将会上传至Sentry平台，以帮助开发者定位和修复问题</string>
 </resources>

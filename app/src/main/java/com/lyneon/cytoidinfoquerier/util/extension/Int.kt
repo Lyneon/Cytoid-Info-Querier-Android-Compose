@@ -2,7 +2,7 @@ package com.lyneon.cytoidinfoquerier.util.extension
 
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 
-fun Int.isMaxCytoidGrade() = this == CytoidScoreRange.max
+fun Int.isMaxCytoidGrade() = this == CytoidScoreRange.MAX
 
 fun Int.isSSSCytoidGrade() = this in CytoidScoreRange.sss
 
