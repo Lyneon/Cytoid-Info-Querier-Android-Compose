@@ -1,76 +1,236 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.lyneon.cytoidinfoquerier.data.model.ui.AnalyticsScreenDataModel
-import com.lyneon.cytoidinfoquerier.logic.Repository
+import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
+import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
+import com.lyneon.cytoidinfoquerier.data.repository.BestRecordsRepository
+import com.lyneon.cytoidinfoquerier.data.repository.ProfileDetailsRepository
+import com.lyneon.cytoidinfoquerier.data.repository.RecentRecordsRepository
+import com.lyneon.cytoidinfoquerier.logic.AnalyticsImageHandler
+import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AnalyticsViewModel(
+    private val bestRecordsRepository: BestRecordsRepository = BestRecordsRepository(),
+    private val recentRecordsRepository: RecentRecordsRepository = RecentRecordsRepository(),
+    private val profileDetailsRepository: ProfileDetailsRepository = ProfileDetailsRepository()
 ) : ViewModel() {
-    private val _state = MutableStateFlow(AnalyticsState())
-    val state: StateFlow<AnalyticsState> = _state.asStateFlow()
+    private val _bestRecords = MutableStateFlow<BestRecords?>(null)
+    val bestRecords: StateFlow<BestRecords?> get() = _bestRecords.asStateFlow()
 
-    fun updateCytoidID(cytoidID: String) {
-        _state.value.cytoidID.value = cytoidID
+    private val _recentRecords = MutableStateFlow<RecentRecords?>(null)
+    val recentRecords: StateFlow<RecentRecords?> get() = _recentRecords.asStateFlow()
+
+    private val _profileDetails = MutableStateFlow<ProfileDetails?>(null)
+    val profileDetails: StateFlow<ProfileDetails?> get() = _profileDetails.asStateFlow()
+
+    private val _uiState = MutableStateFlow(AnalyticsUIState())
+    val uiState: StateFlow<AnalyticsUIState> get() = _uiState.asStateFlow()
+
+    fun setCytoidID(cytoidID: String) {
+        updateUIState { copy(cytoidID = cytoidID) }
+        clearBestRecords()
+        clearRecentRecords()
+        clearProfileDetails()
     }
 
-    suspend fun updateAnalytics(cytoidID: String, ignoreCache: Boolean, queryCount: Int) {
-        _state.value.analytics.value =
-            Repository.getAnalyticsScreenDataModel(cytoidID, ignoreCache, queryCount, queryCount)
+    fun setFoldTextFiled(foldTextFiled: Boolean) {
+        updateUIState { copy(foldTextFiled = foldTextFiled) }
     }
 
-    fun hideInput() {
-        _state.value.hideInput.value = true
+    fun setExpandQueryOptionsDropdownMenu(expandQueryOptionsDropdownMenu: Boolean) {
+        updateUIState { copy(expandQueryOptionsDropdownMenu = expandQueryOptionsDropdownMenu) }
     }
 
-    fun updateQuerySettingsMenuIsExpanded(isExpanded: Boolean) {
-        _state.value.querySettingsMenuIsExpanded.value = isExpanded
+    fun setExpandAnalyticsOptionsDropdownMenu(expandAnalyticsOptionsDropdownMenu: Boolean) {
+        updateUIState { copy(expandAnalyticsOptionsDropdownMenu = expandAnalyticsOptionsDropdownMenu) }
     }
 
-    fun updateQueryType(queryType: QueryType) {
-        _state.value.queryType.value = queryType
+    fun setQueryType(queryType: AnalyticsUIState.QueryType) {
+        updateUIState { copy(queryType = queryType) }
     }
 
-    fun updateQueryCount(queryCount: Int?) {
-        _state.value.queryCount.value = queryCount
+    fun setQueryCount(queryCount: String) {
+        updateUIState { copy(queryCount = queryCount) }
     }
 
-    fun updateIgnoreCache(ignoreCache: Boolean) {
-        _state.value.ignoreCache.value = ignoreCache
+    fun setIgnoreLocalCacheData(ignoreLocalCacheData: Boolean) {
+        updateUIState { copy(ignoreLocalCacheData = ignoreLocalCacheData) }
     }
 
-    fun updateKeep2DecimalPlace(keep2DecimalPlace: Boolean) {
-        _state.value.keep2DecimalPlace.value = keep2DecimalPlace
+    fun setKeep2DecimalPlaces(keep2DecimalPlaces: Boolean) {
+        updateUIState { copy(keep2DecimalPlaces = keep2DecimalPlaces) }
     }
 
-    fun updateColumnsCount(columnsCount: Int?) {
-        _state.value.columnsCount.value = columnsCount
+    fun setImageGenerationColumns(imageGenerationColumns: String) {
+        updateUIState { copy(imageGenerationColumns = imageGenerationColumns) }
     }
 
-    fun updateErrorMessage(errorMessage: String) {
-        _state.value.errorMessage.value = errorMessage
+    fun setErrorMessage(errorMessage: String) {
+        updateUIState { copy(errorMessage = errorMessage) }
+    }
+
+    fun setIsQuerying(isQuerying: Boolean) {
+        updateUIState { copy(isQuerying = isQuerying) }
+    }
+
+    fun enqueueQuery() = viewModelScope.launch(Dispatchers.IO) {
+        val queryRecordsJob = async {
+            when (uiState.value.queryType) {
+                AnalyticsUIState.QueryType.BestRecords -> updateBestRecords()
+                AnalyticsUIState.QueryType.RecentRecords -> updateRecentRecords()
+            }
+        }
+        val queryProfileDetailsJob = async {
+            updateProfileDetails()
+        }
+        awaitAll(queryRecordsJob, queryProfileDetailsJob)
+        setIsQuerying(false)
+    }
+
+    fun loadSpecificCacheBestRecords(timeStamp: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            updateBestRecords(
+                bestRecordsRepository.getSpecificCacheBestRecords(
+                    cytoidID = uiState.value.cytoidID,
+                    timeStamp = timeStamp
+                )
+            )
+        }
+    }
+
+    fun loadSpecificCacheRecentRecords(timeStamp: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            updateRecentRecords(
+                recentRecordsRepository.getSpecificCacheRecentRecords(
+                    cytoidID = uiState.value.cytoidID,
+                    timeStamp = timeStamp
+                )
+            )
+        }
+    }
+
+    fun clearBestRecords() = updateBestRecords(null)
+
+    fun clearRecentRecords() = updateRecentRecords(null)
+
+    fun clearProfileDetails() = updateProfileDetails(null)
+
+    fun clearUIState() = updateUIState(AnalyticsUIState())
+
+    fun clearAll() {
+        clearBestRecords()
+        clearRecentRecords()
+        clearProfileDetails()
+        clearUIState()
+    }
+
+    private suspend fun updateBestRecords() {
+        uiState.value.let { uiState ->
+            updateBestRecords(
+                bestRecordsRepository.getBestRecords(
+                    cytoidID = uiState.cytoidID,
+                    count = uiState.queryCount.toInt(),
+                    disableLocalCache = uiState.ignoreLocalCacheData
+                )
+            )
+        }
+    }
+
+    private suspend fun updateRecentRecords() {
+        uiState.value.let { uiState ->
+            updateRecentRecords(
+                recentRecordsRepository.getRecentRecords(
+                    cytoidID = uiState.cytoidID,
+                    count = uiState.queryCount.toInt(),
+                    disableLocalCache = uiState.ignoreLocalCacheData
+                )
+            )
+        }
+    }
+
+    suspend fun updateProfileDetails() {
+        uiState.value.let { uiState ->
+            updateProfileDetails(
+                profileDetailsRepository.getProfileDetails(
+                    cytoidID = uiState.cytoidID,
+                    disableLocalCache = uiState.ignoreLocalCacheData
+                )
+            )
+        }
+    }
+
+    fun updateProfileDetailsWithInnerScope() {
+        viewModelScope.launch(Dispatchers.IO) {
+            updateProfileDetails()
+        }
+    }
+
+    private fun updateUIState(update: AnalyticsUIState.() -> AnalyticsUIState) {
+        updateUIState(_uiState.value.update())
+    }
+
+    fun updateBestRecords(bestRecords: BestRecords?) {
+        _bestRecords.update { bestRecords }
+    }
+
+    fun updateRecentRecords(recentRecords: RecentRecords?) {
+        _recentRecords.update { recentRecords }
+    }
+
+    fun updateProfileDetails(profileDetails: ProfileDetails?) {
+        _profileDetails.update { profileDetails }
+    }
+
+    fun updateUIState(uiState: AnalyticsUIState) {
+        _uiState.update { uiState }
+    }
+
+    fun saveRecordsAsPicture() {
+        viewModelScope.launch(Dispatchers.IO) {
+            require(_profileDetails.value != null)
+            withContext(Dispatchers.IO) {
+                AnalyticsImageHandler.getRecordsImage(
+                    profileDetails = profileDetails.value!!,
+                    records = (if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords)
+                        bestRecords.value!!.data.profile?.bestRecords
+                    else recentRecords.value!!.data.profile?.recentRecords) ?: emptyList(),
+                    recordsType = uiState.value.queryType,
+                    columnsCount = uiState.value.imageGenerationColumns.toInt(),
+                    keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
+                ).saveIntoMediaStore()
+                "图片已保存至媒体库".showToast()
+            }
+        }
     }
 }
 
-class AnalyticsState {
-    val analytics: MutableState<AnalyticsScreenDataModel?> = mutableStateOf(null)
-    val cytoidID: MutableState<String?> = mutableStateOf(null)
-    val isQueryFinished: MutableState<Boolean> = mutableStateOf(false)
-    val queryType: MutableState<QueryType> = mutableStateOf(QueryType.BestRecords)
-    val ignoreCache: MutableState<Boolean> = mutableStateOf(false)
-    val keep2DecimalPlace: MutableState<Boolean> = mutableStateOf(true)
-    val queryCount: MutableState<Int?> = mutableStateOf(30)
-    val columnsCount: MutableState<Int?> = mutableStateOf(6)
-    val querySettingsMenuIsExpanded: MutableState<Boolean> = mutableStateOf(false)
-    val hideInput: MutableState<Boolean> = mutableStateOf(false)
-    val errorMessage: MutableState<String?> = mutableStateOf(null)
-}
-
-enum class QueryType {
-    BestRecords,
-    RecentRecords
+data class AnalyticsUIState(
+    val cytoidID: String = "",
+    val foldTextFiled: Boolean = false,
+    val expandQueryOptionsDropdownMenu: Boolean = false,
+    val expandAnalyticsOptionsDropdownMenu: Boolean = false,
+    val queryType: QueryType = QueryType.BestRecords,
+    val queryCount: String = "30",
+    val ignoreLocalCacheData: Boolean = false,
+    val keep2DecimalPlaces: Boolean = true,
+    val imageGenerationColumns: String = "6",
+    val errorMessage: String = "",
+    val isQuerying: Boolean = false
+) {
+    enum class QueryType(val displayName: String) {
+        BestRecords("Best Records"),
+        RecentRecords("Recent Records")
+    }
 }

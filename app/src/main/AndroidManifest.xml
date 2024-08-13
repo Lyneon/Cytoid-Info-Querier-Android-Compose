@@ -34,7 +34,7 @@
             android:exported="false"
             android:theme="@style/Theme.CytoidInfoQuerierCompose" />
         <activity
-            android:name="com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity.MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.CytoidInfoQuerierCompose">
             <intent-filter>
@@ -42,12 +42,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".logic.service.ImageGenerateService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="specialUse" />
 
     </application>
 

@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Intent
 import android.os.Looper
 import android.os.Process
-import androidx.compose.material3.DrawerState
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
 import com.tencent.mmkv.MMKV
@@ -16,7 +15,6 @@ class BaseApplication : Application() {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: BaseApplication
         var cytoidIsInstalled = false
-        lateinit var mainActivityDrawerState: DrawerState
 
         fun restartApp() {
             val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)

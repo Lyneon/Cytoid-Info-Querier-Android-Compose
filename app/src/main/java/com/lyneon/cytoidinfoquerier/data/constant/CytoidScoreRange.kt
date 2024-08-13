@@ -1,7 +1,7 @@
 package com.lyneon.cytoidinfoquerier.data.constant
 
 object CytoidScoreRange {
-    val max = 1000000
+    const val MAX = 1000000
     val sss = 999000 until 1000000
     val ss = 995000 until 999000
     val s = 990000 until 995000

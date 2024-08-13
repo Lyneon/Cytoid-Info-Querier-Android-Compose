@@ -4,13 +4,17 @@ import android.os.Bundle
 import android.os.Process
 import android.view.KeyEvent
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import com.lyneon.cytoidinfoquerier.BaseActivity
-import com.lyneon.cytoidinfoquerier.ui.activity.ui.theme.CytoidInfoQuerierComposeTheme
-import com.lyneon.cytoidinfoquerier.ui.compose.CrashActivityCompose
+import com.lyneon.cytoidinfoquerier.ui.compose.screen.CrashActivityScreen
+import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 
 
 class CrashActivity : BaseActivity() {
@@ -20,16 +24,20 @@ class CrashActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         val crashMessage = intent.getStringExtra(KEY_EXTRA_CRASH_MESSAGE) ?: "No Message"
         setContent {
             CytoidInfoQuerierComposeTheme {
-                // A surface container using the 'background' color from the theme
+                (LocalContext.current as CrashActivity).window.apply {
+                    navigationBarColor = Color.Transparent.toArgb()
+                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CrashActivityCompose(crashMessage)
+                    CrashActivityScreen(crashMessage)
                 }
             }
         }
