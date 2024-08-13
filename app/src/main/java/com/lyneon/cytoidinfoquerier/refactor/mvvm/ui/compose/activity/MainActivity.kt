@@ -1,6 +1,7 @@
 package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -12,14 +13,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,23 +54,52 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.constant.MainActivityScreens
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.AnalyticsScreen
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.GridColumnsCountSettingScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.HistoryScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.HomeScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.ProfileScreen
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen.SettingsScreen
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
+import com.tencent.mmkv.MMKV
+import io.sentry.SentryEvent
+import io.sentry.SentryLevel
+import io.sentry.SentryOptions
+import io.sentry.android.core.SentryAndroid
+import io.sentry.android.core.SentryAndroidOptions
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
+
+        val mmkv = MMKV.defaultMMKV()
+
+        if (mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY.name, true)) {
+            SentryAndroid.init(this) { options: SentryAndroidOptions ->
+                options.setDsn("https://0149a51a6abff3008e5272ea306abf47@o4507079700971520.ingest.de.sentry.io/4507079706804304")
+                // Add a callback that will be used before the event is sent to Sentry.
+                // With this callback, you can modify the event or, when returning null, also discard the event.
+                options.beforeSend =
+                    SentryOptions.BeforeSendCallback { event: SentryEvent, _ ->
+                        event.level?.let { eventLevel ->
+                            return@BeforeSendCallback if (eventLevel < SentryLevel.ERROR) null else event
+                        }
+                    }
+            }
+        }
 
         setContent {
             val mainActivity = LocalContext.current as MainActivity
             val navHostController = rememberNavController()
+
+            navHostController.addOnDestinationChangedListener { _, destination, _ ->
+                if (destination.route != Screen.GridColumnsCountSetting.route) {
+                    mainActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                }
+            }
 
             CytoidInfoQuerierComposeTheme {
                 mainActivity.window.apply {
@@ -87,9 +114,13 @@ class MainActivity : BaseActivity() {
                         modifier = Modifier.fillMaxSize()
                     ) {
                         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            RailContent(
-                                navHostController = navHostController
-                            ) { mainActivity.finish() }
+                            NavigationRail(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ) {
+                                RailContent(
+                                    navHostController = navHostController
+                                ) { mainActivity.finish() }
+                            }
                             MainContent(navHostController = navHostController)
                         } else
                             ModalNavigationDrawer(
@@ -109,6 +140,7 @@ class MainActivity : BaseActivity() {
         Analytics("analytics"),
         Profile("profile"),
         Settings("settings"),
+        GridColumnsCountSetting("settings/gridColumnsCount"),
         History("history/{type}"),
         AnalyticsHistory("history/analytics"),
         ProfileHistory("history/profile")
@@ -226,14 +258,6 @@ private fun RailContent(
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .padding(
-                top = WindowInsets.statusBars
-                    .asPaddingValues()
-                    .calculateTopPadding(),
-                bottom = WindowInsets.navigationBars
-                    .asPaddingValues()
-                    .calculateBottomPadding()
-            )
             .padding(8.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.SpaceBetween
@@ -359,7 +383,12 @@ private fun MainContent(navHostController: NavHostController) {
                 withInitials = true
             )
         }
-        composable(MainActivity.Screen.Settings.route) { SettingsScreen() }
+        composable(MainActivity.Screen.Settings.route) { SettingsScreen(navController = navHostController) }
+        composable(MainActivity.Screen.GridColumnsCountSetting.route) {
+            GridColumnsCountSettingScreen(
+                navController = navHostController
+            )
+        }
         composable(MainActivity.Screen.History.route) {
             HistoryScreen(
                 navController = navHostController,

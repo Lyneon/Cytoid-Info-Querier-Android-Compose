@@ -88,7 +88,12 @@ fun HistoryScreen(
                         AnalyticsHistoryTypeTabRow(selectedType = type, viewModel = viewModel)
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                top = 16.dp,
+                                end = 16.dp,
+                                bottom = paddingValues.calculateBottomPadding()
+                            ),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             localHistoryTypeDir?.listFiles().orEmpty()
@@ -106,9 +111,13 @@ fun HistoryScreen(
 
                     HistoryUIState.HistoryType.Profile -> {
                         LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                top = 16.dp,
+                                end = 16.dp,
+                                bottom = paddingValues.calculateBottomPadding()
+                            ),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             localHistoryTypeDir?.listFiles().orEmpty()

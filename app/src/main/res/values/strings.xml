@@ -67,4 +67,5 @@
     <string name="query_type_declaration">实际查询时会获取两种类型的数据，你可以在这里选择要查看的类型</string>
     <string name="query_type">查询类型</string>
     <string name="query_options">查询选项</string>
+    <string name="sentry_description">启用Sentry后，应用中未捕获的异常信息将会上传至Sentry平台，以帮助开发者定位和修复问题</string>
 </resources>

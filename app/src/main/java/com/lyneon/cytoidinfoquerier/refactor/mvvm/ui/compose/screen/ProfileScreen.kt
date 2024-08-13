@@ -398,9 +398,9 @@ private fun ResultDisplayColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(0.dp))
             profileDetails?.let {
                 UserDetailsHeader(
                     profileDetails = it,
@@ -434,7 +434,7 @@ private fun ResultDisplayColumn(
             profileCommentList?.let { CommentList(commentList = it) }
             Spacer(
                 modifier = Modifier.height(
-                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() - 8.dp
                 )
             )
         }

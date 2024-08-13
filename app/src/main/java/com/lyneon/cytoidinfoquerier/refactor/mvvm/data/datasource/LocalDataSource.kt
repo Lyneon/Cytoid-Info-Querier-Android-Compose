@@ -13,7 +13,9 @@ import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.screen.ProfileScree
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.setLastCacheTime
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import java.io.File
@@ -47,68 +49,98 @@ object LocalDataSource {
         */
 
     suspend fun loadBestRecords(cytoidID: String, timeStamp: Long): BestRecords =
-        json.decodeFromString(loadJSONString("BestRecords", cytoidID, timeStamp))
+        json.decodeFromString(loadJSONString(LocalDataType.BestRecords.name, cytoidID, timeStamp))
 
     suspend fun saveBestRecords(cytoidID: String, bestRecords: BestRecords) =
-        saveJSONString("BestRecords", cytoidID, bestRecords)
+        saveJSONString(LocalDataType.BestRecords.name, cytoidID, bestRecords)
 
     suspend fun loadRecentRecords(cytoidID: String, timeStamp: Long): RecentRecords =
-        json.decodeFromString(loadJSONString("RecentRecords", cytoidID, timeStamp))
+        json.decodeFromString(loadJSONString(LocalDataType.RecentRecords.name, cytoidID, timeStamp))
 
     suspend fun saveRecentRecords(cytoidID: String, recentRecords: RecentRecords) =
-        saveJSONString("RecentRecords", cytoidID, recentRecords)
+        saveJSONString(LocalDataType.RecentRecords.name, cytoidID, recentRecords)
 
     suspend fun loadProfileGraphQL(cytoidID: String, timeStamp: Long): ProfileGraphQL =
-        json.decodeFromString(loadJSONString("ProfileGraphQL", cytoidID, timeStamp))
+        json.decodeFromString(
+            loadJSONString(
+                LocalDataType.ProfileGraphQL.name,
+                cytoidID,
+                timeStamp
+            )
+        )
 
     suspend fun saveProfileGraphQL(cytoidID: String, profileGraphQL: ProfileGraphQL) =
-        saveJSONString("ProfileGraphQL", cytoidID, profileGraphQL)
+        saveJSONString(LocalDataType.ProfileGraphQL.name, cytoidID, profileGraphQL)
 
     suspend fun loadProfileDetails(cytoidID: String, timeStamp: Long): ProfileDetails =
-        json.decodeFromString(loadJSONString("ProfileDetails", cytoidID, timeStamp))
+        json.decodeFromString(
+            loadJSONString(
+                LocalDataType.ProfileDetails.name,
+                cytoidID,
+                timeStamp
+            )
+        )
 
     suspend fun saveProfileDetails(cytoidID: String, profileDetails: ProfileDetails) =
-        saveJSONString("ProfileDetails", cytoidID, profileDetails)
+        saveJSONString(LocalDataType.ProfileDetails.name, cytoidID, profileDetails)
 
     suspend fun loadProfileCommentList(cytoidID: String, timeStamp: Long): List<ProfileComment> =
-        json.decodeFromString(loadJSONString("ProfileCommentList", cytoidID, timeStamp))
+        json.decodeFromString(
+            loadJSONString(
+                LocalDataType.ProfileCommentList.name,
+                cytoidID,
+                timeStamp
+            )
+        )
 
     suspend fun saveProfileCommentList(cytoidID: String, profileCommentList: List<ProfileComment>) =
-        saveJSONString("ProfileCommentList", cytoidID, profileCommentList)
+        saveJSONString(LocalDataType.ProfileCommentList.name, cytoidID, profileCommentList)
 
     suspend fun loadProfileScreenDataModel(
         cytoidID: String,
         timeStamp: Long
     ): ProfileScreenDataModel =
-        json.decodeFromString(loadJSONString("ProfileScreenDataModel", cytoidID, timeStamp))
+        json.decodeFromString(
+            loadJSONString(
+                LocalDataType.ProfileScreenDataModel.name,
+                cytoidID,
+                timeStamp
+            )
+        )
 
     suspend fun saveProfileScreenDataModel(
         cytoidID: String,
         profileScreenDataModel: ProfileScreenDataModel
     ) =
-        saveJSONString("ProfileScreenDataModel", cytoidID, profileScreenDataModel)
+        saveJSONString(LocalDataType.ProfileScreenDataModel.name, cytoidID, profileScreenDataModel)
 
     suspend fun loadAvatarBitmap(cytoidID: String, size: AvatarSize): Bitmap =
-        loadImageBitmap("avatar/$cytoidID", size.value)
+        loadImageBitmap("${LocalDataType.Avatar.name}/$cytoidID", size.value)
 
     suspend fun saveAvatarBitmap(cytoidID: String, size: AvatarSize, bitmap: Bitmap) =
-        saveImageBitmap("avatar/$cytoidID", size.value, bitmap)
+        saveImageBitmap("${LocalDataType.Avatar.name}/$cytoidID", size.value, bitmap)
 
     fun getAvatarBitmapFile(cytoidID: String, size: AvatarSize): File =
-        File(BaseApplication.context.getExternalFilesDir("avatar/$cytoidID"), size.value)
+        File(
+            BaseApplication.context.getExternalFilesDir("${LocalDataType.Avatar.name}/$cytoidID"),
+            size.value
+        )
 
     suspend fun loadBackgroundImageBitmap(levelUID: String, size: BackgroundImageSize) =
-        loadImageBitmap("background_image/$levelUID", size.value)
+        loadImageBitmap("${LocalDataType.BackgroundImage.name}/$levelUID", size.value)
 
     suspend fun saveBackgroundImageBitmap(
         levelUID: String,
         size: BackgroundImageSize,
         bitmap: Bitmap
     ) =
-        saveImageBitmap("background_image/$levelUID", size.value, bitmap)
+        saveImageBitmap("${LocalDataType.BackgroundImage.name}/$levelUID", size.value, bitmap)
 
     fun getBackgroundImageBitmapFile(levelUID: String, size: BackgroundImageSize) =
-        File(BaseApplication.context.getExternalFilesDir("background_image/$levelUID"), size.value)
+        File(
+            BaseApplication.context.getExternalFilesDir("${LocalDataType.BackgroundImage.name}/$levelUID"),
+            size.value
+        )
 
     private suspend fun loadJSONString(type: String, cytoidID: String, timeStamp: Long): String =
         withContext(Dispatchers.IO) {
@@ -153,4 +185,29 @@ object LocalDataSource {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
             }
         }
+
+    fun clearAvatar() = clearLocalData(LocalDataType.Avatar)
+    fun clearBackgroundImage() = clearLocalData(LocalDataType.BackgroundImage)
+    fun clearBestRecords() = clearLocalData(LocalDataType.BestRecords)
+    fun clearRecentRecords() = clearLocalData(LocalDataType.RecentRecords)
+    fun clearProfileGraphQL() = clearLocalData(LocalDataType.ProfileGraphQL)
+    fun clearProfileDetails() = clearLocalData(LocalDataType.ProfileDetails)
+    fun clearProfileCommentList() = clearLocalData(LocalDataType.ProfileCommentList)
+    fun clearProfileScreenDataModel() = clearLocalData(LocalDataType.ProfileScreenDataModel)
+    fun clearAllLocalData() = LocalDataType.entries.forEach { clearLocalData(it) }
+
+    fun clearLocalData(type: LocalDataType) = CoroutineScope(Dispatchers.IO).launch {
+        BaseApplication.context.getExternalFilesDir(type.name)?.deleteRecursively()
+    }
+
+    enum class LocalDataType {
+        Avatar,
+        BackgroundImage,
+        BestRecords,
+        RecentRecords,
+        ProfileGraphQL,
+        ProfileDetails,
+        ProfileCommentList,
+        ProfileScreenDataModel
+    }
 }
