@@ -6,6 +6,8 @@ import android.net.Uri
 import android.text.Spannable
 import android.text.style.ForegroundColorSpan
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -149,9 +151,7 @@ fun ProfileScreen(
     navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val profileDetails by viewModel.profileDetails.collectAsState()
-    val profileGraphQL by viewModel.profileGraphQL.collectAsState()
-    val profileCommentList by viewModel.profileCommentList.collectAsState()
+    val profileScreenDataModel by viewModel.profileScreenDataModel.collectAsState()
     var playbackState by remember { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
     var isPlaying by remember { mutableStateOf(false) }
     val exoPlayer by remember {
@@ -241,15 +241,17 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp)
         ) {
             ProfileInputField(uiState, viewModel)
-            if (!uiState.isQuerying && profileDetails != null && profileCommentList != null) {
-                ResultDisplayColumn(
-                    uiState,
-                    profileDetails,
-                    profileGraphQL,
-                    profileCommentList,
-                    exoPlayer,
-                    playbackState
-                )
+            if (!uiState.isQuerying) {
+                profileScreenDataModel?.let {
+                    ResultDisplayColumn(
+                        uiState,
+                        it.profileDetails,
+                        it.profileGraphQL,
+                        it.commentList,
+                        exoPlayer,
+                        playbackState
+                    )
+                }
             }
         }
     }
@@ -262,7 +264,9 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
 
     AnimatedVisibility(
         modifier = Modifier.fillMaxWidth(),
-        visible = !uiState.foldTextFiled
+        visible = !uiState.foldTextFiled,
+        enter = expandIn(expandFrom = Alignment.TopCenter),
+        exit = shrinkOut(shrinkTowards = Alignment.TopCenter)
     ) {
         TextField(
             value = uiState.cytoidID,

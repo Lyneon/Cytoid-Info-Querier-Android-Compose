@@ -68,6 +68,7 @@ import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.LocalDataSource
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.enums.BackgroundImageSize
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.type.UserRecord
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
@@ -287,7 +288,7 @@ private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel)
 
     val currentLevelLocalBackgroundImageFile = LocalDataSource.getBackgroundImageBitmapFile(
         level.uid,
-        LocalDataSource.BackgroundImageSize.ORIGINAL
+        BackgroundImageSize.ORIGINAL
     )
     if (currentLevelLocalBackgroundImageFile.isFile) {
         val bitmap = FileInputStream(currentLevelLocalBackgroundImageFile).use {
@@ -317,7 +318,7 @@ private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel)
                             scope.launch(Dispatchers.IO) {
                                 LocalDataSource.saveBackgroundImageBitmap(
                                     level.uid,
-                                    LocalDataSource.BackgroundImageSize.ORIGINAL,
+                                    BackgroundImageSize.ORIGINAL,
                                     successState.result.drawable.toBitmap()
                                 )
                             }

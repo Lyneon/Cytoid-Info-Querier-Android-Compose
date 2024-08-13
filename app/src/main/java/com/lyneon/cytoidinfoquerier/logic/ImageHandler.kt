@@ -22,6 +22,8 @@ import com.lyneon.cytoidinfoquerier.data.constant.toIntArray
 import com.lyneon.cytoidinfoquerier.data.model.graphql.UserRecord
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileWebapi
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.LocalDataSource
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.enums.AvatarSize
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.enums.BackgroundImageSize
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.AnalyticsUIState
 import com.lyneon.cytoidinfoquerier.util.ColumnBitmap
@@ -705,7 +707,7 @@ object AnalyticsImageHandler {
     ): Bitmap = RowBitmap(contentSpacing = this@AnalyticsImageHandler.padding).apply {
         val localAvatarFile = LocalDataSource.getAvatarBitmapFile(
             profileDetails.user.uid,
-            LocalDataSource.AvatarSize.LARGE
+            AvatarSize.LARGE
         )
         val avatarBitmap = if (localAvatarFile.exists() && localAvatarFile.isFile) {
             FileInputStream(localAvatarFile).use {
@@ -715,7 +717,7 @@ object AnalyticsImageHandler {
             URL(profileDetails.user.avatar.large).toBitmap().also { _bitmap ->
                 LocalDataSource.saveAvatarBitmap(
                     profileDetails.user.uid,
-                    LocalDataSource.AvatarSize.LARGE,
+                    AvatarSize.LARGE,
                     _bitmap
                 )
             }
@@ -818,7 +820,7 @@ object AnalyticsImageHandler {
             //绘制曲绘
             val localBackgroundImageThumbnailFile = LocalDataSource.getBackgroundImageBitmapFile(
                 record.chart?.level?.uid ?: "",
-                LocalDataSource.BackgroundImageSize.THUMBNAIL
+                BackgroundImageSize.THUMBNAIL
             )
             val backgroundImage =
                 if (localBackgroundImageThumbnailFile.exists() && localBackgroundImageThumbnailFile.isFile) {
@@ -832,7 +834,7 @@ object AnalyticsImageHandler {
                                 .also { _bitmap ->
                                     LocalDataSource.saveBackgroundImageBitmap(
                                         record.chart.level.uid,
-                                        LocalDataSource.BackgroundImageSize.THUMBNAIL,
+                                        BackgroundImageSize.THUMBNAIL,
                                         _bitmap
                                     )
                                 }

@@ -45,3 +45,7 @@ fun String.setLastProfileDetailsCacheTime(timeStamp: Long) =
 fun String.getLastProfileCommentListCacheTime() = this.getLastCacheTime("ProfileCommentList")
 fun String.setLastProfileCommentListCacheTime(timeStamp: Long) =
     this.setLastCacheTime("ProfileCommentList", timeStamp)
+
+fun String.getLastProfileScreenDataModelCacheTime() = this.getLastCacheTime("ProfileScreenDataModel")
+fun String.setLastProfileScreenDataModelCacheTime(timeStamp: Long) =
+    this.setLastCacheTime("ProfileScreenDataModel", timeStamp)

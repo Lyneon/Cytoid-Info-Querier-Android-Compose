@@ -4,9 +4,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.json
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.enums.AvatarSize
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.enums.BackgroundImageSize
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.setLastCacheTime
@@ -73,6 +76,18 @@ object LocalDataSource {
     suspend fun saveProfileCommentList(cytoidID: String, profileCommentList: List<ProfileComment>) =
         saveJSONString("ProfileCommentList", cytoidID, profileCommentList)
 
+    suspend fun loadProfileScreenDataModel(
+        cytoidID: String,
+        timeStamp: Long
+    ): ProfileScreenDataModel =
+        json.decodeFromString(loadJSONString("ProfileScreenDataModel", cytoidID, timeStamp))
+
+    suspend fun saveProfileScreenDataModel(
+        cytoidID: String,
+        profileScreenDataModel: ProfileScreenDataModel
+    ) =
+        saveJSONString("ProfileScreenDataModel", cytoidID, profileScreenDataModel)
+
     suspend fun loadAvatarBitmap(cytoidID: String, size: AvatarSize): Bitmap =
         loadImageBitmap("avatar/$cytoidID", size.value)
 
@@ -121,7 +136,7 @@ object LocalDataSource {
         withContext(Dispatchers.IO) {
             val localImageDir =
                 BaseApplication.context.getExternalFilesDir(path)
-            val targetImageFile = File(localImageDir, fileName)
+            val targetImageFile = File(localImageDir, "${fileName}.png")
             FileInputStream(targetImageFile).use {
                 BitmapFactory.decodeStream(it)
             }
@@ -131,21 +146,11 @@ object LocalDataSource {
         withContext(Dispatchers.IO) {
             val localImageDir =
                 BaseApplication.context.getExternalFilesDir(path)
-            val targetImageFile = File(localImageDir, fileName)
+            val targetImageFile = File(localImageDir, "${fileName}.png")
             targetImageFile.parentFile?.mkdirs()
             targetImageFile.createNewFile()
             FileOutputStream(targetImageFile).use {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
             }
         }
-
-    enum class AvatarSize(val value: String) {
-        ORIGINAL("original"),
-        LARGE("large")
-    }
-
-    enum class BackgroundImageSize(val value: String) {
-        THUMBNAIL("thumbnail"),
-        ORIGINAL("original")
-    }
 }

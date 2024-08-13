@@ -3,6 +3,8 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.screen
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -225,7 +227,9 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
 
     AnimatedVisibility(
         modifier = Modifier.fillMaxWidth(),
-        visible = !uiState.foldTextFiled
+        visible = !uiState.foldTextFiled,
+        enter = expandIn(expandFrom = Alignment.TopCenter),
+        exit = shrinkOut(shrinkTowards = Alignment.TopCenter)
     ) {
         TextField(
             value = uiState.cytoidID,

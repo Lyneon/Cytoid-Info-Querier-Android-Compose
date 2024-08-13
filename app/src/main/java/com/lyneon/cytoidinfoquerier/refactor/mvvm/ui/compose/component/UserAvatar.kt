@@ -20,6 +20,7 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.datasource.LocalDataSource
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
@@ -30,7 +31,7 @@ import java.io.FileOutputStream
 fun UserAvatar(
     modifier: Modifier = Modifier,
     userUid: String,
-    avatarSize: LocalDataSource.AvatarSize = LocalDataSource.AvatarSize.LARGE,
+    avatarSize: AvatarSize = AvatarSize.LARGE,
     remoteAvatarUrl: String
 ) {
     Box(

@@ -2,33 +2,20 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.ProfileGraphQL
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileComment
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileCommentListRepository
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileDetailsRepository
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileGraphQLRepository
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.screen.ProfileScreenDataModel
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileScreenDataModelRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-    private val profileDetailsRepository: ProfileDetailsRepository = ProfileDetailsRepository(),
-    private val profileGraphQLRepository: ProfileGraphQLRepository = ProfileGraphQLRepository(),
-    private val profileCommentListRepository: ProfileCommentListRepository = ProfileCommentListRepository()
+    private val profileScreenDataModelRepository: ProfileScreenDataModelRepository = ProfileScreenDataModelRepository()
 ) : ViewModel() {
-    private val _profileDetails = MutableStateFlow<ProfileDetails?>(null)
-    val profileDetails: StateFlow<ProfileDetails?> get() = _profileDetails.asStateFlow()
-
-    private val _profileGraphQL = MutableStateFlow<ProfileGraphQL?>(null)
-    val profileGraphQL: StateFlow<ProfileGraphQL?> get() = _profileGraphQL.asStateFlow()
-
-    private val _profileCommentList = MutableStateFlow<List<ProfileComment>?>(null)
-    val profileCommentList: StateFlow<List<ProfileComment>?> get() = _profileCommentList.asStateFlow()
+    private val _profileScreenDataModel = MutableStateFlow<ProfileScreenDataModel?>(null)
+    val profileScreenDataModel: StateFlow<ProfileScreenDataModel?> get() = _profileScreenDataModel.asStateFlow()
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> get() = _uiState.asStateFlow()
@@ -68,27 +55,13 @@ class ProfileViewModel(
     suspend fun enqueueQuery() {
         viewModelScope.launch(Dispatchers.IO) {
             uiState.value.let { uiState ->
-                val profileDetailsJob = async {
-                    _profileDetails.value = profileDetailsRepository.getProfileDetails(
-                        cytoidID = uiState.cytoidID,
-                        disableLocalCache = uiState.ignoreLocalCacheData
-                    )
-                }
-                val profileGraphQLJob = async {
-                    _profileGraphQL.value = profileGraphQLRepository.getProfileGraphQL(
-                        cytoidID = uiState.cytoidID,
-                        disableLocalCache = uiState.ignoreLocalCacheData
-                    )
-                }
-                val profileCommentListJob = async {
-                    awaitAll(profileDetailsJob)
-                    _profileCommentList.value = profileCommentListRepository.getProfileCommentList(
-                        cytoidID = uiState.cytoidID,
-                        id = _profileDetails.value?.user?.id,
-                        disableLocalCache = uiState.ignoreLocalCacheData
-                    )
-                }
-                awaitAll(profileDetailsJob, profileGraphQLJob, profileCommentListJob)
+                async {
+                    _profileScreenDataModel.value =
+                        profileScreenDataModelRepository.getProfileScreenDataModel(
+                            cytoidID = uiState.cytoidID,
+                            disableLocalCache = uiState.ignoreLocalCacheData
+                        )
+                }.await()
                 updateUIState { copy(isQuerying = false) }
             }
         }
