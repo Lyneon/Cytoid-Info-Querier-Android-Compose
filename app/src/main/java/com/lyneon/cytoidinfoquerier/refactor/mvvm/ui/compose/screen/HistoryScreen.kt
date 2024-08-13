@@ -46,7 +46,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.json
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
-import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.compose.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.HistoryUIState
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel.HistoryViewModel
@@ -208,7 +208,7 @@ private fun HistoryItemCard(
                 this
             )
 
-            HistoryUIState.HistoryType.Profile -> json.decodeFromString<ProfileDetails>(this)
+            HistoryUIState.HistoryType.Profile -> json.decodeFromString<ProfileScreenDataModel>(this)
         }
     }
 
@@ -233,7 +233,11 @@ private fun HistoryItemCard(
                 }
 
                 HistoryUIState.HistoryType.Profile -> {
-                    // TODO: Implement profile details screen
+                    navController.navigate(
+                        MainActivity.Screen.Profile.route + "/${cytoidID}/${
+                            historyItemFile.name.removeSuffix(".json")
+                        }"
+                    )
                 }
             }
         }

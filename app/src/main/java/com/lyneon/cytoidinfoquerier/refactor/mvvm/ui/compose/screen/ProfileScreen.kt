@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.text.Spannable
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
@@ -91,6 +92,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -148,8 +150,12 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
-    navController: NavController
+    navController: NavController,
+    navBackStackEntry: NavBackStackEntry,
+    withInitials: Boolean = false
 ) {
+    Log.i("ProfileScreen", "Composing")
+
     val uiState by viewModel.uiState.collectAsState()
     val profileScreenDataModel by viewModel.profileScreenDataModel.collectAsState()
     var playbackState by remember { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
@@ -168,6 +174,16 @@ fun ProfileScreen(
                 }
             })
         })
+    }
+
+    if (withInitials) {
+        Log.i("ProfileScreen", "withInitials block entered")
+        val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
+        val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+        if (initialCytoidID != null && initialCacheTime != null) {
+            viewModel.setCytoidID(initialCytoidID)
+            viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
+        }
     }
 
     LaunchedEffect(exoPlayer) {
@@ -270,7 +286,10 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
     ) {
         TextField(
             value = uiState.cytoidID,
-            onValueChange = { viewModel.setCytoidID(it) },
+            onValueChange = {
+                viewModel.setCytoidID(it)
+                viewModel.clearProfileScreenDataModel()
+            },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = !uiState.cytoidID.isValidCytoidID() && uiState.cytoidID.isNotEmpty(),

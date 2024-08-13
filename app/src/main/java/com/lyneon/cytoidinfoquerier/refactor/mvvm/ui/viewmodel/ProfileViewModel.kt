@@ -9,6 +9,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
@@ -52,15 +53,37 @@ class ProfileViewModel(
         updateUIState { copy(isQuerying = isQuerying) }
     }
 
+    fun loadSpecificCacheProfileScreenDataModel(timeStamp: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            updateProfileScreenDataModel(
+                profileScreenDataModelRepository.getSpecificCacheProfileScreenDataModel(
+                    cytoidID = uiState.value.cytoidID,
+                    timeStamp = timeStamp
+                )
+            )
+        }
+    }
+
+    fun clearProfileScreenDataModel() = updateProfileScreenDataModel(null)
+
+    fun updateProfileScreenDataModel(profileScreenDataModel: ProfileScreenDataModel?) {
+        _profileScreenDataModel.update { profileScreenDataModel }
+    }
+
+    fun updateUIState(uiState: ProfileUiState) {
+        _uiState.update { uiState }
+    }
+
     suspend fun enqueueQuery() {
         viewModelScope.launch(Dispatchers.IO) {
             uiState.value.let { uiState ->
                 async {
-                    _profileScreenDataModel.value =
+                    updateProfileScreenDataModel(
                         profileScreenDataModelRepository.getProfileScreenDataModel(
                             cytoidID = uiState.cytoidID,
                             disableLocalCache = uiState.ignoreLocalCacheData
                         )
+                    )
                 }.await()
                 updateUIState { copy(isQuerying = false) }
             }
@@ -68,7 +91,7 @@ class ProfileViewModel(
     }
 
     private fun updateUIState(update: ProfileUiState.() -> ProfileUiState) {
-        _uiState.value = _uiState.value.update()
+        updateUIState(_uiState.value.update())
     }
 }
 

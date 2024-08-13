@@ -3,6 +3,8 @@ package com.lyneon.cytoidinfoquerier.refactor.mvvm.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.logic.AnalyticsImageHandler
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords
+import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.BestRecordsRepository
 import com.lyneon.cytoidinfoquerier.refactor.mvvm.data.repository.ProfileDetailsRepository
@@ -15,6 +17,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -23,17 +26,11 @@ class AnalyticsViewModel(
     private val recentRecordsRepository: RecentRecordsRepository = RecentRecordsRepository(),
     private val profileDetailsRepository: ProfileDetailsRepository = ProfileDetailsRepository()
 ) : ViewModel() {
-    private val _bestRecords =
-        MutableStateFlow<com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords?>(
-            null
-        )
-    val bestRecords: StateFlow<com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.BestRecords?> get() = _bestRecords.asStateFlow()
+    private val _bestRecords = MutableStateFlow<BestRecords?>(null)
+    val bestRecords: StateFlow<BestRecords?> get() = _bestRecords.asStateFlow()
 
-    private val _recentRecords =
-        MutableStateFlow<com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords?>(
-            null
-        )
-    val recentRecords: StateFlow<com.lyneon.cytoidinfoquerier.refactor.mvvm.data.model.graphql.RecentRecords?> get() = _recentRecords.asStateFlow()
+    private val _recentRecords = MutableStateFlow<RecentRecords?>(null)
+    val recentRecords: StateFlow<RecentRecords?> get() = _recentRecords.asStateFlow()
 
     private val _profileDetails = MutableStateFlow<ProfileDetails?>(null)
     val profileDetails: StateFlow<ProfileDetails?> get() = _profileDetails.asStateFlow()
@@ -104,41 +101,33 @@ class AnalyticsViewModel(
 
     fun loadSpecificCacheBestRecords(timeStamp: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            uiState.value.let { uiState ->
-                _bestRecords.value = bestRecordsRepository.getSpecificCacheBestRecords(
-                    cytoidID = uiState.cytoidID,
+            updateBestRecords(
+                bestRecordsRepository.getSpecificCacheBestRecords(
+                    cytoidID = uiState.value.cytoidID,
                     timeStamp = timeStamp
                 )
-            }
+            )
         }
     }
 
     fun loadSpecificCacheRecentRecords(timeStamp: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            uiState.value.let { uiState ->
-                _recentRecords.value = recentRecordsRepository.getSpecificCacheRecentRecords(
-                    cytoidID = uiState.cytoidID,
+            updateRecentRecords(
+                recentRecordsRepository.getSpecificCacheRecentRecords(
+                    cytoidID = uiState.value.cytoidID,
                     timeStamp = timeStamp
                 )
-            }
+            )
         }
     }
 
-    fun clearBestRecords() {
-        _bestRecords.value = null
-    }
+    fun clearBestRecords() = updateBestRecords(null)
 
-    fun clearRecentRecords() {
-        _recentRecords.value = null
-    }
+    fun clearRecentRecords() = updateRecentRecords(null)
 
-    fun clearProfileDetails() {
-        _profileDetails.value = null
-    }
+    fun clearProfileDetails() = updateProfileDetails(null)
 
-    fun clearUIState() {
-        _uiState.value = AnalyticsUIState()
-    }
+    fun clearUIState() = updateUIState(AnalyticsUIState())
 
     fun clearAll() {
         clearBestRecords()
@@ -149,29 +138,35 @@ class AnalyticsViewModel(
 
     private suspend fun updateBestRecords() {
         uiState.value.let { uiState ->
-            _bestRecords.value = bestRecordsRepository.getBestRecords(
-                cytoidID = uiState.cytoidID,
-                count = uiState.queryCount.toInt(),
-                disableLocalCache = uiState.ignoreLocalCacheData
+            updateBestRecords(
+                bestRecordsRepository.getBestRecords(
+                    cytoidID = uiState.cytoidID,
+                    count = uiState.queryCount.toInt(),
+                    disableLocalCache = uiState.ignoreLocalCacheData
+                )
             )
         }
     }
 
     private suspend fun updateRecentRecords() {
         uiState.value.let { uiState ->
-            _recentRecords.value = recentRecordsRepository.getRecentRecords(
-                cytoidID = uiState.cytoidID,
-                count = uiState.queryCount.toInt(),
-                disableLocalCache = uiState.ignoreLocalCacheData
+            updateRecentRecords(
+                recentRecordsRepository.getRecentRecords(
+                    cytoidID = uiState.cytoidID,
+                    count = uiState.queryCount.toInt(),
+                    disableLocalCache = uiState.ignoreLocalCacheData
+                )
             )
         }
     }
 
     suspend fun updateProfileDetails() {
         uiState.value.let { uiState ->
-            _profileDetails.value = profileDetailsRepository.getProfileDetails(
-                cytoidID = uiState.cytoidID,
-                disableLocalCache = uiState.ignoreLocalCacheData
+            updateProfileDetails(
+                profileDetailsRepository.getProfileDetails(
+                    cytoidID = uiState.cytoidID,
+                    disableLocalCache = uiState.ignoreLocalCacheData
+                )
             )
         }
     }
@@ -183,7 +178,23 @@ class AnalyticsViewModel(
     }
 
     private fun updateUIState(update: AnalyticsUIState.() -> AnalyticsUIState) {
-        _uiState.value = _uiState.value.update()
+        updateUIState(_uiState.value.update())
+    }
+
+    fun updateBestRecords(bestRecords: BestRecords?) {
+        _bestRecords.update { bestRecords }
+    }
+
+    fun updateRecentRecords(recentRecords: RecentRecords?) {
+        _recentRecords.update { recentRecords }
+    }
+
+    fun updateProfileDetails(profileDetails: ProfileDetails?) {
+        _profileDetails.update { profileDetails }
+    }
+
+    fun updateUIState(uiState: AnalyticsUIState) {
+        _uiState.update { uiState }
     }
 
     fun saveRecordsAsPicture() {

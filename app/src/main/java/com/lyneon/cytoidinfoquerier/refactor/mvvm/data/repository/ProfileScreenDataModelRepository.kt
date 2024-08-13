@@ -9,21 +9,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
 class ProfileScreenDataModelRepository {
-    private fun getFetchRemoteAndSaveToLocalJob(cytoidID: String) = CoroutineScope(Dispatchers.IO).async {
-        val profileGraphQLJob = async { RemoteDataSource.fetchProfileGraphQL(cytoidID) }
-        val profileDetailsJob = async { RemoteDataSource.fetchProfileDetails(cytoidID) }
-        val commentListJob =
-            async {
-                profileGraphQLJob.await().data.profile?.user?.let {
-                    RemoteDataSource.fetchProfileCommentList(it.id)
-                } ?: emptyList()
-            }
-        ProfileScreenDataModel(
-            profileDetailsJob.await().also { LocalDataSource.saveProfileDetails(cytoidID, it) },
-            profileGraphQLJob.await().also { LocalDataSource.saveProfileGraphQL(cytoidID, it) },
-            commentListJob.await().also { LocalDataSource.saveProfileCommentList(cytoidID, it) }
-        ).also { LocalDataSource.saveProfileScreenDataModel(cytoidID, it) }
-    }
+    private fun getFetchRemoteAndSaveToLocalJob(cytoidID: String) =
+        CoroutineScope(Dispatchers.IO).async {
+            val profileGraphQLJob = async { RemoteDataSource.fetchProfileGraphQL(cytoidID) }
+            val profileDetailsJob = async { RemoteDataSource.fetchProfileDetails(cytoidID) }
+            val commentListJob =
+                async {
+                    profileGraphQLJob.await().data.profile?.user?.let {
+                        RemoteDataSource.fetchProfileCommentList(it.id)
+                    } ?: emptyList()
+                }
+            ProfileScreenDataModel(
+                profileDetailsJob.await().also { LocalDataSource.saveProfileDetails(cytoidID, it) },
+                profileGraphQLJob.await().also { LocalDataSource.saveProfileGraphQL(cytoidID, it) },
+                commentListJob.await().also { LocalDataSource.saveProfileCommentList(cytoidID, it) }
+            ).also { LocalDataSource.saveProfileScreenDataModel(cytoidID, it) }
+        }
 
     suspend fun getProfileScreenDataModel(
         cytoidID: String,
@@ -39,4 +40,9 @@ class ProfileScreenDataModelRepository {
             )
         else getFetchRemoteAndSaveToLocalJob(cytoidID).await()
     }
+
+    suspend fun getSpecificCacheProfileScreenDataModel(
+        cytoidID: String,
+        timeStamp: Long
+    ) = LocalDataSource.loadProfileScreenDataModel(cytoidID, timeStamp)
 }

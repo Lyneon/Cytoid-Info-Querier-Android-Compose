@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class HistoryViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HistoryUIState())
@@ -14,7 +15,11 @@ class HistoryViewModel : ViewModel() {
     }
 
     private fun updateUIState(update: HistoryUIState.() -> HistoryUIState) {
-        _uiState.value = _uiState.value.update()
+        updateUIState(_uiState.value.update())
+    }
+
+    fun updateUIState(uiState: HistoryUIState) {
+        _uiState.update { uiState }
     }
 }
 
@@ -27,6 +32,6 @@ data class HistoryUIState(
     ) {
         AnalyticsBestRecords("Best Records", "BestRecords"),
         AnalyticsRecentRecords("Recent Records", "RecentRecords"),
-        Profile("Profile", "ProfileDetails")
+        Profile("Profile", "ProfileScreenDataModel")
     }
 }

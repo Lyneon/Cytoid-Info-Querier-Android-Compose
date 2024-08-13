@@ -346,7 +346,19 @@ private fun MainContent(navHostController: NavHostController) {
                 withInitials = true
             )
         }
-        composable(MainActivity.Screen.Profile.route) { ProfileScreen(navController = navHostController) }
+        composable(MainActivity.Screen.Profile.route) {
+            ProfileScreen(
+                navController = navHostController,
+                navBackStackEntry = it
+            )
+        }
+        composable(MainActivity.Screen.Profile.route + "/{initialCytoidID}/{initialCacheTime}") {
+            ProfileScreen(
+                navController = navHostController,
+                navBackStackEntry = it,
+                withInitials = true
+            )
+        }
         composable(MainActivity.Screen.Settings.route) { SettingsScreen() }
         composable(MainActivity.Screen.History.route) {
             HistoryScreen(
