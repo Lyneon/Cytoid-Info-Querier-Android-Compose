@@ -1,7 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.component
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -23,9 +22,10 @@ import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
-import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.FileInputStream
-import java.io.FileOutputStream
 
 @Composable
 fun UserAvatar(
@@ -87,20 +87,12 @@ fun UserAvatar(
                         .build(),
                     contentDescription = null,
                     onSuccess = { successState ->
-                        try {
-                            localAvatarFile.run {
-                                this.createNewFile()
-                                FileOutputStream(this)
-                            }.use { output ->
-                                successState.result.drawable.toBitmap()
-                                    .compress(
-                                        Bitmap.CompressFormat.PNG,
-                                        100,
-                                        output
-                                    )
-                            }
-                        } catch (e: Exception) {
-                            e.message?.showToast()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            LocalDataSource.saveAvatarBitmap(
+                                cytoidID = userUid,
+                                bitmap = successState.result.drawable.toBitmap(),
+                                size = avatarSize
+                            )
                         }
                     }
                 )

@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -240,7 +241,11 @@ fun ProfileScreen(
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
                 FloatingActionButton(onClick = { exoPlayer.stop() }) {
                     if (playbackState == ExoPlayer.STATE_BUFFERING) {
-                        CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .scale(0.8f)
+                        )
                     } else {
                         Icon(
                             imageVector = Icons.Default.Stop,
@@ -495,7 +500,9 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = profile.bio)
+                            SelectionContainer {
+                                Text(text = profile.bio)
+                            }
                         }
                     }
                 }
@@ -534,12 +541,14 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                     }
                 }
                 AnimatedVisibility(visible = !folded) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        profile.badges.forEach {
-                            Text(text = it.title)
-                            it.description?.let { it1 -> Text(text = it1) }
+                    SelectionContainer {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            profile.badges.forEach {
+                                Text(text = it.title)
+                                it.description?.let { it1 -> Text(text = it1) }
+                            }
                         }
                     }
                 }
@@ -1165,11 +1174,15 @@ private fun LevelCard(
                     }
                 }
             }
-            LevelCardMusicPreviewButton(
-                exoPlayer = exoPlayer,
-                playbackState = playbackState,
-                musicPreviewUrl = level.bundle?.musicPreview ?: level.bundle?.music
-            )
+            Box(
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                LevelCardMusicPreviewButton(
+                    exoPlayer = exoPlayer,
+                    playbackState = playbackState,
+                    musicPreviewUrl = level.bundle?.musicPreview ?: level.bundle?.music
+                )
+            }
         }
     }
     if (levelDialogState) AlertDialog(
@@ -1338,10 +1351,12 @@ private fun CommentList(commentList: List<ProfileComment>) {
                                         }天前"
                                     )
                                 }
-                                Text(
-                                    text = comment.content,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                                SelectionContainer {
+                                    Text(
+                                        text = comment.content,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
                     }

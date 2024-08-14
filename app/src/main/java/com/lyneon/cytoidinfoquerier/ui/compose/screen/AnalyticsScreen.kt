@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -55,7 +58,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -214,8 +216,7 @@ fun AnalyticsScreen(
                 recentRecords,
                 profileDetails,
                 exoPlayer,
-                playbackState,
-                paddingValues.calculateBottomPadding()
+                playbackState
             )
         }
     }
@@ -420,8 +421,7 @@ private fun ResultDisplayList(
     recentRecords: RecentRecords?,
     profileDetails: ProfileDetails?,
     exoPlayer: ExoPlayer,
-    playbackState: Int,
-    bottomPadding: Dp
+    playbackState: Int
 ) {
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
@@ -433,7 +433,10 @@ private fun ResultDisplayList(
                     else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
                 )
             ),
-            contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding),
+            contentPadding = PaddingValues(
+                top = 16.dp,
+                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            ),
             verticalItemSpacing = 8.dp,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
