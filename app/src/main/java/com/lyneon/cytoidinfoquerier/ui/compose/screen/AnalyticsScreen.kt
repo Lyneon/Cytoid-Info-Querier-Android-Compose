@@ -234,7 +234,14 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
     ) {
         TextField(
             value = uiState.cytoidID,
-            onValueChange = { if (it.length <= 16) viewModel.setCytoidID(it) },
+            onValueChange = {
+                if (it.length <= 16) {
+                    viewModel.setCytoidID(it)
+                    viewModel.clearBestRecords()
+                    viewModel.clearRecentRecords()
+                    viewModel.clearProfileDetails()
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = !uiState.cytoidID.isValidCytoidID() && uiState.cytoidID.isNotEmpty(),
@@ -419,7 +426,6 @@ private fun ResultDisplayList(
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
     } else {
-
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(
                 MMKV.defaultMMKV().decodeInt(

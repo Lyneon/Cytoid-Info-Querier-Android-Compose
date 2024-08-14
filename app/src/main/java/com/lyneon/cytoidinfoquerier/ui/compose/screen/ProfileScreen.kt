@@ -258,7 +258,9 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp)
         ) {
             ProfileInputField(uiState, viewModel)
-            if (!uiState.isQuerying) {
+            if (uiState.errorMessage.isNotEmpty()) {
+                ErrorMessageCard(errorMessage = uiState.errorMessage)
+            } else if (!uiState.isQuerying) {
                 profileScreenDataModel?.let {
                     ResultDisplayColumn(
                         uiState,
@@ -288,8 +290,10 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
         TextField(
             value = uiState.cytoidID,
             onValueChange = {
-                viewModel.setCytoidID(it)
-                viewModel.clearProfileScreenDataModel()
+                if (it.length <= 16) {
+                    viewModel.setCytoidID(it)
+                    viewModel.clearProfileScreenDataModel()
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -316,8 +320,9 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
                         CircularProgressIndicator(modifier = Modifier.scale(0.8f))
                     } else {
                         TextButton(onClick = {
-                            if (uiState.cytoidID.isEmpty()) {
-                                viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
+                            viewModel.setErrorMessage("")
+                            if (!uiState.cytoidID.isValidCytoidID()) {
+                                viewModel.setErrorMessage(context.getString(R.string.invalid_cytoid_id))
                             } else {
                                 scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
                                     viewModel.setIsQuerying(true)
@@ -388,53 +393,49 @@ private fun ResultDisplayColumn(
     exoPlayer: ExoPlayer,
     playbackState: Int
 ) {
-    if (uiState.errorMessage.isNotEmpty()) {
-        ErrorMessageCard(errorMessage = uiState.errorMessage)
-    } else if (!uiState.isQuerying) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            profileDetails?.let {
-                UserDetailsHeader(
-                    profileDetails = it,
-                    keep2DecimalPlaces = uiState.keep2DecimalPlaces
-                )
-            }
-            profileGraphQL?.let {
-                BiographyCard(profileGraphQL = it)
-                BadgesCard(profileGraphQL = profileGraphQL)
-                /*
-                RecentRecordsCard(
-                    profileGraphQL = profileGraphQL,
-                    keep2DecimalPlace = uiState.keep2DecimalPlaces
-                )
-                */
-            }
-            profileDetails?.let {
-                DetailsCard(
-                    profileDetails = it,
-                    keep2DecimalPlace = uiState.keep2DecimalPlaces
-                )
-            }
-            profileGraphQL?.let {
-                CollectionsCard(profileGraphQL = it)
-                LevelsCard(
-                    profileGraphQL = profileGraphQL,
-                    exoPlayer = exoPlayer,
-                    playbackState = playbackState
-                )
-            }
-            profileCommentList?.let { CommentList(commentList = it) }
-            Spacer(
-                modifier = Modifier.height(
-                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() - 8.dp
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Spacer(modifier = Modifier.height(8.dp))
+        profileDetails?.let {
+            UserDetailsHeader(
+                profileDetails = it,
+                keep2DecimalPlaces = uiState.keep2DecimalPlaces
             )
         }
+        profileGraphQL?.let {
+            BiographyCard(profileGraphQL = it)
+            BadgesCard(profileGraphQL = profileGraphQL)
+            /*
+            RecentRecordsCard(
+                profileGraphQL = profileGraphQL,
+                keep2DecimalPlace = uiState.keep2DecimalPlaces
+            )
+            */
+        }
+        profileDetails?.let {
+            DetailsCard(
+                profileDetails = it,
+                keep2DecimalPlace = uiState.keep2DecimalPlaces
+            )
+        }
+        profileGraphQL?.let {
+            CollectionsCard(profileGraphQL = it)
+            LevelsCard(
+                profileGraphQL = profileGraphQL,
+                exoPlayer = exoPlayer,
+                playbackState = playbackState
+            )
+        }
+        profileCommentList?.let { CommentList(commentList = it) }
+        Spacer(
+            modifier = Modifier.height(
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() - 8.dp
+            )
+        )
     }
 }
 
