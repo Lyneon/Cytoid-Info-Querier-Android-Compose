@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileScreenDataModelRepository
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,7 +76,12 @@ class ProfileViewModel(
     }
 
     suspend fun enqueueQuery() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+            updateUIState {
+                copy(errorMessage = throwable.message.toString())
+            }
+            setIsQuerying(false)
+        }) {
             uiState.value.let { uiState ->
                 async {
                     updateProfileScreenDataModel(

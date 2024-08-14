@@ -18,7 +18,7 @@ class RecentRecordsRepository {
             LocalDataSource.loadRecentRecords(cytoidID, lastRecentRecordsCacheTime)
         else
             RemoteDataSource.fetchRecentRecords(cytoidID, count).also {
-                LocalDataSource.saveRecentRecords(cytoidID, it)
+                if (it.data.profile != null) LocalDataSource.saveRecentRecords(cytoidID, it)
             }
     }
 

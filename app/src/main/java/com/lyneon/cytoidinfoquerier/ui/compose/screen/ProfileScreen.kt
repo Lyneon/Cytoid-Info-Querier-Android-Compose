@@ -320,12 +320,8 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
                                 viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
                             } else {
                                 scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
-                                    try {
-                                        viewModel.setIsQuerying(true)
-                                        viewModel.enqueueQuery()
-                                    } catch (e: Exception) {
-                                        viewModel.setErrorMessage(e.message.toString())
-                                    }
+                                    viewModel.setIsQuerying(true)
+                                    viewModel.enqueueQuery()
                                 }
                             }
                         }) {

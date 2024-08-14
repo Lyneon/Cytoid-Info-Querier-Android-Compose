@@ -4,7 +4,6 @@ import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.util.extension.getLastBestRecordsCacheTime
-import com.lyneon.cytoidinfoquerier.util.extension.showToast
 
 class BestRecordsRepository {
     suspend fun getBestRecords(
@@ -16,11 +15,10 @@ class BestRecordsRepository {
     else {
         val lastBestRecordsCacheTime = cytoidID.getLastBestRecordsCacheTime()
         if (System.currentTimeMillis() - lastBestRecordsCacheTime <= 1000 * 60 * 60 * 6) {
-            "正在从本地缓存加载数据".showToast()
             LocalDataSource.loadBestRecords(cytoidID, lastBestRecordsCacheTime)
         } else
             RemoteDataSource.fetchBestRecords(cytoidID, count).also {
-                LocalDataSource.saveBestRecords(cytoidID, it)
+                if (it.data.profile != null) LocalDataSource.saveBestRecords(cytoidID, it)
             }
     }
 

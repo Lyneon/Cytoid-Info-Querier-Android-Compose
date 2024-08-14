@@ -262,16 +262,14 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
                     } else {
                         TextButton(onClick = {
                             viewModel.setErrorMessage("")
-                            if (uiState.cytoidID.isEmpty()) {
-                                viewModel.setErrorMessage(context.getString(R.string.empty_cytoid_id))
+                            if (!uiState.cytoidID.isValidCytoidID()) {
+                                viewModel.setErrorMessage(context.getString(R.string.invalid_cytoid_id))
+                            } else if (uiState.queryCount.isEmpty()) {
+                                viewModel.setErrorMessage(context.getString(R.string.empty_query_count))
                             } else {
                                 scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
-                                    try {
-                                        viewModel.setIsQuerying(true)
-                                        viewModel.enqueueQuery()
-                                    } catch (e: Exception) {
-                                        viewModel.setErrorMessage(e.message.toString())
-                                    }
+                                    viewModel.setIsQuerying(true)
+                                    viewModel.enqueueQuery()
                                 }
                             }
                         }) {
