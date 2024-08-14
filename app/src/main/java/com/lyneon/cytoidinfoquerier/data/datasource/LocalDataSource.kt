@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
-import com.lyneon.cytoidinfoquerier.data.enums.BackgroundImageSize
+import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
@@ -126,17 +126,17 @@ object LocalDataSource {
             size.value
         )
 
-    suspend fun loadBackgroundImageBitmap(levelUID: String, size: BackgroundImageSize) =
+    suspend fun loadBackgroundImageBitmap(levelUID: String, size: ImageSize) =
         loadImageBitmap("${LocalDataType.BackgroundImage.name}/$levelUID", size.value)
 
     suspend fun saveBackgroundImageBitmap(
         levelUID: String,
-        size: BackgroundImageSize,
+        size: ImageSize,
         bitmap: Bitmap
     ) =
         saveImageBitmap("${LocalDataType.BackgroundImage.name}/$levelUID", size.value, bitmap)
 
-    fun getBackgroundImageBitmapFile(levelUID: String, size: BackgroundImageSize) =
+    fun getBackgroundImageBitmapFile(levelUID: String, size: ImageSize) =
         File(
             BaseApplication.context.getExternalFilesDir("${LocalDataType.BackgroundImage.name}/$levelUID"),
             size.value
@@ -200,6 +200,22 @@ object LocalDataSource {
         BaseApplication.context.getExternalFilesDir(type.name)?.deleteRecursively()
     }
 
+    fun getCollectionCoverImageFile(collectionID: String, collectionCoverImageSize: ImageSize) =
+        File(
+            BaseApplication.context.getExternalFilesDir("${LocalDataType.CollectionCoverImage.name}/$collectionID"),
+            collectionCoverImageSize.value
+        )
+
+    suspend fun saveCollectionCoverImage(
+        collectionID: String,
+        collectionCoverImageSize: ImageSize,
+        bitmap: Bitmap
+    ) = saveImageBitmap(
+        "${LocalDataType.CollectionCoverImage.name}/$collectionID",
+        collectionCoverImageSize.value,
+        bitmap
+    )
+
     enum class LocalDataType {
         Avatar,
         BackgroundImage,
@@ -208,6 +224,7 @@ object LocalDataSource {
         ProfileGraphQL,
         ProfileDetails,
         ProfileCommentList,
-        ProfileScreenDataModel
+        ProfileScreenDataModel,
+        CollectionCoverImage
     }
 }

@@ -20,7 +20,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 import com.lyneon.cytoidinfoquerier.data.constant.toIntArray
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
-import com.lyneon.cytoidinfoquerier.data.enums.BackgroundImageSize
+import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsUIState
 import com.lyneon.cytoidinfoquerier.util.ColumnBitmap
@@ -104,7 +104,7 @@ object AnalyticsImageHandler {
     ): Bitmap = RowBitmap(contentSpacing = this@AnalyticsImageHandler.padding).apply {
         val localAvatarFile = LocalDataSource.getAvatarBitmapFile(
             profileDetails.user.uid,
-            AvatarSize.LARGE
+            AvatarSize.Large
         )
         val avatarBitmap = if (localAvatarFile.exists() && localAvatarFile.isFile) {
             FileInputStream(localAvatarFile).use {
@@ -114,7 +114,7 @@ object AnalyticsImageHandler {
             URL(profileDetails.user.avatar.large).toBitmap().also { _bitmap ->
                 LocalDataSource.saveAvatarBitmap(
                     profileDetails.user.uid,
-                    AvatarSize.LARGE,
+                    AvatarSize.Large,
                     _bitmap
                 )
             }
@@ -217,7 +217,7 @@ object AnalyticsImageHandler {
             //绘制曲绘
             val localBackgroundImageThumbnailFile = LocalDataSource.getBackgroundImageBitmapFile(
                 record.chart?.level?.uid ?: "",
-                BackgroundImageSize.THUMBNAIL
+                ImageSize.Thumbnail
             )
             val backgroundImage =
                 if (localBackgroundImageThumbnailFile.exists() && localBackgroundImageThumbnailFile.isFile) {
@@ -231,7 +231,7 @@ object AnalyticsImageHandler {
                                 .also { _bitmap ->
                                     LocalDataSource.saveBackgroundImageBitmap(
                                         record.chart.level.uid,
-                                        BackgroundImageSize.THUMBNAIL,
+                                        ImageSize.Thumbnail,
                                         _bitmap
                                     )
                                 }

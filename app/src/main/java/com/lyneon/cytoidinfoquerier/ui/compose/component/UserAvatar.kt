@@ -31,7 +31,7 @@ import java.io.FileInputStream
 fun UserAvatar(
     modifier: Modifier = Modifier,
     userUid: String,
-    avatarSize: AvatarSize = AvatarSize.LARGE,
+    avatarSize: AvatarSize = AvatarSize.Large,
     remoteAvatarUrl: String
 ) {
     Box(

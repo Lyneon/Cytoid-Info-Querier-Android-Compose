@@ -5,11 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.text.Spannable
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -19,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,6 +29,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -73,6 +73,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,9 +81,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -96,29 +95,31 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
+import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCoverImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
+import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserDetailsHeader
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ProfileUiState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ProfileViewModel
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberEndAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
@@ -156,8 +157,6 @@ fun ProfileScreen(
     navBackStackEntry: NavBackStackEntry,
     withInitials: Boolean = false
 ) {
-    Log.i("ProfileScreen", "Composing")
-
     val uiState by viewModel.uiState.collectAsState()
     val profileScreenDataModel by viewModel.profileScreenDataModel.collectAsState()
     var playbackState by remember { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
@@ -179,7 +178,6 @@ fun ProfileScreen(
     }
 
     if (withInitials) {
-        Log.i("ProfileScreen", "withInitials block entered")
         val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
         val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
         if (initialCytoidID != null && initialCacheTime != null) {
@@ -398,49 +396,55 @@ private fun ResultDisplayColumn(
     exoPlayer: ExoPlayer,
     playbackState: Int
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(
+            top = 8.dp,
+            bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        )
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
         profileDetails?.let {
-            UserDetailsHeader(
-                profileDetails = it,
-                keep2DecimalPlaces = uiState.keep2DecimalPlaces
-            )
+            item {
+                UserDetailsHeader(
+                    profileDetails = it,
+                    keep2DecimalPlaces = uiState.keep2DecimalPlaces
+                )
+            }
         }
         profileGraphQL?.let {
-            BiographyCard(profileGraphQL = it)
-            BadgesCard(profileGraphQL = profileGraphQL)
+            item { BiographyCard(profileGraphQL = it) }
+            item { BadgesCard(profileGraphQL = profileGraphQL) }
             /*
-            RecentRecordsCard(
-                profileGraphQL = profileGraphQL,
-                keep2DecimalPlace = uiState.keep2DecimalPlaces
-            )
+            item {
+                RecentRecordsCard(
+                    profileGraphQL = profileGraphQL,
+                    keep2DecimalPlace = uiState.keep2DecimalPlaces
+                )
+            }
             */
         }
         profileDetails?.let {
-            DetailsCard(
-                profileDetails = it,
-                keep2DecimalPlace = uiState.keep2DecimalPlaces
-            )
+            item {
+                DetailsCard(
+                    profileDetails = it,
+                    keep2DecimalPlace = uiState.keep2DecimalPlaces
+                )
+            }
         }
         profileGraphQL?.let {
-            CollectionsCard(profileGraphQL = it)
-            LevelsCard(
-                profileGraphQL = profileGraphQL,
-                exoPlayer = exoPlayer,
-                playbackState = playbackState
-            )
+            item {
+                CollectionsCard(profileGraphQL = it)
+            }
+            item {
+                LevelsCard(
+                    profileGraphQL = profileGraphQL,
+                    exoPlayer = exoPlayer,
+                    playbackState = playbackState
+                )
+            }
         }
-        profileCommentList?.let { CommentList(commentList = it) }
-        Spacer(
-            modifier = Modifier.height(
-                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() - 8.dp
-            )
-        )
+        profileCommentList?.let { item { CommentList(commentList = it) } }
     }
 }
 
@@ -473,7 +477,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                     }
                 }
                 if (!profile.bio.isNullOrEmpty()) {
-                    var folded by remember { mutableStateOf(false) }
+                    var folded by rememberSaveable { mutableStateOf(false) }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -518,7 +522,7 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
             Column(
                 Modifier.padding(8.dp)
             ) {
-                var folded by remember { mutableStateOf(false) }
+                var folded by rememberSaveable { mutableStateOf(false) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -565,7 +569,7 @@ private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL, keep2DecimalPlace:
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(8.dp)
             ) {
-                var folded by remember { mutableStateOf(false) }
+                var folded by rememberSaveable { mutableStateOf(false) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -611,7 +615,7 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
     val timeSeries = profileDetails.timeSeries.apply {
         sortBy { it.date.replace("-", "").toInt() }
     }
-    val chartEntryModelProducer = ChartEntryModelProducer()
+    val chartEntryModelProducer by remember { mutableStateOf(ChartEntryModelProducer()) }
 
     chartEntryModelProducer.setEntries(timeSeries.map {
         entryOf(
@@ -865,6 +869,10 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                         },
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside
                     ),
+                    endAxis = rememberEndAxis(
+                        valueFormatter = { _, _ -> "" },
+                        horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside
+                    ),
                     marker = markerComponent(
                         label = textComponent(
                             background = shapeComponent(
@@ -877,11 +885,11 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                         indicator = overlayingComponent(
                             outer = shapeComponent(
                                 shape = Shapes.pillShape,
-                                color = MaterialTheme.colorScheme.secondaryContainer
+                                color = MaterialTheme.colorScheme.surface
                             ),
                             inner = shapeComponent(
                                 shape = Shapes.pillShape,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             innerPaddingAll = 8.dp
                         ),
@@ -935,7 +943,7 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                var folded by remember { mutableStateOf(false) }
+                var folded by rememberSaveable { mutableStateOf(false) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -978,17 +986,16 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
 private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.CollectionUserListing) {
     Card {
         Box {
-            collection.cover?.thumbnail?.let {
-                AsyncImage(
-                    model = getImageRequestBuilderForCytoid(collection.cover.thumbnail).build(),
-                    contentDescription = collection.title,
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CollectionCoverImage(
                     modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.FillWidth
+                    collectionID = collection.uid,
+                    collectionCoverImageSize = ImageSize.Original,
+                    remoteUrl = collection.cover?.original
                 )
-            } ?: Image(
-                painter = painterResource(id = R.drawable.sayakacry),
-                contentDescription = null
-            )
+            }
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -1036,7 +1043,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, pla
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                var folded by remember { mutableStateOf(false) }
+                var folded by rememberSaveable { mutableStateOf(false) }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1097,18 +1104,16 @@ private fun LevelCard(
         }
     ) {
         Box {
-            level.bundle?.backgroundImage?.thumbnail?.let {
-                // TODO: 添加缓存功能
-                AsyncImage(
-                    model = getImageRequestBuilderForCytoid(level.bundle.backgroundImage.thumbnail).build(),
-                    contentDescription = level.title,
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                LevelBackgroundImage(
                     modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.FillWidth
+                    levelID = level.uid,
+                    backgroundImageSize = ImageSize.Original,
+                    remoteUrl = level.bundle?.backgroundImage?.original
                 )
-            } ?: Image(
-                painter = painterResource(id = R.drawable.sayakacry),
-                contentDescription = null
-            )
+            }
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -1295,7 +1300,7 @@ private fun CommentList(commentList: List<ProfileComment>) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        var folded by remember { mutableStateOf(false) }
+        var folded by rememberSaveable { mutableStateOf(false) }
 
         Row(
             modifier = Modifier.fillMaxWidth(),

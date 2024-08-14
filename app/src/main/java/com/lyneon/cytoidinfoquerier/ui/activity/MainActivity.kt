@@ -38,7 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -148,7 +148,7 @@ class MainActivity : BaseActivity() {
 
 @Composable
 private fun DrawerContent(navHostController: NavHostController, onExitButtonClick: () -> Unit) {
-    var currentScreenRoute by remember { mutableStateOf(MainActivity.Screen.Home.route) }
+    var currentScreenRoute by rememberSaveable { mutableStateOf(MainActivity.Screen.Home.route) }
 
     navHostController.addOnDestinationChangedListener { _, destination, _ ->
         currentScreenRoute = destination.route.toString()
@@ -248,7 +248,7 @@ private fun RailContent(
     navHostController: NavHostController,
     onExitButtonClick: () -> Unit
 ) {
-    var currentScreenRoute by remember { mutableStateOf(MainActivity.Screen.Home.route) }
+    var currentScreenRoute by rememberSaveable { mutableStateOf(MainActivity.Screen.Home.route) }
 
     navHostController.addOnDestinationChangedListener { _, destination, _ ->
         currentScreenRoute = destination.route.toString()

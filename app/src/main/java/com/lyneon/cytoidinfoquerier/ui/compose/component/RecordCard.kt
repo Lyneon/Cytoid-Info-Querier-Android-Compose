@@ -2,7 +2,6 @@ package com.lyneon.cytoidinfoquerier.ui.compose.component
 
 import android.content.ContentValues
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -48,31 +46,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
-import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
-import com.lyneon.cytoidinfoquerier.data.enums.BackgroundImageSize
+import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.type.UserRecord
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.util.extension.getImageRequestBuilderForCytoid
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
@@ -82,7 +74,6 @@ import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.FileInputStream
 import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
@@ -118,7 +109,16 @@ fun RecordCard(
         ) {
             record.chart?.level?.let { level ->
                 Box {
-                    RecordCardBackgroundImage(level = level)
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        LevelBackgroundImage(
+                            modifier = Modifier.fillMaxWidth(),
+                            levelID = level.uid,
+                            backgroundImageSize = ImageSize.Original,
+                            remoteUrl = level.bundle?.backgroundImage?.original
+                        )
+                    }
                     Box(
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {
@@ -279,57 +279,6 @@ fun RecordCard(
                 }
             }
         )
-    }
-}
-
-@Composable
-private fun RecordCardBackgroundImage(level: UserRecord.RecordChart.RecordLevel) {
-    val scope = rememberCoroutineScope()
-
-    val currentLevelLocalBackgroundImageFile = LocalDataSource.getBackgroundImageBitmapFile(
-        level.uid,
-        BackgroundImageSize.ORIGINAL
-    )
-    if (currentLevelLocalBackgroundImageFile.isFile) {
-        val bitmap = FileInputStream(currentLevelLocalBackgroundImageFile).use {
-            BitmapFactory.decodeStream(it)
-        }
-        Card {
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = level.title,
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    } else {
-        Card {
-            Box {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-                AsyncImage(
-                    model = getImageRequestBuilderForCytoid(level.bundle?.backgroundImage?.original.toString())
-                        .build(),
-                    modifier = Modifier.fillMaxWidth(),
-                    contentDescription = level.title,
-                    onSuccess = { successState ->
-                        try {
-                            scope.launch(Dispatchers.IO) {
-                                LocalDataSource.saveBackgroundImageBitmap(
-                                    level.uid,
-                                    BackgroundImageSize.ORIGINAL,
-                                    successState.result.drawable.toBitmap()
-                                )
-                            }
-                        } catch (e: Exception) {
-                            e.message?.showToast()
-                        }
-                    },
-                    contentScale = ContentScale.FillWidth,
-                )
-            }
-        }
     }
 }
 

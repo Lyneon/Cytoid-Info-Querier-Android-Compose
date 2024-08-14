@@ -79,6 +79,7 @@ data class ProfileGraphQL(
 
                 @Serializable
                 data class CollectionUserListing(
+                    val uid: String,
                     val title: String,
                     val slogan: String,
                     val levelCount: Int,
@@ -139,6 +140,7 @@ data class ProfileGraphQL(
                         }
                         collectionsCount
                         collections {
+                            uid
                             title
                             slogan
                             levelCount
