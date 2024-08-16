@@ -9,7 +9,9 @@ class ProfileGraphQLRepository {
         cytoidID: String,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        RemoteDataSource.fetchProfileGraphQL(cytoidID)
+        RemoteDataSource.fetchProfileGraphQL(cytoidID).also {
+            LocalDataSource.saveProfileGraphQL(cytoidID, it)
+        }
     else {
         val lastProfileGraphQLCacheTime = cytoidID.getLastProfileGraphQLCacheTime()
         if (System.currentTimeMillis() - lastProfileGraphQLCacheTime <= 1000 * 60 * 60 * 6)

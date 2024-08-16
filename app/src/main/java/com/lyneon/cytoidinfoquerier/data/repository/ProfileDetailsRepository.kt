@@ -9,7 +9,9 @@ class ProfileDetailsRepository {
         cytoidID: String,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        RemoteDataSource.fetchProfileDetails(cytoidID)
+        RemoteDataSource.fetchProfileDetails(cytoidID).also {
+            LocalDataSource.saveProfileDetails(cytoidID, it)
+        }
     else {
         val lastProfileDetailsCacheTime = cytoidID.getLastProfileDetailsCacheTime()
         if (System.currentTimeMillis() - lastProfileDetailsCacheTime <= 1000 * 60 * 60 * 6)

@@ -11,12 +11,14 @@ class BestRecordsRepository {
         count: Int,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        RemoteDataSource.fetchBestRecords(cytoidID, count)
+        RemoteDataSource.fetchBestRecords(cytoidID, count).also {
+            if (it.data.profile != null) LocalDataSource.saveBestRecords(cytoidID, it)
+        }
     else {
         val lastBestRecordsCacheTime = cytoidID.getLastBestRecordsCacheTime()
-        if (System.currentTimeMillis() - lastBestRecordsCacheTime <= 1000 * 60 * 60 * 6) {
+        if (System.currentTimeMillis() - lastBestRecordsCacheTime <= 1000 * 60 * 60 * 6)
             LocalDataSource.loadBestRecords(cytoidID, lastBestRecordsCacheTime)
-        } else
+        else
             RemoteDataSource.fetchBestRecords(cytoidID, count).also {
                 if (it.data.profile != null) LocalDataSource.saveBestRecords(cytoidID, it)
             }

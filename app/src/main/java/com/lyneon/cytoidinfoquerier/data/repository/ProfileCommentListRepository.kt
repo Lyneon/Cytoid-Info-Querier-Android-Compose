@@ -10,7 +10,9 @@ class ProfileCommentListRepository {
         id: String?,
         disableLocalCache: Boolean = false
     ) = if (id == null) emptyList() else if (disableLocalCache)
-        RemoteDataSource.fetchProfileCommentList(id)
+        RemoteDataSource.fetchProfileCommentList(id).also {
+            LocalDataSource.saveProfileCommentList(cytoidID, it)
+        }
     else {
         val lastProfileCommentListCacheTime = cytoidID.getLastProfileCommentListCacheTime()
         if (System.currentTimeMillis() - lastProfileCommentListCacheTime <= 1000 * 60 * 60 * 6)

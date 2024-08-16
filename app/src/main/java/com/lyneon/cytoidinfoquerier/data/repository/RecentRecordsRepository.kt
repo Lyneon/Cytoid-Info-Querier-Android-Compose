@@ -11,7 +11,9 @@ class RecentRecordsRepository {
         count: Int,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        RemoteDataSource.fetchRecentRecords(cytoidID, count)
+        RemoteDataSource.fetchRecentRecords(cytoidID, count).also {
+            if (it.data.profile != null) LocalDataSource.saveRecentRecords(cytoidID, it)
+        }
     else {
         val lastRecentRecordsCacheTime = cytoidID.getLastRecentRecordsCacheTime()
         if (System.currentTimeMillis() - lastRecentRecordsCacheTime <= 1000 * 60 * 60 * 6)
