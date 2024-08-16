@@ -2,13 +2,15 @@ package com.lyneon.cytoidinfoquerier.data.datasource
 
 import android.util.Log
 import com.lyneon.cytoidinfoquerier.data.GraphQL
+import com.lyneon.cytoidinfoquerier.data.constant.OkHttpSingleton
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.json
-import com.lyneon.cytoidinfoquerier.network.OkHttpSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -33,11 +35,18 @@ object RemoteDataSource {
         )
     }
 
-    suspend fun fetchRecentRecords(cytoidID: String, count: Int): RecentRecords {
+    suspend fun fetchRecentRecords(
+        cytoidID: String,
+        count: Int,
+        sort: RecordQuerySort,
+        order: RecordQueryOrder
+    ): RecentRecords {
         val requestBody = GraphQL.getQueryString(
             RecentRecords.getRequestBodyString(
                 cytoidID = cytoidID,
-                recentRecordsLimit = count
+                recentRecordsLimit = count,
+                recentRecordsSort = sort,
+                recentRecordsOrder = order
             )
         )
         return fetch<RecentRecords>(
@@ -46,7 +55,10 @@ object RemoteDataSource {
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
                 .cytoidHeader()
                 .build()
-        )
+        ).apply {
+            this.queryArguments =
+                RecentRecords.RecentRecordsQueryArguments(cytoidID, count, sort, order)
+        }
     }
 
     suspend fun fetchProfileGraphQL(cytoidID: String): ProfileGraphQL {

@@ -2,6 +2,8 @@ package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
@@ -9,6 +11,7 @@ import com.lyneon.cytoidinfoquerier.data.repository.BestRecordsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileDetailsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.RecentRecordsRepository
 import com.lyneon.cytoidinfoquerier.logic.AnalyticsImageHandler
+import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -66,6 +69,14 @@ class AnalyticsViewModel(
         updateUIState { copy(queryCount = queryCount) }
     }
 
+    fun setQuerySort(querySort: RecordQuerySort) {
+        updateUIState { copy(querySort = querySort) }
+    }
+
+    fun setQueryOrder(queryOrder: RecordQueryOrder) {
+        updateUIState { copy(queryOrder = queryOrder) }
+    }
+
     fun setIgnoreLocalCacheData(ignoreLocalCacheData: Boolean) {
         updateUIState { copy(ignoreLocalCacheData = ignoreLocalCacheData) }
     }
@@ -93,6 +104,7 @@ class AnalyticsViewModel(
             }
             setIsQuerying(false)
         }) {
+            setIsQuerying(true)
             val queryRecordsJob = async {
                 when (uiState.value.queryType) {
                     AnalyticsUIState.QueryType.BestRecords -> updateBestRecords()
@@ -161,6 +173,8 @@ class AnalyticsViewModel(
                 recentRecordsRepository.getRecentRecords(
                     cytoidID = uiState.cytoidID,
                     count = uiState.queryCount.toInt(),
+                    sort = uiState.querySort,
+                    order = uiState.queryOrder,
                     disableLocalCache = uiState.ignoreLocalCacheData
                 )
             )
@@ -230,6 +244,8 @@ data class AnalyticsUIState(
     val expandAnalyticsOptionsDropdownMenu: Boolean = false,
     val queryType: QueryType = QueryType.BestRecords,
     val queryCount: String = "30",
+    val querySort: RecordQuerySort = RecordQuerySort.Date,
+    val queryOrder: RecordQueryOrder = RecordQueryOrder.DESC,
     val ignoreLocalCacheData: Boolean = false,
     val keep2DecimalPlaces: Boolean = true,
     val imageGenerationColumns: String = "6",
@@ -240,4 +256,11 @@ data class AnalyticsUIState(
         BestRecords("Best Records"),
         RecentRecords("Recent Records")
     }
+
+    fun canQuery(): Boolean = cytoidID.isValidCytoidID() && queryCount.isNotEmpty() && !isQuerying
+}
+
+enum class AnalyticsPreset {
+    B30,
+    R10
 }

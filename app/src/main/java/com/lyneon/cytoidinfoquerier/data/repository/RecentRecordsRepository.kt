@@ -1,5 +1,7 @@
 package com.lyneon.cytoidinfoquerier.data.repository
 
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
@@ -9,9 +11,11 @@ class RecentRecordsRepository {
     suspend fun getRecentRecords(
         cytoidID: String,
         count: Int,
+        sort: RecordQuerySort,
+        order: RecordQueryOrder,
         disableLocalCache: Boolean = false
     ) = if (disableLocalCache)
-        RemoteDataSource.fetchRecentRecords(cytoidID, count).also {
+        RemoteDataSource.fetchRecentRecords(cytoidID, count, sort, order).also {
             if (it.data.profile != null) LocalDataSource.saveRecentRecords(cytoidID, it)
         }
     else {
@@ -19,7 +23,7 @@ class RecentRecordsRepository {
         if (System.currentTimeMillis() - lastRecentRecordsCacheTime <= 1000 * 60 * 60 * 6)
             LocalDataSource.loadRecentRecords(cytoidID, lastRecentRecordsCacheTime)
         else
-            RemoteDataSource.fetchRecentRecords(cytoidID, count).also {
+            RemoteDataSource.fetchRecentRecords(cytoidID, count, sort, order).also {
                 if (it.data.profile != null) LocalDataSource.saveRecentRecords(cytoidID, it)
             }
     }

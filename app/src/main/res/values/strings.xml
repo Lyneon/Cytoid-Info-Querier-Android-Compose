@@ -68,4 +68,9 @@
     <string name="query_type">查询类型</string>
     <string name="query_options">查询选项</string>
     <string name="sentry_description">启用Sentry后，应用中未捕获的异常信息将会上传至Sentry平台，以帮助开发者定位和修复问题</string>
+    <string name="shortcut">快捷操作</string>
+    <string name="tip_set_id">请先设置您的 Cytoid ID</string>
+    <string name="b30">B30</string>
+    <string name="r10">R10</string>
+    <string name="load_preset">加载预设</string>
 </resources>

@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RecentRecords(
-    val data: RecentRecordsData
+    val data: RecentRecordsData,
+    var queryArguments: RecentRecordsQueryArguments? = null
 ) {
     @Serializable
     data class RecentRecordsData(
@@ -25,18 +26,26 @@ data class RecentRecords(
         }
     }
 
+    @Serializable
+    data class RecentRecordsQueryArguments(
+        val cytoidID: String,
+        val recentRecordsLimit: Int,
+        val recentRecordsSort: RecordQuerySort,
+        val recentRecordsOrder: RecordQueryOrder
+    )
+
     companion object {
         fun getRequestBodyString(
             cytoidID: String,
             recentRecordsLimit: Int = 0,
-            recentRecordsSort: String = RecordQuerySort.Date.name,
-            recentRecordsOrder: String = RecordQueryOrder.DESC.name
+            recentRecordsSort: RecordQuerySort = RecordQuerySort.Date,
+            recentRecordsOrder: RecordQueryOrder = RecordQueryOrder.DESC
         ) = """{
                 profile(uid:"$cytoidID"){
                     user{
                         uid
                     }
-                    recentRecords(limit:$recentRecordsLimit,sort:$recentRecordsSort,order:$recentRecordsOrder){
+                    recentRecords(limit:$recentRecordsLimit,sort:${recentRecordsSort.name},order:${recentRecordsOrder.name}){
                         ...UserRecord
                     }
                 }

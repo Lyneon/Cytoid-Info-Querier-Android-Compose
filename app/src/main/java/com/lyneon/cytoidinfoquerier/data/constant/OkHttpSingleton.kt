@@ -1,4 +1,4 @@
-package com.lyneon.cytoidinfoquerier.network
+package com.lyneon.cytoidinfoquerier.data.constant
 
 import okhttp3.OkHttpClient
 

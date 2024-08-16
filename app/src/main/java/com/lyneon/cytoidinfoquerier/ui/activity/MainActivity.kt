@@ -355,7 +355,7 @@ private fun MainContent(navHostController: NavHostController) {
             fadeOut() + scaleOut(targetScale = 0.8f)
         }
     ) {
-        composable(MainActivity.Screen.Home.route) { HomeScreen() }
+        composable(MainActivity.Screen.Home.route) { HomeScreen(navController = navHostController) }
         composable(MainActivity.Screen.Analytics.route) {
             AnalyticsScreen(
                 navController = navHostController,
@@ -367,6 +367,13 @@ private fun MainContent(navHostController: NavHostController) {
                 navController = navHostController,
                 navBackStackEntry = it,
                 withInitials = true
+            )
+        }
+        composable(MainActivity.Screen.Analytics.route + "/{preset}") {
+            AnalyticsScreen(
+                navController = navHostController,
+                navBackStackEntry = it,
+                withPreset = true
             )
         }
         composable(MainActivity.Screen.Profile.route) {

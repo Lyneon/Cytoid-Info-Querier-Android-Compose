@@ -257,15 +257,18 @@ private fun HistoryItemCard(
             Text(text = historyItemFile.name.removeSuffix(".json").toLong().timeStampToString())
             when (historyType) {
                 HistoryUIState.HistoryType.AnalyticsBestRecords -> {
-                    Text(text = (jsonObject as BestRecords).data.profile?.let { profile ->
-                        "${profile.bestRecords.size} Best Records"
-                    } ?: "")
+                    (jsonObject as BestRecords).data.profile?.let { profile ->
+                        Text(text = "${profile.bestRecords.size} Best Records")
+                    }
                 }
 
                 HistoryUIState.HistoryType.AnalyticsRecentRecords -> {
-                    Text(text = (jsonObject as RecentRecords).data.profile?.let { profile ->
-                        "${profile.recentRecords.size} Recent Records"
-                    } ?: "")
+                    (jsonObject as RecentRecords).data.profile?.let { profile ->
+                        Text(text = "${profile.recentRecords.size} Recent Records")
+                        jsonObject.queryArguments?.let { queryArguments ->
+                            Text(text = "Sort: ${queryArguments.recentRecordsSort.name} | Order: ${queryArguments.recentRecordsOrder.name}")
+                        }
+                    }
                 }
 
                 else -> Unit

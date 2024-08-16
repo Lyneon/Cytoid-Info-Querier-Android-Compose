@@ -7,14 +7,18 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -26,18 +30,19 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -68,6 +73,8 @@ import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
+import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
@@ -75,6 +82,7 @@ import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.RecordCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserDetailsHeader
+import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsViewModel
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
@@ -89,7 +97,8 @@ fun AnalyticsScreen(
     viewModel: AnalyticsViewModel = viewModel(),
     navController: NavController,
     navBackStackEntry: NavBackStackEntry,
-    withInitials: Boolean = false
+    withInitials: Boolean = false,
+    withPreset: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val bestRecords by viewModel.bestRecords.collectAsState()
@@ -127,6 +136,34 @@ fun AnalyticsScreen(
                 viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords)
                 viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
             }
+        }
+    }
+    if (withPreset) {
+        val preset = navBackStackEntry.arguments?.getString("preset")
+        val appUserID = MMKV.defaultMMKV().decodeString(MMKVKeys.APP_USER_CYTOID_ID.name)
+        when (preset) {
+            AnalyticsPreset.B30.name -> {
+                viewModel.run {
+                    setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                    setQueryCount("30")
+                    setQueryOrder(RecordQueryOrder.DESC)
+                }
+            }
+
+            AnalyticsPreset.R10.name -> {
+                viewModel.run {
+                    setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                    setQueryCount("10")
+                    setQuerySort(RecordQuerySort.RecentRating)
+                    setQueryOrder(RecordQueryOrder.DESC)
+                }
+            }
+        }
+        if (appUserID != null) {
+            viewModel.setCytoidID(appUserID)
+        }
+        if (uiState.canQuery()) {
+            viewModel.enqueueQuery()
         }
     }
 
@@ -290,54 +327,35 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: AnalyticsViewModel) {
     val scope = rememberCoroutineScope()
 
     DropdownMenu(
+        modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding),
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
     ) {
         Text(
             text = stringResource(id = R.string.query_type),
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray,
-            modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding)
+            color = Color.Gray
         )
-        DropdownMenuItem(
-            text = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = AnalyticsUIState.QueryType.BestRecords.displayName)
-                    RadioButton(
-                        selected = uiState.queryType == AnalyticsUIState.QueryType.BestRecords,
-                        onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) }
-                    )
-                }
-            },
-            onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) }
-        )
-        DropdownMenuItem(
-            text = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName)
-                    RadioButton(
-                        selected = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords,
-                        onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) }
-                    )
-                }
-            },
-            onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) }
-        )
+        Row {
+            FilterChip(
+                selected = uiState.queryType == AnalyticsUIState.QueryType.BestRecords,
+                onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) },
+                label = { Text(text = AnalyticsUIState.QueryType.BestRecords.displayName) }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            FilterChip(
+                selected = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords,
+                onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) },
+                label = { Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName) }
+            )
+        }
         TextField(
-            modifier = Modifier.padding(8.dp),
             value = uiState.queryCount,
             onValueChange = {
                 if (it.isDigitsOnly() && it.length <= 3) viewModel.setQueryCount(it)
@@ -347,11 +365,58 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             singleLine = true,
             label = { Text(text = stringResource(id = R.string.query_count)) }
         )
+        if (uiState.queryType == AnalyticsUIState.QueryType.RecentRecords) {
+            Text(
+                text = "排序依据",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 3
+            ) {
+                RecordQuerySort.entries.forEach { sort ->
+                    FilterChip(
+                        selected = uiState.querySort == sort,
+                        onClick = { viewModel.setQuerySort(sort) },
+                        label = { Text(text = sort.name) }
+                    )
+                }
+            }
+        }
+        Text(
+            text = stringResource(R.string.load_preset),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(onClick = {
+                viewModel.run {
+                    setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                    setQueryCount("30")
+                    setQueryOrder(RecordQueryOrder.DESC)
+                }
+            }) {
+                Text(text = stringResource(id = R.string.b30))
+            }
+            Button(onClick = {
+                viewModel.run {
+                    setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                    setQueryCount("10")
+                    setQuerySort(RecordQuerySort.RecentRating)
+                    setQueryOrder(RecordQueryOrder.DESC)
+                }
+            }) {
+                Text(text = stringResource(id = R.string.r10))
+            }
+        }
         Text(
             text = stringResource(id = R.string.query_options),
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray,
-            modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding)
+            color = Color.Gray
         )
         DropdownMenuItem(
             text = {
@@ -384,7 +449,6 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             onClick = { viewModel.setKeep2DecimalPlaces(!uiState.keep2DecimalPlaces) }
         )
         TextField(
-            modifier = Modifier.padding(8.dp),
             value = uiState.imageGenerationColumns,
             onValueChange = {
                 if (it.isDigitsOnly() && it.length <= 3) viewModel.setImageGenerationColumns(it)

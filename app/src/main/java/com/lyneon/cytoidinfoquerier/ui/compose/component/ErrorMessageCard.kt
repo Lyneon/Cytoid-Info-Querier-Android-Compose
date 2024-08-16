@@ -3,6 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Card
@@ -26,7 +27,9 @@ fun ErrorMessageCard(errorMessage: String) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Icon(imageVector = Icons.Default.Error, contentDescription = null)
-            Text(text = errorMessage)
+            SelectionContainer {
+                Text(text = errorMessage)
+            }
         }
     }
 }
