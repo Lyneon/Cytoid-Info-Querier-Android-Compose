@@ -57,6 +57,7 @@ import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsViewModel
+import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
@@ -141,12 +142,16 @@ private fun AppUserIDSettingCard() {
                 OutlinedTextField(
                     modifier = Modifier.weight(1f),
                     value = userId ?: "",
-                    onValueChange = { userId = it },
+                    onValueChange = { if (it.isValidCytoidID(checkLengthMin = false)) userId = it },
                     label = { Text(text = "更改您的 Cytoid ID") },
                 )
                 Button(onClick = {
-                    mmkv.encode(MMKVKeys.APP_USER_CYTOID_ID.name, userId)
-                    context.getString(R.string.saved).showToast()
+                    if (userId.isValidCytoidID()) {
+                        mmkv.encode(MMKVKeys.APP_USER_CYTOID_ID.name, userId)
+                        context.getString(R.string.saved).showToast()
+                    } else {
+                        context.getString(R.string.invalid_cytoid_id).showToast()
+                    }
                 }) {
                     Text(text = stringResource(id = R.string.save))
                 }

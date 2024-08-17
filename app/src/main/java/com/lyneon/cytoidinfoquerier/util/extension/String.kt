@@ -34,11 +34,14 @@ fun String.showDialog(
 }.create().show()
 
 @OptIn(ExperimentalContracts::class)
-fun String?.isValidCytoidID(): Boolean {
+fun String?.isValidCytoidID(
+    checkLengthMax: Boolean = true,
+    checkLengthMin: Boolean = true
+): Boolean {
     contract {
         returns(true) implies (this@isValidCytoidID != null)
     }
-    return if (this.isNullOrEmpty()) false else (this.matches("^[a-z0-9_-]*$".toRegex()) && this.length in 3..16)
+    return if (this.isNullOrEmpty()) false else (this.matches("^[a-z0-9_-]*$".toRegex()) && this.length in (if (checkLengthMin) 3 else 0)..(if (checkLengthMax) 16 else Int.MAX_VALUE))
 }
 
 fun String.saveIntoClipboard(label: String = "") {
