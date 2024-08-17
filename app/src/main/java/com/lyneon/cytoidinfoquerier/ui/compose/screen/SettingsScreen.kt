@@ -152,7 +152,11 @@ private fun AppUserIDSettingCard() {
                         mmkv.encode(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name, userId)
                         context.getString(R.string.saved).showToast()
                     } else {
-                        context.getString(R.string.invalid_cytoid_id).showToast()
+                        if (userId?.isEmpty() == true) {
+                            mmkv.removeValueForKey(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+                            context.getString(R.string.app_user_id_cleaned).showToast()
+                        } else
+                            context.getString(R.string.invalid_cytoid_id).showToast()
                     }
                 }) {
                     Text(text = stringResource(id = R.string.save))
@@ -181,7 +185,8 @@ private fun SentrySettingCard(
         },
         value = uiState.enableSentry,
         onValueChange = {
-            MMKV.mmkvWithID(MMKVId.AppSettings.id).encode(AppSettingsMMKVKeys.ENABLE_SENTRY.name, it)
+            MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                .encode(AppSettingsMMKVKeys.ENABLE_SENTRY.name, it)
             viewModel.setEnableSentry(it)
             scope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()

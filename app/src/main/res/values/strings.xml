@@ -77,4 +77,8 @@
     <string name="delete_query_cache">删除查询缓存</string>
     <string name="delete_cache_image_description">删除谱面曲绘、合集封面和用户头像等图像缓存，但不会删除查询记录缓存</string>
     <string name="delete_query_cache_description">删除Analytics和Profile的查询记录缓存，但不会删除缓存的图片数据</string>
+    <string name="level">关卡</string>
+    <string name="tip_set_id_description">点击卡片前往设置页面进行设置</string>
+    <string name="app_user_id_cleaned">已清除保存的 Cytoid ID</string>
+    <string name="tool">工具</string>
 </resources>

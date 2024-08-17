@@ -17,15 +17,19 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -145,7 +149,9 @@ class MainActivity : BaseActivity() {
         History("history/{type}"),
         AnalyticsHistory("history/analytics"),
         ProfileHistory("history/profile"),
-        About("about")
+        About("about"),
+        Level("level"),
+        Tool("tool")
     }
 }
 
@@ -210,6 +216,38 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                         }
                     }
                 )
+                NavigationDrawerItem(
+                    label = { Text(text = stringResource(R.string.level)) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.TableChart,
+                            contentDescription = null
+                        )
+                    },
+                    selected = currentScreenRoute.startsWith(MainActivity.Screen.Level.route),
+                    onClick = {
+                        navHostController.navigate(MainActivity.Screen.Level.route) {
+                            launchSingleTop = true
+                            popUpTo(MainActivity.Screen.Level.route)
+                        }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(text = stringResource(R.string.tool)) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Construction,
+                            contentDescription = null
+                        )
+                    },
+                    selected = currentScreenRoute.startsWith(MainActivity.Screen.Tool.route),
+                    onClick = {
+                        navHostController.navigate(MainActivity.Screen.Tool.route) {
+                            launchSingleTop = true
+                            popUpTo(MainActivity.Screen.Tool.route)
+                        }
+                    }
+                )
             }
 
             Row(
@@ -260,11 +298,14 @@ private fun RailContent(
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .padding(8.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             NavigationRailItem(
@@ -310,7 +351,40 @@ private fun RailContent(
                 },
                 label = { Text(text = stringResource(R.string.profile)) }
             )
+            NavigationRailItem(
+                selected = currentScreenRoute.startsWith(MainActivity.Screen.Level.route),
+                onClick = {
+                    navHostController.navigate(MainActivity.Screen.Level.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.Level.route)
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.TableChart,
+                        contentDescription = null
+                    )
+                },
+                label = { Text(text = stringResource(R.string.level)) }
+            )
+            NavigationRailItem(
+                selected = currentScreenRoute.startsWith(MainActivity.Screen.Tool.route),
+                onClick = {
+                    navHostController.navigate(MainActivity.Screen.Tool.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.Tool.route)
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Construction,
+                        contentDescription = null
+                    )
+                },
+                label = { Text(text = stringResource(R.string.tool)) }
+            )
         }
+        HorizontalDivider(modifier = Modifier.width(64.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -406,6 +480,12 @@ private fun MainContent(navHostController: NavHostController) {
         }
         composable(MainActivity.Screen.About.route) {
             AboutScreen(navController = navHostController)
+        }
+        composable(MainActivity.Screen.Level.route) {
+            // TODO: Implement level screen
+        }
+        composable(MainActivity.Screen.Tool.route) {
+            // TODO: Implement tool screen
         }
     }
 }
