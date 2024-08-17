@@ -16,12 +16,14 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -73,7 +75,22 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text(text = stringResource(id = R.string.settings)) })
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(id = R.string.settings)) },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate(MainActivity.Screen.About.route) {
+                            launchSingleTop = true
+                            popUpTo(MainActivity.Screen.About.route)
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = stringResource(id = R.string.about)
+                        )
+                    }
+                }
+            )
         },
         snackbarHost = {
             SnackbarHost(snackBarHostState)
@@ -87,7 +104,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AppUserIDSettingCard(uiState, viewModel)
+            AppUserIDSettingCard()
             SentrySettingCard(uiState, viewModel, snackBarHostState)
             DeleteImageCacheCard(snackBarHostState)
             GridColumnsCountSettingCard(navController)
@@ -98,10 +115,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun AppUserIDSettingCard(
-    uiState: SettingsUIState,
-    viewModel: SettingsViewModel
-) {
+private fun AppUserIDSettingCard() {
     val mmkv = MMKV.defaultMMKV()
     var userId by remember {
         mutableStateOf(mmkv.decodeString(MMKVKeys.APP_USER_CYTOID_ID.name, ""))

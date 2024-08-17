@@ -55,6 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
+import com.lyneon.cytoidinfoquerier.ui.compose.screen.AboutScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.AnalyticsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.GridColumnsCountSettingScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HistoryScreen
@@ -142,7 +143,8 @@ class MainActivity : BaseActivity() {
         GridColumnsCountSetting("settings/gridColumnsCount"),
         History("history/{type}"),
         AnalyticsHistory("history/analytics"),
-        ProfileHistory("history/profile")
+        ProfileHistory("history/profile"),
+        About("about")
     }
 }
 
@@ -400,6 +402,9 @@ private fun MainContent(navHostController: NavHostController) {
                 navController = navHostController,
                 navBackStackEntry = it
             )
+        }
+        composable(MainActivity.Screen.About.route) {
+            AboutScreen(navController = navHostController)
         }
     }
 }
