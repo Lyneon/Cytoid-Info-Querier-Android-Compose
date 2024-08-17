@@ -40,8 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
+import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.times
 import com.tencent.mmkv.MMKV
 
@@ -51,14 +52,14 @@ fun GridColumnsCountSettingScreen(
     navController: NavController
 ) {
     val mainActivity = LocalContext.current as MainActivity
-    val mmkv = MMKV.defaultMMKV()
+    val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
     val orientation = BaseApplication.context.resources.configuration.orientation
     var columnsCount by remember {
         mutableIntStateOf(
             mmkv.decodeInt(
                 if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                    MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
-                else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
+                    AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
             )
         )
     }
@@ -104,8 +105,8 @@ fun GridColumnsCountSettingScreen(
                                 columnsCount--
                                 mmkv.encode(
                                     if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                        MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
-                                    else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
+                                        AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                                    else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
                                 )
                             }
                         },
@@ -122,8 +123,8 @@ fun GridColumnsCountSettingScreen(
                         columnsCount++
                         mmkv.encode(
                             if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
-                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
+                                AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                            else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
                         )
                     },
                     modifier = Modifier.padding(8.dp)
@@ -138,8 +139,8 @@ fun GridColumnsCountSettingScreen(
                         columnsCount = 1
                         mmkv.encode(
                             if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
-                            else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
+                                AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                            else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
                         )
                     },
                     modifier = Modifier.padding(8.dp)

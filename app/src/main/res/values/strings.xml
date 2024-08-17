@@ -74,4 +74,7 @@
     <string name="r10">R10</string>
     <string name="load_preset">加载预设</string>
     <string name="about">关于应用</string>
+    <string name="delete_query_cache">删除查询缓存</string>
+    <string name="delete_cache_image_description">删除谱面曲绘、合集封面和用户头像等图像缓存，但不会删除查询记录缓存</string>
+    <string name="delete_query_cache_description">删除Analytics和Profile的查询记录缓存，但不会删除缓存的图片数据</string>
 </resources>

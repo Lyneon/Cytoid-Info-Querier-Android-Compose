@@ -1,7 +1,8 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
+import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
+import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,5 +27,6 @@ class SettingsViewModel : ViewModel() {
 }
 
 data class SettingsUIState(
-    val enableSentry: Boolean = MMKV.defaultMMKV().decodeBool(MMKVKeys.ENABLE_SENTRY.name, true)
+    val enableSentry: Boolean = MMKV.mmkvWithID(MMKVId.AppSettings.id)
+        .decodeBool(AppSettingsMMKVKeys.ENABLE_SENTRY.name, true)
 )

@@ -72,7 +72,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
@@ -85,6 +84,8 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.UserDetailsHeader
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsViewModel
+import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
+import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
@@ -140,7 +141,8 @@ fun AnalyticsScreen(
     }
     if (withPreset) {
         val preset = navBackStackEntry.arguments?.getString("preset")
-        val appUserID = MMKV.defaultMMKV().decodeString(MMKVKeys.APP_USER_CYTOID_ID.name)
+        val appUserID =
+            MMKV.mmkvWithID(MMKVId.AppSettings.id).decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
         when (preset) {
             AnalyticsPreset.B30.name -> {
                 viewModel.run {
@@ -492,9 +494,9 @@ private fun ResultDisplayList(
     } else {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(
-                MMKV.defaultMMKV().decodeInt(
-                    if (BaseApplication.context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
-                    else MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
+                MMKV.mmkvWithID(MMKVId.AppSettings.id).decodeInt(
+                    if (BaseApplication.context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                    else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
                 )
             ),
             contentPadding = PaddingValues(

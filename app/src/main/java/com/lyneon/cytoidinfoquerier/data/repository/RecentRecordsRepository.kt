@@ -5,7 +5,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
-import com.lyneon.cytoidinfoquerier.util.extension.getLastRecentRecordsCacheTime
+import com.lyneon.cytoidinfoquerier.util.getLastRecentRecordsCacheTime
 
 class RecentRecordsRepository {
     suspend fun getRecentRecords(

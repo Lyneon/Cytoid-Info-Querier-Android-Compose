@@ -3,7 +3,7 @@ package com.lyneon.cytoidinfoquerier.data.repository
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
 import com.lyneon.cytoidinfoquerier.data.model.screen.ProfileScreenDataModel
-import com.lyneon.cytoidinfoquerier.util.extension.getLastProfileScreenDataModelCacheTime
+import com.lyneon.cytoidinfoquerier.util.getLastProfileScreenDataModelCacheTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

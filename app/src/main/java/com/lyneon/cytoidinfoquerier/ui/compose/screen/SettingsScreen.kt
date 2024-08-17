@@ -52,11 +52,12 @@ import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.BaseApplication.Companion.context
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsViewModel
+import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
+import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
@@ -108,6 +109,7 @@ fun SettingsScreen(
             AppUserIDSettingCard()
             SentrySettingCard(uiState, viewModel, snackBarHostState)
             DeleteImageCacheCard(snackBarHostState)
+            DeleteQueryCacheCard(snackBarHostState)
             GridColumnsCountSettingCard(navController)
             PingSettingCard(snackBarHostState)
             TestCrashSettingCard(snackBarHostState)
@@ -117,9 +119,9 @@ fun SettingsScreen(
 
 @Composable
 private fun AppUserIDSettingCard() {
-    val mmkv = MMKV.defaultMMKV()
+    val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
     var userId by remember {
-        mutableStateOf(mmkv.decodeString(MMKVKeys.APP_USER_CYTOID_ID.name, ""))
+        mutableStateOf(mmkv.decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name, ""))
     }
 
     Card(
@@ -147,7 +149,7 @@ private fun AppUserIDSettingCard() {
                 )
                 Button(onClick = {
                     if (userId.isValidCytoidID()) {
-                        mmkv.encode(MMKVKeys.APP_USER_CYTOID_ID.name, userId)
+                        mmkv.encode(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name, userId)
                         context.getString(R.string.saved).showToast()
                     } else {
                         context.getString(R.string.invalid_cytoid_id).showToast()
@@ -179,7 +181,7 @@ private fun SentrySettingCard(
         },
         value = uiState.enableSentry,
         onValueChange = {
-            MMKV.defaultMMKV().encode(MMKVKeys.ENABLE_SENTRY.name, it)
+            MMKV.mmkvWithID(MMKVId.AppSettings.id).encode(AppSettingsMMKVKeys.ENABLE_SENTRY.name, it)
             viewModel.setEnableSentry(it)
             scope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
@@ -205,7 +207,7 @@ private fun DeleteImageCacheCard(
 
     SettingsItemCard(
         title = stringResource(id = R.string.delete_cache_image),
-        description = null,
+        description = stringResource(R.string.delete_cache_image_description),
         icon = {
             Icon(imageVector = Icons.Default.Delete, contentDescription = null)
         },
@@ -220,8 +222,50 @@ private fun DeleteImageCacheCard(
                 )) {
                     Dismissed -> {}
                     ActionPerformed -> {
-                        LocalDataSource.clearAvatar()
-                        LocalDataSource.clearBackgroundImage()
+                        LocalDataSource.clearLocalData(
+                            LocalDataSource.LocalDataType.Avatar,
+                            LocalDataSource.LocalDataType.BackgroundImage,
+                            LocalDataSource.LocalDataType.CollectionCoverImage
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun DeleteQueryCacheCard(
+    snackBarHostState: SnackbarHostState
+) {
+    val scope = rememberCoroutineScope()
+
+    SettingsItemCard(
+        title = stringResource(R.string.delete_query_cache),
+        description = stringResource(R.string.delete_query_cache_description),
+        icon = {
+            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+        },
+        onClick = {
+            scope.launch {
+                snackBarHostState.currentSnackbarData?.dismiss()
+                when (snackBarHostState.showSnackbar(
+                    "确定要删除所有查询缓存吗？",
+                    context.getString(R.string.confirm),
+                    true,
+                    SnackbarDuration.Short
+                )) {
+                    Dismissed -> {}
+                    ActionPerformed -> {
+                        LocalDataSource.clearLocalData(
+                            LocalDataSource.LocalDataType.BestRecords,
+                            LocalDataSource.LocalDataType.RecentRecords,
+                            LocalDataSource.LocalDataType.ProfileCommentList,
+                            LocalDataSource.LocalDataType.ProfileDetails,
+                            LocalDataSource.LocalDataType.ProfileGraphQL,
+                            LocalDataSource.LocalDataType.ProfileScreenDataModel
+                        )
+                        MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id).clearAll()
                     }
                 }
             }
@@ -233,13 +277,13 @@ private fun DeleteImageCacheCard(
 private fun GridColumnsCountSettingCard(
     navController: NavController
 ) {
-    val mmkv = MMKV.defaultMMKV()
+    val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
 
     SettingsItemCard(
         title = stringResource(id = R.string.grid_columns_count), description = "竖屏:${
-            mmkv.decodeInt(MMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name, 1)
+            mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name, 1)
         } 横屏:${
-            mmkv.decodeInt(MMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1)
+            mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1)
         }",
         icon = {
             Icon(imageVector = Icons.Default.GridView, contentDescription = null)

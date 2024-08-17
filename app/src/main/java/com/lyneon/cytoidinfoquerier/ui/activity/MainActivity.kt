@@ -54,7 +54,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.R
-import com.lyneon.cytoidinfoquerier.data.constant.MMKVKeys
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.AboutScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.AnalyticsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.GridColumnsCountSettingScreen
@@ -63,6 +62,8 @@ import com.lyneon.cytoidinfoquerier.ui.compose.screen.HomeScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ProfileScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.SettingsScreen
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
+import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
+import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.tencent.mmkv.MMKV
 import io.sentry.SentryEvent
 import io.sentry.SentryLevel
@@ -75,9 +76,9 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val mmkv = MMKV.defaultMMKV()
+        val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
 
-        if (mmkv.decodeBool(MMKVKeys.ENABLE_SENTRY.name, true)) {
+        if (mmkv.decodeBool(AppSettingsMMKVKeys.ENABLE_SENTRY.name, true)) {
             SentryAndroid.init(this) { options: SentryAndroidOptions ->
                 options.setDsn("https://0149a51a6abff3008e5272ea306abf47@o4507079700971520.ingest.de.sentry.io/4507079706804304")
                 // Add a callback that will be used before the event is sent to Sentry.

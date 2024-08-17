@@ -2,7 +2,7 @@ package com.lyneon.cytoidinfoquerier.data.repository
 
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
-import com.lyneon.cytoidinfoquerier.util.extension.getLastProfileDetailsCacheTime
+import com.lyneon.cytoidinfoquerier.util.getLastProfileDetailsCacheTime
 
 class ProfileDetailsRepository {
     suspend fun getProfileDetails(

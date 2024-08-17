@@ -12,7 +12,7 @@ import com.lyneon.cytoidinfoquerier.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.json
-import com.lyneon.cytoidinfoquerier.util.extension.setLastCacheTime
+import com.lyneon.cytoidinfoquerier.util.setLastCacheTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -194,10 +194,13 @@ object LocalDataSource {
     fun clearProfileDetails() = clearLocalData(LocalDataType.ProfileDetails)
     fun clearProfileCommentList() = clearLocalData(LocalDataType.ProfileCommentList)
     fun clearProfileScreenDataModel() = clearLocalData(LocalDataType.ProfileScreenDataModel)
+    fun clearCollectionCoverImage() = clearLocalData(LocalDataType.CollectionCoverImage)
     fun clearAllLocalData() = LocalDataType.entries.forEach { clearLocalData(it) }
 
-    fun clearLocalData(type: LocalDataType) = CoroutineScope(Dispatchers.IO).launch {
-        BaseApplication.context.getExternalFilesDir(type.name)?.deleteRecursively()
+    fun clearLocalData(vararg types: LocalDataType) = CoroutineScope(Dispatchers.IO).launch {
+        types.forEach { type ->
+            BaseApplication.context.getExternalFilesDir(type.name)?.deleteRecursively()
+        }
     }
 
     fun getCollectionCoverImageFile(collectionID: String, collectionCoverImageSize: ImageSize) =
@@ -225,6 +228,8 @@ object LocalDataSource {
         ProfileDetails,
         ProfileCommentList,
         ProfileScreenDataModel,
-        CollectionCoverImage
+        CollectionCoverImage;
+
+        fun clearLocalCache() = clearLocalData(this)
     }
 }

@@ -2,7 +2,7 @@ package com.lyneon.cytoidinfoquerier.data.repository
 
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
-import com.lyneon.cytoidinfoquerier.util.extension.getLastProfileCommentListCacheTime
+import com.lyneon.cytoidinfoquerier.util.getLastProfileCommentListCacheTime
 
 class ProfileCommentListRepository {
     suspend fun getProfileCommentList(

@@ -3,7 +3,7 @@ package com.lyneon.cytoidinfoquerier.data.repository
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
-import com.lyneon.cytoidinfoquerier.util.extension.getLastBestRecordsCacheTime
+import com.lyneon.cytoidinfoquerier.util.getLastBestRecordsCacheTime
 
 class BestRecordsRepository {
     suspend fun getBestRecords(

@@ -1,30 +1,37 @@
-package com.lyneon.cytoidinfoquerier.util.extension
+package com.lyneon.cytoidinfoquerier.util
 
 import com.tencent.mmkv.MMKV
 
+enum class MMKVId(val id: String) {
+    AppSettings("app_settings"),
+    LastQueryTimeCache("last_query_time_cache")
+}
+
+enum class AppSettingsMMKVKeys {
+    ENABLE_SENTRY,
+    GRID_COLUMNS_COUNT_PORTRAIT,
+    GRID_COLUMNS_COUNT_LANDSCAPE,
+    APP_USER_CYTOID_ID
+}
+
 var String.lastQueryAnalyticsTime
-    get() = MMKV.defaultMMKV().decodeLong("lastQueryAnalyticsTime_$this", -1)
+    get() = MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id)
+        .decodeLong("lastQueryAnalyticsTime_$this", -1)
     set(value) {
-        MMKV.defaultMMKV().encode("lastQueryAnalyticsTime_$this", value)
+        MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id).encode("lastQueryAnalyticsTime_$this", value)
     }
 var String.lastQueryProfileTime
-    get() = MMKV.defaultMMKV().decodeLong("lastQueryProfileTime_$this", -1)
+    get() = MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id)
+        .decodeLong("lastQueryProfileTime_$this", -1)
     set(value) {
-        MMKV.defaultMMKV().encode("lastQueryProfileTime_$this", value)
+        MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id).encode("lastQueryProfileTime_$this", value)
     }
 
-/*
-inline fun <reified T> String.getLastCacheTime(): Long =
-    MMKV.defaultMMKV().decodeLong("last${T::class.simpleName}CacheTime_$this", -1)
-inline fun <reified T> String.setLastCacheTime(timeStamp: Long) =
-    MMKV.defaultMMKV().encode("last${T::class.simpleName}CacheTime_$this", timeStamp)
-*/
-
 fun String.getLastCacheTime(type: String) =
-    MMKV.defaultMMKV().decodeLong("last${type}CacheTime_$this", -1)
+    MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id).decodeLong("last${type}CacheTime_$this", -1)
 
 fun String.setLastCacheTime(type: String, timeStamp: Long) =
-    MMKV.defaultMMKV().encode("last${type}CacheTime_$this", timeStamp)
+    MMKV.mmkvWithID(MMKVId.LastQueryTimeCache.id).encode("last${type}CacheTime_$this", timeStamp)
 
 fun String.getLastBestRecordsCacheTime() = this.getLastCacheTime("BestRecords")
 fun String.setLastBestRecordsCacheTime(timeStamp: Long) =
@@ -46,6 +53,8 @@ fun String.getLastProfileCommentListCacheTime() = this.getLastCacheTime("Profile
 fun String.setLastProfileCommentListCacheTime(timeStamp: Long) =
     this.setLastCacheTime("ProfileCommentList", timeStamp)
 
-fun String.getLastProfileScreenDataModelCacheTime() = this.getLastCacheTime("ProfileScreenDataModel")
+fun String.getLastProfileScreenDataModelCacheTime() =
+    this.getLastCacheTime("ProfileScreenDataModel")
+
 fun String.setLastProfileScreenDataModelCacheTime(timeStamp: Long) =
     this.setLastCacheTime("ProfileScreenDataModel", timeStamp)
