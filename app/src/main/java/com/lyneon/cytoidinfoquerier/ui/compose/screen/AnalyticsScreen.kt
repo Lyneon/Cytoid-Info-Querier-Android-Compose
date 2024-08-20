@@ -55,6 +55,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -105,8 +106,8 @@ fun AnalyticsScreen(
     val bestRecords by viewModel.bestRecords.collectAsState()
     val recentRecords by viewModel.recentRecords.collectAsState()
     val profileDetails by viewModel.profileDetails.collectAsState()
-    var playbackState by remember { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
-    var isPlaying by remember { mutableStateOf(false) }
+    var playbackState by rememberSaveable { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
+    var isPlaying by rememberSaveable { mutableStateOf(false) }
     val exoPlayer by remember {
         mutableStateOf(ExoPlayer.Builder(BaseApplication.context).build().apply {
             addListener(object : Player.Listener {
@@ -122,8 +123,10 @@ fun AnalyticsScreen(
             })
         })
     }
+    var initialLoaded by rememberSaveable { mutableStateOf(false) }
+    var presetLoaded by rememberSaveable { mutableStateOf(false) }
 
-    if (withInitials) {
+    if (withInitials && !initialLoaded) {
         val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
         val initialCacheType = navBackStackEntry.arguments?.getString("initialCacheType")
         val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
@@ -138,11 +141,13 @@ fun AnalyticsScreen(
                 viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
             }
         }
+        initialLoaded = true
     }
-    if (withPreset) {
+    if (withPreset && !presetLoaded) {
         val preset = navBackStackEntry.arguments?.getString("preset")
         val appUserID =
-            MMKV.mmkvWithID(MMKVId.AppSettings.id).decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+            MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
         when (preset) {
             AnalyticsPreset.B30.name -> {
                 viewModel.run {
@@ -167,6 +172,7 @@ fun AnalyticsScreen(
         if (uiState.canQuery()) {
             viewModel.enqueueQuery()
         }
+        presetLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {

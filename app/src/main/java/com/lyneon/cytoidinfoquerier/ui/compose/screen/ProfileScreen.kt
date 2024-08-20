@@ -159,8 +159,8 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val profileScreenDataModel by viewModel.profileScreenDataModel.collectAsState()
-    var playbackState by remember { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
-    var isPlaying by remember { mutableStateOf(false) }
+    var playbackState by rememberSaveable { mutableIntStateOf(ExoPlayer.STATE_IDLE) }
+    var isPlaying by rememberSaveable { mutableStateOf(false) }
     val exoPlayer by remember {
         mutableStateOf(ExoPlayer.Builder(BaseApplication.context).build().apply {
             addListener(object : Player.Listener {
@@ -176,14 +176,16 @@ fun ProfileScreen(
             })
         })
     }
+    var initialLoaded by rememberSaveable { mutableStateOf(false) }
 
-    if (withInitials) {
+    if (withInitials && !initialLoaded) {
         val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
         val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
         if (initialCytoidID != null && initialCacheTime != null) {
             viewModel.setCytoidID(initialCytoidID)
             viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
         }
+        initialLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {
