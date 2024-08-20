@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -62,9 +61,6 @@ import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import kotlin.concurrent.thread
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,7 +107,6 @@ fun SettingsScreen(
             DeleteImageCacheCard(snackBarHostState)
             DeleteQueryCacheCard(snackBarHostState)
             GridColumnsCountSettingCard(navController)
-            PingSettingCard(snackBarHostState)
             TestCrashSettingCard(snackBarHostState)
         }
     }
@@ -295,70 +290,6 @@ private fun GridColumnsCountSettingCard(
         },
         onClick = {
             navController.navigate(MainActivity.Screen.GridColumnsCountSetting.route)
-        }
-    )
-}
-
-@Composable
-private fun PingSettingCard(snackBarHostState: SnackbarHostState) {
-    val scope = rememberCoroutineScope()
-
-    SettingsItemCard(
-        title = stringResource(id = R.string.ping),
-        description = "运行连通性测试",
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Public,
-                contentDescription = null
-            )
-        },
-        onClick = {
-            scope.launch {
-                snackBarHostState.currentSnackbarData?.dismiss()
-                when (snackBarHostState.showSnackbar(
-                    "start ping?",
-                    context.getString(R.string.confirm),
-                    true,
-                    SnackbarDuration.Short
-                )) {
-                    Dismissed -> {}
-                    ActionPerformed -> {
-                        snackBarHostState.currentSnackbarData?.dismiss()
-                        snackBarHostState.showSnackbar("pinging cytoid.io...")
-                        thread {
-                            try {
-                                val response = OkHttpClient().newCall(
-                                    Request.Builder().url("https://cytoid.io/")
-                                        .head()
-                                        .removeHeader("User-Agent")
-                                        .addHeader(
-                                            "User-Agent",
-                                            "CytoidClient/2.1.1"
-                                        )
-                                        .build()
-                                ).execute()
-                                scope.launch {
-                                    snackBarHostState.currentSnackbarData?.dismiss()
-                                    snackBarHostState.showSnackbar(
-                                        "ping result:\ncytoid.io:${response.code} ${response.message}",
-                                        withDismissAction = true,
-                                        duration = SnackbarDuration.Indefinite
-                                    )
-                                }
-                            } catch (e: Exception) {
-                                scope.launch {
-                                    snackBarHostState.currentSnackbarData?.dismiss()
-                                    snackBarHostState.showSnackbar(
-                                        "ping failed:\n${e.message}",
-                                        withDismissAction = true,
-                                        duration = SnackbarDuration.Indefinite
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
     )
 }
