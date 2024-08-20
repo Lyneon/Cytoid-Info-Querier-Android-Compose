@@ -58,6 +58,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.data.constant.Secret
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.AboutScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.AnalyticsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.GridColumnsCountSettingScreen
@@ -86,7 +87,7 @@ class MainActivity : BaseActivity() {
 
         if (mmkv.decodeBool(AppSettingsMMKVKeys.ENABLE_SENTRY.name, true)) {
             SentryAndroid.init(this) { options: SentryAndroidOptions ->
-                options.setDsn("https://0149a51a6abff3008e5272ea306abf47@o4507079700971520.ingest.de.sentry.io/4507079706804304")
+                options.setDsn(Secret.SENTRY_DSN)
                 // Add a callback that will be used before the event is sent to Sentry.
                 // With this callback, you can modify the event or, when returning null, also discard the event.
                 options.beforeSend =
