@@ -123,7 +123,7 @@ private fun ShortcutCard(
                         Button(onClick = { navController.navigate(MainActivity.Screen.Analytics.route + "/${AnalyticsPreset.R10.name}") }) {
                             Text(text = stringResource(R.string.r10))
                         }
-                        Button(onClick = { /* TODO: Add Profile Shortcut */ }) {
+                        Button(onClick = { navController.navigate(MainActivity.Screen.Profile.route + "/shortcut") }) {
                             Text(text = stringResource(R.string.profile))
                         }
                     }

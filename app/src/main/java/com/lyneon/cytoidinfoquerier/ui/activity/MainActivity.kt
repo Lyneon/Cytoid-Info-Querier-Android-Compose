@@ -26,7 +26,6 @@ import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Button
@@ -64,6 +63,7 @@ import com.lyneon.cytoidinfoquerier.ui.compose.screen.AnalyticsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.GridColumnsCountSettingScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HistoryScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HomeScreen
+import com.lyneon.cytoidinfoquerier.ui.compose.screen.LevelScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ProfileScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.SettingsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ToolScreen
@@ -153,8 +153,7 @@ class MainActivity : BaseActivity() {
         ProfileHistory("history/profile"),
         About("about"),
         Level("level"),
-        Tool("tool"),
-        Search("search")
+        Tool("tool")
     }
 }
 
@@ -232,22 +231,6 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                         navHostController.navigate(MainActivity.Screen.Level.route) {
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Level.route)
-                        }
-                    }
-                )
-                NavigationDrawerItem(
-                    label = { Text(text = stringResource(R.string.search)) },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    selected = currentScreenRoute.startsWith(MainActivity.Screen.Search.route),
-                    onClick = {
-                        navHostController.navigate(MainActivity.Screen.Search.route) {
-                            launchSingleTop = true
-                            popUpTo(MainActivity.Screen.Search.route)
                         }
                     }
                 )
@@ -387,22 +370,6 @@ private fun RailContent(
                 label = { Text(text = stringResource(R.string.level)) }
             )
             NavigationRailItem(
-                selected = currentScreenRoute.startsWith(MainActivity.Screen.Search.route),
-                onClick = {
-                    navHostController.navigate(MainActivity.Screen.Search.route) {
-                        launchSingleTop = true
-                        popUpTo(MainActivity.Screen.Search.route)
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null
-                    )
-                },
-                label = { Text(text = stringResource(R.string.search)) }
-            )
-            NavigationRailItem(
                 selected = currentScreenRoute.startsWith(MainActivity.Screen.Tool.route),
                 onClick = {
                     navHostController.navigate(MainActivity.Screen.Tool.route) {
@@ -481,11 +448,11 @@ private fun MainContent(navHostController: NavHostController) {
                 withInitials = true
             )
         }
-        composable(MainActivity.Screen.Analytics.route + "/{preset}") {
+        composable(MainActivity.Screen.Analytics.route + "/{shortcutPreset}") {
             AnalyticsScreen(
                 navController = navHostController,
                 navBackStackEntry = it,
-                withPreset = true
+                withShortcutPreset = true
             )
         }
         composable(MainActivity.Screen.Profile.route) {
@@ -499,6 +466,13 @@ private fun MainContent(navHostController: NavHostController) {
                 navController = navHostController,
                 navBackStackEntry = it,
                 withInitials = true
+            )
+        }
+        composable(MainActivity.Screen.Profile.route + "/shortcut") {
+            ProfileScreen(
+                navController = navHostController,
+                navBackStackEntry = it,
+                withShortcut = true
             )
         }
         composable(MainActivity.Screen.Settings.route) { SettingsScreen(navController = navHostController) }
@@ -517,10 +491,7 @@ private fun MainContent(navHostController: NavHostController) {
             AboutScreen(navController = navHostController)
         }
         composable(MainActivity.Screen.Level.route) {
-            // TODO: Implement level screen
-        }
-        composable(MainActivity.Screen.Search.route) {
-            // TODO: Implement search screen
+            LevelScreen()
         }
         composable(MainActivity.Screen.Tool.route) {
             ToolScreen()

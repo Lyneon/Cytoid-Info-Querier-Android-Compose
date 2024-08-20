@@ -111,8 +111,10 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserDetailsHeader
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ProfileUiState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ProfileViewModel
+import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
+import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
@@ -143,6 +145,7 @@ import com.patrykandpatrick.vico.core.entry.entryOf
 import com.patrykandpatrick.vico.core.extension.appendCompat
 import com.patrykandpatrick.vico.core.extension.transformToSpannable
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 import java.net.URL
 import java.util.Locale
@@ -155,7 +158,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     navController: NavController,
     navBackStackEntry: NavBackStackEntry,
-    withInitials: Boolean = false
+    withInitials: Boolean = false,
+    withShortcut: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val profileScreenDataModel by viewModel.profileScreenDataModel.collectAsState()
@@ -177,6 +181,7 @@ fun ProfileScreen(
         })
     }
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
+    var shortcutLoaded by rememberSaveable { mutableStateOf(false) }
 
     if (withInitials && !initialLoaded) {
         val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
@@ -186,6 +191,18 @@ fun ProfileScreen(
             viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
         }
         initialLoaded = true
+    }
+    if (withShortcut && !shortcutLoaded) {
+        val appUserID =
+            MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+        if (appUserID != null) {
+            viewModel.setCytoidID(appUserID)
+        }
+        if (uiState.canQuery()) {
+            viewModel.enqueueQuery()
+        }
+        shortcutLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {
@@ -307,6 +324,7 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
             trailingIcon = {
                 Row(
                     modifier = Modifier.padding(end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
                         Icon(
@@ -1002,7 +1020,14 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
                 Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .background(Color(0x80000000))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Transparent,
+                                Color(0xFF000000)
+                            )
+                        )
+                    )
                     .padding(8.dp)
             ) {
                 Text(
@@ -1120,7 +1145,14 @@ private fun LevelCard(
                 Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .background(Color(0x80000000))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Transparent,
+                                Color(0xFF000000)
+                            )
+                        )
+                    )
             ) {
                 Column(
                     Modifier.padding(8.dp)

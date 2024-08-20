@@ -100,7 +100,7 @@ fun AnalyticsScreen(
     navController: NavController,
     navBackStackEntry: NavBackStackEntry,
     withInitials: Boolean = false,
-    withPreset: Boolean = false
+    withShortcutPreset: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val bestRecords by viewModel.bestRecords.collectAsState()
@@ -124,7 +124,7 @@ fun AnalyticsScreen(
         })
     }
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
-    var presetLoaded by rememberSaveable { mutableStateOf(false) }
+    var shortcutPresetLoaded by rememberSaveable { mutableStateOf(false) }
 
     if (withInitials && !initialLoaded) {
         val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
@@ -143,12 +143,12 @@ fun AnalyticsScreen(
         }
         initialLoaded = true
     }
-    if (withPreset && !presetLoaded) {
-        val preset = navBackStackEntry.arguments?.getString("preset")
+    if (withShortcutPreset && !shortcutPresetLoaded) {
+        val shortcutPreset = navBackStackEntry.arguments?.getString("shortcutPreset")
         val appUserID =
             MMKV.mmkvWithID(MMKVId.AppSettings.id)
                 .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
-        when (preset) {
+        when (shortcutPreset) {
             AnalyticsPreset.B30.name -> {
                 viewModel.run {
                     setQueryType(AnalyticsUIState.QueryType.BestRecords)
@@ -172,7 +172,7 @@ fun AnalyticsScreen(
         if (uiState.canQuery()) {
             viewModel.enqueueQuery()
         }
-        presetLoaded = true
+        shortcutPresetLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {

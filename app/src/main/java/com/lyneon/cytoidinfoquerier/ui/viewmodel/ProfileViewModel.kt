@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileScreenDataModelRepository
+import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -75,7 +76,7 @@ class ProfileViewModel(
         _uiState.update { uiState }
     }
 
-    suspend fun enqueueQuery() {
+    fun enqueueQuery() {
         viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
             updateUIState {
                 copy(errorMessage = throwable.message.toString())
@@ -110,4 +111,6 @@ data class ProfileUiState(
     val keep2DecimalPlaces: Boolean = true,
     val errorMessage: String = "",
     val isQuerying: Boolean = false
-)
+) {
+    fun canQuery(): Boolean = cytoidID.isValidCytoidID() && !isQuerying
+}
