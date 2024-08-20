@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ToolUIState
@@ -91,7 +90,7 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
             )
             OutlinedTextField(
                 value = uiState.ratingCalculatorLevel,
-                onValueChange = { if (it.isDigitsOnly()) viewModel.setRatingCalculatorLevel(it) },
+                onValueChange = { viewModel.setRatingCalculatorLevel(it) },
                 label = { Text(text = "难度级别") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)

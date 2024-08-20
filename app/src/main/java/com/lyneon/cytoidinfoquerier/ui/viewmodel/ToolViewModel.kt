@@ -44,10 +44,9 @@ class ToolViewModel : ViewModel() {
     }
 
     fun calculateAccuracy() {
-        _uiState.value.ratingCalculatorLevel.toIntOrNull()?.let { _level ->
-            val level = if (_level > 15) 16 else _level
+        _uiState.value.ratingCalculatorLevel.toDoubleOrNull()?.let { level ->
             _uiState.value.ratingCalculatorRating.toFloatOrNull()?.let { rating ->
-                val accuracy: Double = when (val multiplier: Double = rating / level.toDouble()) {
+                val accuracy: Double = when (val multiplier: Double = rating / level) {
                     in 0f..0.5f -> 280 * multiplier * multiplier
                     in 0.5f..0.7f -> 100 - 3 * ((10.0).pow(3.5 - 5 * multiplier))
                     in 0.7f..0.86f -> 100 - 3 * ((10.0).pow(4.375 - 6.25 * multiplier))
@@ -61,8 +60,7 @@ class ToolViewModel : ViewModel() {
     }
 
     fun calculateRating() {
-        _uiState.value.ratingCalculatorLevel.toIntOrNull()?.let { _level ->
-            val level = if (_level > 15) 16 else _level
+        _uiState.value.ratingCalculatorLevel.toDoubleOrNull()?.let { level ->
             _uiState.value.ratingCalculatorAccuracy.toFloatOrNull()?.let { accuracy ->
                 val multiplier: Double = when (accuracy) {
                     in 0f..70f -> sqrt(accuracy / 70) * 0.5
