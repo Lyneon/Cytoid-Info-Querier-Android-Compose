@@ -16,7 +16,6 @@ import androidx.core.graphics.scale
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
-import com.lyneon.cytoidinfoquerier.data.constant.CytoidScoreRange
 import com.lyneon.cytoidinfoquerier.data.constant.toIntArray
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
@@ -29,6 +28,7 @@ import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.RowBitmap
 import com.lyneon.cytoidinfoquerier.util.extension.enableAntiAlias
 import com.lyneon.cytoidinfoquerier.util.extension.isMaxCytoidGrade
+import com.lyneon.cytoidinfoquerier.util.extension.isSSSCytoidGrade
 import com.lyneon.cytoidinfoquerier.util.extension.roundBitmap
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
@@ -276,24 +276,28 @@ object AnalyticsImageHandler {
                         getDefaultPaint().apply { textSize = chartUIDSize })
                     addText(score, getDefaultPaint().apply {
                         textSize = scoreSize
-                        if (record.score in CytoidScoreRange.sss) shader =
-                            if (record.score.isMaxCytoidGrade()) LinearGradient(
-                                0f,
-                                0f,
-                                this.measureText(score),
-                                this.textHeight,
-                                CytoidColors.maxColor.toIntArray(),
-                                null,
-                                Shader.TileMode.CLAMP
-                            ) else LinearGradient(
-                                0f,
-                                0f,
-                                this.measureText(score),
-                                this.textHeight,
-                                CytoidColors.sssColor.toIntArray(),
-                                null,
-                                Shader.TileMode.CLAMP
-                            )
+                        shader =
+                            if (record.score.isMaxCytoidGrade())
+                                LinearGradient(
+                                    0f,
+                                    0f,
+                                    this.measureText(score),
+                                    this.textHeight,
+                                    CytoidColors.maxColor.toIntArray(),
+                                    null,
+                                    Shader.TileMode.CLAMP
+                                )
+                            else if (record.score.isSSSCytoidGrade())
+                                LinearGradient(
+                                    0f,
+                                    0f,
+                                    this.measureText(score),
+                                    this.textHeight,
+                                    CytoidColors.sssColor.toIntArray(),
+                                    null,
+                                    Shader.TileMode.CLAMP
+                                )
+                            else null
                     }
                     )
                     addText(
