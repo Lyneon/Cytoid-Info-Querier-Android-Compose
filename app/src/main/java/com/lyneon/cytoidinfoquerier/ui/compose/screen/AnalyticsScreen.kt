@@ -24,12 +24,16 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
@@ -354,13 +358,23 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             FilterChip(
                 selected = uiState.queryType == AnalyticsUIState.QueryType.BestRecords,
                 onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) },
-                label = { Text(text = AnalyticsUIState.QueryType.BestRecords.displayName) }
+                label = { Text(text = AnalyticsUIState.QueryType.BestRecords.displayName) },
+                leadingIcon = {
+                    AnimatedVisibility(visible = uiState.queryType == AnalyticsUIState.QueryType.BestRecords) {
+                        Icon(imageVector = Icons.Default.Done, contentDescription = null)
+                    }
+                }
             )
             Spacer(modifier = Modifier.width(8.dp))
             FilterChip(
                 selected = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords,
                 onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) },
-                label = { Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName) }
+                label = { Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName) },
+                leadingIcon = {
+                    AnimatedVisibility(visible = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords) {
+                        Icon(imageVector = Icons.Default.Done, contentDescription = null)
+                    }
+                }
             )
         }
         TextField(
@@ -373,23 +387,43 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             singleLine = true,
             label = { Text(text = stringResource(id = R.string.query_count)) }
         )
-        if (uiState.queryType == AnalyticsUIState.QueryType.RecentRecords) {
-            Text(
-                text = "排序依据",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
-            )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                maxItemsInEachRow = 3
-            ) {
-                RecordQuerySort.entries.forEach { sort ->
-                    FilterChip(
-                        selected = uiState.querySort == sort,
-                        onClick = { viewModel.setQuerySort(sort) },
-                        label = { Text(text = sort.name) }
+        AnimatedVisibility(visible = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords) {
+            Column {
+                Text(
+                    text = "排序依据",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = 3
+                ) {
+                    AssistChip(
+                        onClick = { viewModel.setQueryOrder(if (uiState.queryOrder == RecordQueryOrder.ASC) RecordQueryOrder.DESC else RecordQueryOrder.ASC) },
+                        label = { Text(text = if (uiState.queryOrder == RecordQueryOrder.ASC) "升序" else "降序") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (uiState.queryOrder == RecordQueryOrder.ASC) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                                contentDescription = null
+                            )
+                        }
                     )
+                    RecordQuerySort.entries.forEach { sort ->
+                        FilterChip(
+                            selected = uiState.querySort == sort,
+                            onClick = { viewModel.setQuerySort(sort) },
+                            label = { Text(text = sort.name) },
+                            leadingIcon = {
+                                AnimatedVisibility(visible = uiState.querySort == sort) {
+                                    Icon(
+                                        imageVector = Icons.Default.Done,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
