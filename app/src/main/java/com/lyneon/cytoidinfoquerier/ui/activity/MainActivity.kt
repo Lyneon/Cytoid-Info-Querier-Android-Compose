@@ -309,7 +309,7 @@ private fun RailContent(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             NavigationRailItem(
                 selected = currentScreenRoute == MainActivity.Screen.Home.route,
