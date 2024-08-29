@@ -15,5 +15,15 @@ Android 7.0+
 
 - [ ] 关卡查询
 - [x] Rating计算器
-
 - 你告诉我
+
+## 使用的开源库
+
+- [AndroidX](https://github.com/androidx/androidx)
+- [OkHttp](https://github.com/square/okhttp)
+- [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
+- [Sentry SDK](https://github.com/getsentry/sentry-java)
+- [Coil](https://github.com/coil-kt/coil)
+- [MMKV](https://github.com/Tencent/MMKV)
+- [Capturable](https://github.com/PatilShreyas/Capturable)
+- [Vico](https://github.com/patrykandpatrick/vico)
