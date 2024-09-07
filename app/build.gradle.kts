@@ -59,7 +59,7 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2024.06.00"
+    val composeBomVersion = "2024.09.00"
 
     implementation("io.sentry:sentry-android:7.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -67,17 +67,17 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.tencent:mmkv:1.3.7")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
     implementation("dev.shreyaspatil:capturable:2.1.0")
     implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
-    implementation("androidx.media3:media3-exoplayer:1.4.0")
-    implementation("androidx.compose.material3:material3-window-size-class:1.2.1")
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.compose.material3:material3-window-size-class:1.3.0")
 
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
-    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.5")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.5")
+    implementation("androidx.activity:activity-compose:1.9.2")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
