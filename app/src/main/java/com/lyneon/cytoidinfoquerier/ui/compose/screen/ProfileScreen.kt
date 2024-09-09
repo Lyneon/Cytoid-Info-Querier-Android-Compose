@@ -942,7 +942,6 @@ private fun DetailsChart(
 
     var tabIndex by rememberSaveable { mutableIntStateOf(0) }
     val timeSeries = dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } }
-    val dates = timeSeries.map { it.date.replace("-", "w").substring(2) }
     val ratingSeries =
         timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
     val countSeries = timeSeries.map { it.count }
@@ -1042,7 +1041,7 @@ private fun DetailsChart(
                             } else "null"
                         },
                         labelRotationDegrees = 90f,
-                        label = rememberAxisLabelComponent()
+                        label = rememberAxisLabelComponent(minWidth = TextComponent.MinWidth.text("YYYYwWW"))
                     ),
                     marker = ChartMarker().rememberMarker(
                         valueFormatter = { _, targets ->
