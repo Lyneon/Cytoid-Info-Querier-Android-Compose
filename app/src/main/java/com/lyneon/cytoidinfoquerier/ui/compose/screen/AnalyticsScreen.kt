@@ -3,6 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.Arrangement
@@ -345,7 +346,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
     val scope = rememberCoroutineScope()
 
     DropdownMenu(
-        modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding),
+        modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding).animateContentSize(),
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
     ) {

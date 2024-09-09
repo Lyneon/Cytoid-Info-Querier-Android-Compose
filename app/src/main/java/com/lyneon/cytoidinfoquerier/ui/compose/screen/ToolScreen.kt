@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -127,7 +128,7 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
 @Composable
 private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().animateContentSize()
     ) {
         Column(
             modifier = Modifier
