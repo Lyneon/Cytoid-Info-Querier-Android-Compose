@@ -3,9 +3,9 @@ package com.lyneon.cytoidinfoquerier.util
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import com.lyneon.cytoidinfoquerier.util.extension.ceil
 import com.lyneon.cytoidinfoquerier.util.extension.enableAntiAlias
-import com.patrykandpatrick.vico.core.extension.ceil
-import com.patrykandpatrick.vico.core.extension.lineHeight
+import com.lyneon.cytoidinfoquerier.util.extension.lineHeight
 import kotlin.math.abs
 
 /**

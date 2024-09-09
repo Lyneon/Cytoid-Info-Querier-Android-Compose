@@ -3,8 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
-import android.text.Spannable
-import android.text.style.ForegroundColorSpan
+import android.text.Layout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
@@ -80,6 +79,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -120,33 +120,56 @@ import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
-import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.rememberEndAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
-import com.patrykandpatrick.vico.compose.chart.Chart
-import com.patrykandpatrick.vico.compose.chart.column.columnChart
-import com.patrykandpatrick.vico.compose.chart.line.lineChart
-import com.patrykandpatrick.vico.compose.component.lineComponent
-import com.patrykandpatrick.vico.compose.component.marker.markerComponent
-import com.patrykandpatrick.vico.compose.component.overlayingComponent
-import com.patrykandpatrick.vico.compose.component.shape.composeShape
-import com.patrykandpatrick.vico.compose.component.shapeComponent
-import com.patrykandpatrick.vico.compose.component.textComponent
-import com.patrykandpatrick.vico.compose.extension.indicatorSize
-import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
-import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
-import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
-import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
-import com.patrykandpatrick.vico.core.component.shape.DashedShape
-import com.patrykandpatrick.vico.core.component.shape.Shapes
-import com.patrykandpatrick.vico.core.dimensions.MutableDimensions
-import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
-import com.patrykandpatrick.vico.core.entry.entryOf
-import com.patrykandpatrick.vico.core.extension.appendCompat
-import com.patrykandpatrick.vico.core.extension.transformToSpannable
-import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEndAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.decoration.rememberHorizontalLine
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
+import com.patrykandpatrick.vico.compose.common.component.fixed
+import com.patrykandpatrick.vico.compose.common.component.rememberLayeredComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberShadow
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.of
+import com.patrykandpatrick.vico.compose.common.shape.markerCornered
+import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
+import com.patrykandpatrick.vico.compose.common.vicoTheme
+import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
+import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
+import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
+import com.patrykandpatrick.vico.core.cartesian.Insets
+import com.patrykandpatrick.vico.core.cartesian.Scroll
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
+import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarkerValueFormatter
+import com.patrykandpatrick.vico.core.common.Dimensions
+import com.patrykandpatrick.vico.core.common.HorizontalPosition
+import com.patrykandpatrick.vico.core.common.LayeredComponent
+import com.patrykandpatrick.vico.core.common.VerticalPosition
+import com.patrykandpatrick.vico.core.common.component.Shadow
+import com.patrykandpatrick.vico.core.common.component.ShapeComponent
+import com.patrykandpatrick.vico.core.common.component.TextComponent
+import com.patrykandpatrick.vico.core.common.shape.Corner
+import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
@@ -628,33 +651,9 @@ private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL, keep2DecimalPlace:
 }
 */
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boolean) {
-    var tabIndex by remember { mutableIntStateOf(0) }
-    val timeSeries = profileDetails.timeSeries.apply {
-        sortBy { it.date.replace("-", "").toInt() }
-    }
-    val chartEntryModelProducer by remember { mutableStateOf(ChartEntryModelProducer()) }
-
-    chartEntryModelProducer.setEntries(timeSeries.map {
-        entryOf(
-            timeSeries.indexOf(it),
-            when (tabIndex) {
-                0 -> it.rating.run {
-                    if (keep2DecimalPlace) setPrecision(2).toFloat() else this
-                }
-
-                1 -> it.count
-                2 -> (it.accuracy * 100).run {
-                    if (keep2DecimalPlace) setPrecision(2).toFloat() else this
-                }
-
-                else -> -1
-            }
-        )
-    })
-
     Card(
         Modifier.fillMaxWidth()
     ) {
@@ -822,62 +821,206 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                         .padding(horizontal = 8.dp)
                 )
             }
-            PrimaryTabRow(
-                selectedTabIndex = tabIndex,
-                containerColor = Color.Transparent,
-            ) {
-                Tab(
-                    selected = tabIndex == 0,
-                    onClick = { tabIndex = 0 }
-                ) {
-                    Text(
-                        text = "Rating",
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-                Tab(
-                    selected = tabIndex == 1,
-                    onClick = { tabIndex = 1 }
-                ) {
-                    Text(
-                        text = "游玩次数",
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-                Tab(
-                    selected = tabIndex == 2,
-                    onClick = { tabIndex = 2 }
-                ) {
-                    Text(
-                        text = "平均精准度",
-                        modifier = Modifier.padding(8.dp)
-                    )
+            DetailsChart(
+                dataTimeSeries = profileDetails.timeSeries,
+                keep2DecimalPlace = keep2DecimalPlace
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DetailsChart(
+    dataTimeSeries: List<ProfileDetails.TimeSeriesItem>,
+    keep2DecimalPlace: Boolean = true
+) {
+    class ChartMarker {
+        private val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
+        private val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
+        private val CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER = 1.4f
+
+        @Composable
+        fun rememberMarker(
+            labelPosition: DefaultCartesianMarker.LabelPosition = DefaultCartesianMarker.LabelPosition.Top,
+            showIndicator: Boolean = true,
+            valueFormatter: CartesianMarkerValueFormatter = DefaultCartesianMarkerValueFormatter()
+        ): CartesianMarker {
+            val mLabelBackgroundShape = Shape.markerCornered(Corner.FullyRounded)
+            val mLabelBackground =
+                rememberShapeComponent(
+                    color = MaterialTheme.colorScheme.surfaceBright,
+                    shape = mLabelBackgroundShape,
+                    shadow =
+                    rememberShadow(
+                        radius = LABEL_BACKGROUND_SHADOW_RADIUS_DP.dp,
+                        dy = LABEL_BACKGROUND_SHADOW_DY_DP.dp,
+                    ),
+                )
+            val mLabel =
+                rememberTextComponent(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlignment = Layout.Alignment.ALIGN_CENTER,
+                    padding = Dimensions.of(8.dp, 4.dp),
+                    background = mLabelBackground,
+                    minWidth = TextComponent.MinWidth.fixed(40.dp),
+                )
+            val mIndicatorFrontComponent =
+                rememberShapeComponent(MaterialTheme.colorScheme.surface, Shape.Pill)
+            val mIndicatorCenterComponent = rememberShapeComponent(shape = Shape.Pill)
+            val mIndicatorRearComponent = rememberShapeComponent(shape = Shape.Pill)
+            val mIndicator =
+                rememberLayeredComponent(
+                    rear = mIndicatorRearComponent,
+                    front =
+                    rememberLayeredComponent(
+                        rear = mIndicatorCenterComponent,
+                        front = mIndicatorFrontComponent,
+                        padding = Dimensions.of(5.dp),
+                    ),
+                    padding = Dimensions.of(10.dp),
+                )
+            val mGuideline = rememberAxisGuidelineComponent()
+            return remember(mLabel, labelPosition, mIndicator, showIndicator, mGuideline) {
+                object :
+                    DefaultCartesianMarker(
+                        label = mLabel,
+                        labelPosition = labelPosition,
+                        indicator =
+                        if (showIndicator) {
+                            { color ->
+                                LayeredComponent(
+                                    rear = ShapeComponent(
+                                        Color(color).copy(alpha = 0.15f).toArgb(),
+                                        Shape.Pill
+                                    ),
+                                    front =
+                                    LayeredComponent(
+                                        rear = ShapeComponent(
+                                            color = color,
+                                            shape = Shape.Pill,
+                                            shadow = Shadow(radiusDp = 12f, color = color),
+                                        ),
+                                        front = mIndicatorFrontComponent,
+                                        padding = Dimensions.of(5.dp),
+                                    ),
+                                    padding = Dimensions.of(10.dp),
+                                )
+                            }
+                        } else null,
+                        indicatorSizeDp = 36f,
+                        guideline = mGuideline,
+                        valueFormatter = valueFormatter
+                    ) {
+                    override fun updateInsets(
+                        context: CartesianMeasuringContext,
+                        horizontalDimensions: HorizontalDimensions,
+                        model: CartesianChartModel,
+                        insets: Insets,
+                    ) {
+                        with(context) {
+                            val baseShadowInsetDp =
+                                CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP
+                            var topInset =
+                                (baseShadowInsetDp - LABEL_BACKGROUND_SHADOW_DY_DP).pixels
+                            var bottomInset =
+                                (baseShadowInsetDp + LABEL_BACKGROUND_SHADOW_DY_DP).pixels
+                            when (labelPosition) {
+                                LabelPosition.Top,
+                                LabelPosition.AbovePoint -> topInset += mLabel.getHeight(context) + tickSizeDp.pixels
+
+                                LabelPosition.Bottom -> bottomInset += mLabel.getHeight(context) + tickSizeDp.pixels
+                                LabelPosition.AroundPoint -> {}
+                            }
+                            insets.ensureValuesAtLeast(top = topInset, bottom = bottomInset)
+                        }
+                    }
                 }
             }
-            ProvideChartStyle(m3ChartStyle()) {
-                Chart(
-                    chart = if (tabIndex == 1) columnChart(
-                        axisValuesOverrider = AxisValuesOverrider.adaptiveYValues(1f)
-                    ) else lineChart(
-                        axisValuesOverrider = AxisValuesOverrider.adaptiveYValues(1f)
-                    ),
-                    chartModelProducer = chartEntryModelProducer,
-                    bottomAxis = rememberBottomAxis(
-                        valueFormatter = { value, _ ->
-                            (if (value.toInt() < timeSeries.size)
-                                timeSeries[value.toInt()].date.replace("-", "w")
-                            else "null").substring(2)
-                        },
-                        labelRotationDegrees = 90f
+        }
+    }
+
+    var tabIndex by rememberSaveable { mutableIntStateOf(0) }
+    val timeSeries = dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } }
+    val dates = timeSeries.map { it.date.replace("-", "w").substring(2) }
+    val ratingSeries =
+        timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
+    val countSeries = timeSeries.map { it.count }
+    val accuracySeries =
+        timeSeries.map { (it.accuracy * 100).apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
+    val cartesianChartModelProducer by remember { mutableStateOf(CartesianChartModelProducer()) }
+
+    LaunchedEffect(tabIndex) {
+        if (timeSeries.isEmpty()) return@LaunchedEffect
+        withContext(Dispatchers.Default) {
+            cartesianChartModelProducer.runTransaction {
+                when (tabIndex) {
+                    0 -> lineSeries { series(ratingSeries) }
+                    1 -> columnSeries { series(countSeries) }
+                    2 -> lineSeries { series(accuracySeries) }
+                }
+            }
+        }
+    }
+
+    Column {
+        PrimaryTabRow(
+            selectedTabIndex = tabIndex,
+            containerColor = Color.Transparent,
+        ) {
+            Tab(
+                selected = tabIndex == 0,
+                onClick = { tabIndex = 0 }
+            ) {
+                Text(
+                    text = "Rating",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            Tab(
+                selected = tabIndex == 1,
+                onClick = { tabIndex = 1 }
+            ) {
+                Text(
+                    text = "游玩次数",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            Tab(
+                selected = tabIndex == 2,
+                onClick = { tabIndex = 2 }
+            ) {
+                Text(
+                    text = "平均精准度",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+        ProvideVicoTheme(rememberM3VicoTheme()) {
+            CartesianChartHost(
+                modelProducer = cartesianChartModelProducer,
+                chart = rememberCartesianChart(
+                    layers = arrayOf(
+                        rememberLineCartesianLayer(
+                            axisValueOverrider = AxisValueOverrider.adaptiveYValues(1f)
+                        ),
+                        rememberColumnCartesianLayer(
+                            axisValueOverrider = AxisValueOverrider.adaptiveYValues(1f)
+                        ),
+                        rememberLineCartesianLayer(
+                            axisValueOverrider = AxisValueOverrider.adaptiveYValues(1f)
+                        )
                     ),
                     startAxis = rememberStartAxis(
-                        valueFormatter = { value, _ ->
+                        horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
+                        valueFormatter = { value, _, _ ->
                             when (tabIndex) {
                                 0 -> value.run {
                                     if (keep2DecimalPlace) setPrecision(2) else this
                                 }.toString()
 
                                 1 -> value.toInt().toString()
+
                                 2 -> "${
                                     value.run {
                                         if (keep2DecimalPlace) setPrecision(2) else this
@@ -886,71 +1029,104 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
 
                                 else -> "Error"
                             }
-                        },
-                        horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside
+                        }
                     ),
                     endAxis = rememberEndAxis(
-                        valueFormatter = { _, _ -> "" },
-                        horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside
+                        horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
+                        valueFormatter = { _, _, _ -> "" }
                     ),
-                    marker = markerComponent(
-                        label = textComponent(
-                            background = shapeComponent(
-                                shape = Shapes.pillShape,
-                                color = MaterialTheme.colorScheme.surface
-                            ),
-                            padding = MutableDimensions(6f, 6f),
-                            margins = MutableDimensions(0f, 0f, 0f, 6f)
-                        ),
-                        indicator = overlayingComponent(
-                            outer = shapeComponent(
-                                shape = Shapes.pillShape,
-                                color = MaterialTheme.colorScheme.surface
-                            ),
-                            inner = shapeComponent(
-                                shape = Shapes.pillShape,
-                                color = MaterialTheme.colorScheme.onSurface
-                            ),
-                            innerPaddingAll = 8.dp
-                        ),
-                        guideline = lineComponent(
-                            color = Color(0x80808080),
-                            thickness = 2.dp,
-                            shape = DashedShape(Shapes.pillShape)
-                        )
-                    ).apply {
-                        indicatorSize = 16.dp
-                        this.labelFormatter = MarkerLabelFormatter { markedEntries, _ ->
-                            markedEntries.transformToSpannable { model ->
-                                appendCompat(
-                                    profileDetails.timeSeries[model.index].date.replace(
-                                        "-",
-                                        "年第"
-                                    ) + "周；",
-                                    ForegroundColorSpan(model.color),
-                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                                )
-                                appendCompat(
-                                    when (tabIndex) {
-                                        0 -> model.entry.y.run {
-                                            if (keep2DecimalPlace) setPrecision(2) else this.toString()
-                                        }
+                    bottomAxis = rememberBottomAxis(
+                        valueFormatter = { value, _, _ ->
+                            if (value.toInt() < timeSeries.size) {
+                                timeSeries[value.toInt()].date.replace("-", "w").substring(2)
+                            } else "null"
+                        },
+                        labelRotationDegrees = 90f,
+                        label = rememberAxisLabelComponent()
+                    ),
+                    marker = ChartMarker().rememberMarker(
+                        valueFormatter = { _, targets ->
+                            val xIndex = targets.first().x.toInt()
+                            val date =
+                                "${timeSeries.map { it.date.replace("-", "年第") }[xIndex]}周"
+                            return@rememberMarker "${date}：${
+                                when (tabIndex) {
+                                    0 -> ratingSeries[xIndex].run {
+                                        if (keep2DecimalPlace) setPrecision(2) else this
+                                    }
 
-                                        1 -> model.entry.y.toInt().toString()
-                                        2 -> model.entry.y.run {
-                                            if (keep2DecimalPlace) setPrecision(2) else this.toString()
-                                        } + "%"
+                                    1 -> countSeries[xIndex]
+                                    2 -> accuracySeries[xIndex].run {
+                                        if (keep2DecimalPlace) setPrecision(2) else this
+                                    }.toString() + "%"
 
-                                        else -> ""
-                                    },
-                                    ForegroundColorSpan(model.color),
-                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                                )
-                            }
+                                    else -> "Error"
+                                }
+                            }"
                         }
-                    }
-                )
-            }
+                    ),
+                    decorations = listOf(
+                        rememberHorizontalLine(
+                            y = {
+                                when (tabIndex) {
+                                    0 -> ratingSeries.average()
+                                    1 -> countSeries.average()
+                                    2 -> accuracySeries.average()
+                                    else -> 0.0
+                                }
+                            },
+                            line = rememberLineComponent(
+                                color = MaterialTheme.colorScheme.primary,
+                                thickness = 2.dp
+                            ),
+                            label = {
+                                "平均值：${
+                                    when (tabIndex) {
+                                        0 -> ratingSeries.average()
+                                        1 -> countSeries.average()
+                                        2 -> accuracySeries.average()
+                                        else -> 0
+                                    }.run { if (keep2DecimalPlace) setPrecision(2) else this }
+                                        .run { if (tabIndex == 2) "${this}%" else this }
+                                }\n最大值：${
+                                    when (tabIndex) {
+                                        0 -> ratingSeries.max()
+                                        1 -> countSeries.max()
+                                        2 -> accuracySeries.max()
+                                        else -> 0
+                                    }.run {
+                                        if (tabIndex == 1) return@run this.toInt()
+                                        if (keep2DecimalPlace) setPrecision(2) else this
+                                    }.run { if (tabIndex == 2) "${this}%" else this }
+                                }\n最小值：${
+                                    when (tabIndex) {
+                                        0 -> ratingSeries.min()
+                                        1 -> countSeries.min()
+                                        2 -> accuracySeries.min()
+                                        else -> 0
+                                    }.run {
+                                        if (tabIndex == 1) return@run this.toInt()
+                                        if (keep2DecimalPlace) setPrecision(2) else this
+                                    }.run { if (tabIndex == 2) "${this}%" else this }
+                                }"
+                            },
+                            horizontalLabelPosition = HorizontalPosition.End,
+                            verticalLabelPosition = VerticalPosition.Bottom,
+                            labelComponent = TextComponent(
+                                margins = Dimensions(4f),
+                                padding = Dimensions(8f, 8f),
+                                background = ShapeComponent(
+                                    MaterialTheme.colorScheme.surfaceContainer.toArgb(),
+                                    Shape.rounded(8f)
+                                ),
+                                lineCount = 3,
+                                color = vicoTheme.textColor.toArgb()
+                            )
+                        )
+                    )
+                ),
+                scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End)
+            )
         }
     }
 }
@@ -1053,7 +1229,7 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
                     .padding(8.dp)
                     .background(
                         Color(0xFF414558),
-                        Shapes.pillShape.composeShape()
+                        Shape.Pill.toComposeShape()
                     )
                     .padding(8.dp)
             )
@@ -1206,7 +1382,7 @@ private fun LevelCard(
                                             "extreme" -> CytoidColors.extremeColor
                                             else -> CytoidColors.hardColor
                                         }
-                                    ), Shapes.pillShape.composeShape()
+                                    ), Shape.Pill.toComposeShape()
                                 )
                                 .padding(8.dp)
                         )

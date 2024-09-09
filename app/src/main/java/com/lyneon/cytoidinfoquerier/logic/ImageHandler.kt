@@ -26,16 +26,15 @@ import com.lyneon.cytoidinfoquerier.util.ColumnBitmap
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.RowBitmap
+import com.lyneon.cytoidinfoquerier.util.extension.ceil
 import com.lyneon.cytoidinfoquerier.util.extension.enableAntiAlias
 import com.lyneon.cytoidinfoquerier.util.extension.isMaxCytoidGrade
 import com.lyneon.cytoidinfoquerier.util.extension.isSSSCytoidGrade
+import com.lyneon.cytoidinfoquerier.util.extension.lineHeight
 import com.lyneon.cytoidinfoquerier.util.extension.roundBitmap
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.util.extension.textHeight
 import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
-import com.patrykandpatrick.vico.core.extension.ceil
-import com.patrykandpatrick.vico.core.extension.lineHeight
-import com.patrykandpatrick.vico.core.extension.sumOf
-import com.patrykandpatrick.vico.core.extension.textHeight
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,7 +54,10 @@ import kotlin.math.roundToInt
 object AnalyticsImageHandler {
     val padding = 50
     val avatarDiameter =
-        listOf(160f, 70f, 50f).sumOf { Paint().apply { textSize = it }.lineHeight }.ceil.toInt()
+        listOf(160f, 70f, 50f).sumOf { float ->
+            Paint().apply { textSize = float }.lineHeight.toDouble()
+        }.ceil.toInt()
+
     val recordSpacing = 16
     val recordWidth = 576
     val recordHeight = 360
@@ -123,16 +125,16 @@ object AnalyticsImageHandler {
         addBitmap(
             ColumnBitmap().apply {
                 addText(profileDetails.user.uid, getDefaultPaint().apply {
-                    textSize = 160f
+                    textSize = 128f
                 })
                 addText("Lv.${profileDetails.exp.currentLevel}  Rating ${
                     profileDetails.rating.run { if (keep2DecimalPlaces) this.setPrecision(2) else this }
                 }", getDefaultPaint().apply {
-                    textSize = 70f
+                    textSize = 48f
                 })
                 addText(
                     "${records.size} ${recordsType.displayName}",
-                    getDefaultPaint().apply { textSize = 50f })
+                    getDefaultPaint().apply { textSize = 32f })
             }.getBitmap()
         )
     }.getBitmap()
