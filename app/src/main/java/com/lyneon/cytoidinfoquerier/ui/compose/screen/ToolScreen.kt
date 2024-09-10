@@ -128,7 +128,9 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
 @Composable
 private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
     Card(
-        modifier = Modifier.fillMaxWidth().animateContentSize()
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
     ) {
         Column(
             modifier = Modifier

@@ -20,15 +20,18 @@ class ToolViewModel : ViewModel() {
     val uiState: StateFlow<ToolUIState> get() = _uiState.asStateFlow()
 
     fun setRatingCalculatorAccuracy(accuracy: String) {
-        updateUIState { copy(ratingCalculatorAccuracy = accuracy) }
+        if (checkRatingCalculatorInput(accuracy))
+            updateUIState { copy(ratingCalculatorAccuracy = accuracy) }
     }
 
     fun setRatingCalculatorLevel(level: String) {
-        updateUIState { copy(ratingCalculatorLevel = level) }
+        if (checkRatingCalculatorInput(level))
+            updateUIState { copy(ratingCalculatorLevel = level) }
     }
 
     fun setRatingCalculatorRating(rating: String) {
-        updateUIState { copy(ratingCalculatorRating = rating) }
+        if (checkRatingCalculatorInput(rating))
+            updateUIState { copy(ratingCalculatorRating = rating) }
     }
 
     fun setPingResult(pingResult: String) {
@@ -94,6 +97,9 @@ class ToolViewModel : ViewModel() {
             }
         }
     }
+
+    private fun checkRatingCalculatorInput(input: String): Boolean =
+        !(input.any { char -> !(char.isDigit() || char == '.') } || input.count { char -> char == '.' } > 1)
 }
 
 data class ToolUIState(
