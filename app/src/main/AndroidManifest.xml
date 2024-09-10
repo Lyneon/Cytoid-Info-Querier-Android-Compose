@@ -9,6 +9,7 @@
     </queries>
 
     <application
+        android:enableOnBackInvokedCallback="true"
         android:name=".BaseApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -18,7 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CytoidInfoQuerierCompose"
-        tools:targetApi="31">
+        tools:targetApi="upside_down_cake">
 
         <meta-data
             android:name="io.sentry.auto-init"
