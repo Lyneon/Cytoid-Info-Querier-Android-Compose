@@ -286,7 +286,7 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
         TextField(
             value = uiState.cytoidID,
             onValueChange = {
-                if (it.length <= 16) {
+                if (it.isValidCytoidID(checkLengthMin = false)) {
                     viewModel.setCytoidID(it)
                     viewModel.clearBestRecords()
                     viewModel.clearRecentRecords()
@@ -346,7 +346,9 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
     val scope = rememberCoroutineScope()
 
     DropdownMenu(
-        modifier = Modifier.padding(MenuDefaults.DropdownMenuItemContentPadding).animateContentSize(),
+        modifier = Modifier
+            .padding(MenuDefaults.DropdownMenuItemContentPadding)
+            .animateContentSize(),
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
     ) {

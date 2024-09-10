@@ -335,7 +335,7 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
         TextField(
             value = uiState.cytoidID,
             onValueChange = {
-                if (it.length <= 16) {
+                if (it.isValidCytoidID(checkLengthMin = false)) {
                     viewModel.setCytoidID(it)
                     viewModel.clearProfileScreenDataModel()
                 }
