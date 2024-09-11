@@ -226,7 +226,9 @@ class AnalyticsViewModel(
                     profileDetails = profileDetails.value!!,
                     records = (if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords)
                         bestRecords.value!!.data.profile?.bestRecords
-                    else recentRecords.value!!.data.profile?.recentRecords) ?: emptyList(),
+                    else recentRecords.value!!.data.profile?.recentRecords)?.subList(
+                        0, uiState.value.queryCount.toInt()
+                    ) ?: return@withContext,
                     recordsType = uiState.value.queryType,
                     columnsCount = uiState.value.imageGenerationColumns.toInt(),
                     keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
