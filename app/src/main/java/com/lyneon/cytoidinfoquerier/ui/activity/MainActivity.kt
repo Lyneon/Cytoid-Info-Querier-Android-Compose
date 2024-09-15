@@ -110,10 +110,6 @@ class MainActivity : BaseActivity() {
             }
 
             CytoidInfoQuerierComposeTheme {
-                mainActivity.window.apply {
-                    navigationBarColor = Color.Transparent.toArgb()
-                }
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
