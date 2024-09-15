@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -103,9 +104,10 @@ fun RecordCard(
                 )
             }
             .capturable(captureController)
+            .animateContentSize()
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(8.dp)
         ) {
             record.chart?.level?.let { level ->
                 Box {
@@ -289,29 +291,23 @@ private fun RecordCardMusicPreviewButton(
     playbackState: Int,
     musicPreviewUrl: String?
 ) {
-    AnimatedVisibility(visible = playbackState == ExoPlayer.STATE_IDLE || playbackState == ExoPlayer.STATE_ENDED) {
+    AnimatedVisibility(visible = musicPreviewUrl != null && (playbackState == ExoPlayer.STATE_IDLE || playbackState == ExoPlayer.STATE_ENDED)) {
         IconButton(
             onClick = {
-                if (musicPreviewUrl == null) {
-                    "没有音乐预览！".showToast()
-                } else {
-                    exoPlayer.apply {
-                        setMediaSource(
-                            ProgressiveMediaSource.Factory(
-                                DefaultHttpDataSource.Factory()
-                                    .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
-                            ).createMediaSource(
-                                MediaItem.Builder()
-                                    .setUri(Uri.parse(musicPreviewUrl)).build()
-                            )
+                exoPlayer.apply {
+                    setMediaSource(
+                        ProgressiveMediaSource.Factory(
+                            DefaultHttpDataSource.Factory()
+                                .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
+                        ).createMediaSource(
+                            MediaItem.Builder().setUri(Uri.parse(musicPreviewUrl)).build()
                         )
-                        prepare()
-                        play()
-                    }
+                    )
+                    prepare()
+                    play()
                 }
             },
-            modifier = Modifier
-                .padding(4.dp),
+            modifier = Modifier.padding(4.dp),
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Icon(
