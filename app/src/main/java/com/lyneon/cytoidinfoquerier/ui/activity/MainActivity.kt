@@ -61,6 +61,7 @@ import com.lyneon.cytoidinfoquerier.ui.compose.screen.AnalyticsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.GridColumnsCountSettingScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HistoryScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HomeScreen
+import com.lyneon.cytoidinfoquerier.ui.compose.screen.LevelDetailScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.LevelScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ProfileScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.SettingsScreen
@@ -147,7 +148,8 @@ class MainActivity : BaseActivity() {
         ProfileHistory("history/profile"),
         About("about"),
         Level("level"),
-        Tool("tool")
+        Tool("tool"),
+        LevelDetail("levelDetail")
     }
 }
 
@@ -415,7 +417,6 @@ private fun RailContent(
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 private fun MainContent(navHostController: NavHostController) {
     NavHost(
@@ -485,10 +486,17 @@ private fun MainContent(navHostController: NavHostController) {
             AboutScreen(navController = navHostController)
         }
         composable(MainActivity.Screen.Level.route) {
-            LevelScreen()
+            LevelScreen(
+                navController = navHostController
+            )
         }
         composable(MainActivity.Screen.Tool.route) {
             ToolScreen()
+        }
+        composable(MainActivity.Screen.LevelDetail.route) {
+            LevelDetailScreen(
+                navController = navHostController
+            )
         }
     }
 }
