@@ -416,7 +416,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                         FilterChip(
                             selected = uiState.querySort == sort,
                             onClick = { viewModel.setQuerySort(sort) },
-                            label = { Text(text = sort.name) },
+                            label = { Text(text = sort.displayName) },
                             leadingIcon = {
                                 AnimatedVisibility(visible = uiState.querySort == sort) {
                                     Icon(
