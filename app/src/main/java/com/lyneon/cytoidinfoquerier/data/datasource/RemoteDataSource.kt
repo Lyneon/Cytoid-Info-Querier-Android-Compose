@@ -5,11 +5,14 @@ import com.lyneon.cytoidinfoquerier.data.GraphQL
 import com.lyneon.cytoidinfoquerier.data.constant.OkHttpSingleton
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
+import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
+import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
+import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
 import com.lyneon.cytoidinfoquerier.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -86,6 +89,21 @@ object RemoteDataSource {
         return fetch<ProfileDetails>(
             Request.Builder()
                 .url("https://services.cytoid.io/profile/$cytoidID/details")
+                .cytoidHeader()
+                .build()
+        )
+    }
+
+    suspend fun searchLevels(
+        search: String,
+        sortStrategy: SearchLevelSortingStrategy,
+        order: SearchLevelOrder,
+        page: Int,
+        limit: Int
+    ): List<SearchLevelsResult> {
+        return fetch<List<SearchLevelsResult>>(
+            Request.Builder()
+                .url("https://services.cytoid.io/search/levels?search=$search&sort=${sortStrategy.value}&order=${order.value}&page=$page&limit=$limit")
                 .cytoidHeader()
                 .build()
         )
