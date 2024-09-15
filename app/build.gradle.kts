@@ -59,7 +59,7 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2024.09.00"
+    val composeBomVersion = "2024.09.01"
 
     implementation("io.sentry:sentry-android:7.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -68,7 +68,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.tencent:mmkv:1.3.7")
     implementation("androidx.navigation:navigation-compose:2.8.0")
-    implementation("androidx.compose.material:material-icons-extended:1.7.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.1")
     implementation("dev.shreyaspatil:capturable:2.1.0")
     implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.28")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
@@ -84,7 +84,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
