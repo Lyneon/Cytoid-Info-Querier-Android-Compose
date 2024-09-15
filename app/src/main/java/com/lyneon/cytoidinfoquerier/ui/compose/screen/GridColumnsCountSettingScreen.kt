@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -25,6 +26,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +45,6 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.MMKVId
-import com.lyneon.cytoidinfoquerier.util.extension.times
 import com.tencent.mmkv.MMKV
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +91,7 @@ fun GridColumnsCountSettingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
         ) {
             Row(
                 modifier = Modifier
@@ -106,7 +107,8 @@ fun GridColumnsCountSettingScreen(
                                 mmkv.encode(
                                     if (orientation == Configuration.ORIENTATION_PORTRAIT)
                                         AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
-                                    else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, columnsCount
+                                    else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name,
+                                    columnsCount
                                 )
                             }
                         },
@@ -176,10 +178,13 @@ fun GridColumnsCountSettingScreen(
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
+                                    .fillMaxSize()
+                                    .height((128..512).random().dp)
                             ) {
-                                Text(text = it.toString() * (1..64).random())
+                                Text(
+                                    text = it.toString(),
+                                    style = MaterialTheme.typography.headlineLarge
+                                )
                             }
                         }
                     }
