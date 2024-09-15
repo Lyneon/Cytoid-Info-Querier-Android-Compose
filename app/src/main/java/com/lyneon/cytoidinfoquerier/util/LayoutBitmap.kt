@@ -13,9 +13,9 @@ import kotlin.math.abs
  *
  * 在调用getBitmap()之前，不会创建位图对象进行任何实际的绘制操作
  * */
-sealed interface LayoutBitmap {
-    val componentsList: MutableList<LayoutBitmapComponent>
-    fun getBitmap(): Bitmap
+abstract class LayoutBitmap {
+    val componentsList: MutableList<LayoutBitmapComponent> = mutableListOf()
+    abstract fun getBitmap(): Bitmap
 
     fun drawComponent(component: LayoutBitmapComponent, x: Float, y: Float, canvas: Canvas) {
         when (component) {
@@ -145,9 +145,7 @@ class BackgroundColorComponent(val a: Int, val r: Int, val g: Int, val b: Int) :
 class RowBitmap(
     val padding: Int? = null,
     val contentSpacing: Int? = null
-) : LayoutBitmap {
-    override val componentsList: MutableList<LayoutBitmapComponent> = mutableListOf()
-
+) : LayoutBitmap() {
     override fun getBitmap(): Bitmap {
         val width = componentsList.sumOf { it.width } + 2 * (padding ?: 0) +
                 (contentSpacing?.times((componentsList.size - 1)) ?: 0)
@@ -172,9 +170,7 @@ class RowBitmap(
 class ColumnBitmap(
     val padding: Int? = null,
     val contentSpacing: Int? = null
-) : LayoutBitmap {
-    override val componentsList: MutableList<LayoutBitmapComponent> = mutableListOf()
-
+) : LayoutBitmap() {
     override fun getBitmap(): Bitmap {
         val width = componentsList.maxOf { it.width } + 2 * (padding ?: 0)
         val height = componentsList.sumOf { it.height } + 2 * (padding ?: 0) +
