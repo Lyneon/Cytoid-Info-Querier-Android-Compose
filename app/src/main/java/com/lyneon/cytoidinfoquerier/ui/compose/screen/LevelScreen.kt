@@ -171,7 +171,7 @@ fun LevelScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 16.dp)
         ) {
             LevelInputField(uiState, viewModel)
@@ -332,7 +332,6 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun ResultDisplayList(
     uiState: LevelUIState,
@@ -377,7 +376,7 @@ private fun ResultDisplayList(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LevelCard(
     searchLevelResult: SearchLevelsResult,
@@ -591,6 +590,6 @@ private fun DifficultyPillText(
                     }
                 ), RoundedCornerShape(CornerSize(100))
             )
-            .padding(6.dp)
+            .padding(8.dp)
     )
 }
