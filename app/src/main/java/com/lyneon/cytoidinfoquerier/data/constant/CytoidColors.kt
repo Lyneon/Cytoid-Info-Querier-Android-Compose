@@ -11,6 +11,8 @@ object CytoidColors {
     val backgroundColor = Color(39, 41, 53)
     val sssColor = listOf(Color(0xffffc53d), Color(0xffff5e07))
     val maxColor = listOf(Color(0xffec00c6), Color(0xff0096ff))
+    val featuredColor = listOf(Color(0xffdf3090), Color(0xfff953c6))
+    val qualifiedColor = listOf(Color(0xff1d976c), Color(0xff1cb068))
     val perfectColor = Color(0xff60a5fa)
     val greatColor = Color(0xfffacc15)
     val goodColor = Color(0xff4ade80)
