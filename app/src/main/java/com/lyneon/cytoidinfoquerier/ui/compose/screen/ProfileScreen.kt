@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -1355,36 +1356,35 @@ private fun LevelCard(
                         )
                     }
                 }
-                Row(
+                LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(8.dp)
+                    modifier = Modifier.padding(8.dp)
                 ) {
-
                     level.charts.forEach { chart ->
-                        Text(
-                            text = " ${
-                                chart.name
-                                    ?: chart.type.replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(
-                                            Locale.getDefault()
-                                        ) else it.toString()
-                                    }
-                            } ${chart.difficulty} ",
-                            color = Color.White,
-                            modifier = Modifier
-                                .background(
-                                    Brush.linearGradient(
-                                        when (chart.type) {
-                                            "easy" -> CytoidColors.easyColor
-                                            "extreme" -> CytoidColors.extremeColor
-                                            else -> CytoidColors.hardColor
+                        item {
+                            Text(
+                                text = " ${
+                                    chart.name
+                                        ?: chart.type.replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(
+                                                Locale.getDefault()
+                                            ) else it.toString()
                                         }
-                                    ), Shape.Pill.toComposeShape()
-                                )
-                                .padding(8.dp)
-                        )
+                                } ${chart.difficulty} ",
+                                color = Color.White,
+                                modifier = Modifier
+                                    .background(
+                                        Brush.linearGradient(
+                                            when (chart.type) {
+                                                "easy" -> CytoidColors.easyColor
+                                                "extreme" -> CytoidColors.extremeColor
+                                                else -> CytoidColors.hardColor
+                                            }
+                                        ), Shape.Pill.toComposeShape()
+                                    )
+                                    .padding(8.dp)
+                            )
+                        }
                     }
                 }
             }
