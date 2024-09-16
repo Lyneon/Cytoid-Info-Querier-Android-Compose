@@ -58,17 +58,35 @@ class LevelViewModel(
         updateUIState { copy(errorMessage = message) }
     }
 
+    fun setQueryFeatured(featured: Boolean) {
+        updateUIState { copy(queryFeatured = featured) }
+    }
+
+    fun setQueryQualified(qualified: Boolean) {
+        updateUIState { copy(queryQualified = qualified) }
+    }
+
     fun searchLevels(
         search: String,
         sortStrategy: SearchLevelSortingStrategy,
         order: SearchLevelOrder,
         page: Int,
-        limit: Int
+        limit: Int,
+        featured: Boolean,
+        qualified: Boolean
     ) = viewModelScope.launch {
         try {
             _searchResult.update {
                 async(Dispatchers.IO) {
-                    searchLevelsRepository.searchLevels(search, sortStrategy, order, page, limit)
+                    searchLevelsRepository.searchLevels(
+                        search,
+                        sortStrategy,
+                        order,
+                        page,
+                        limit,
+                        featured,
+                        qualified
+                    )
                 }.await()
             }
             updateUIState { copy(isSearching = false) }
@@ -79,7 +97,15 @@ class LevelViewModel(
 
     fun enqueueSearch() {
         uiState.value.run {
-            searchLevels(searchQuery, querySortStrategy, queryOrder, queryPage, queryLimit)
+            searchLevels(
+                searchQuery,
+                querySortStrategy,
+                queryOrder,
+                queryPage,
+                queryLimit,
+                queryFeatured,
+                queryQualified
+            )
         }
     }
 
@@ -98,5 +124,7 @@ data class LevelUIState(
     val foldTextFiled: Boolean = false,
     val isSearching: Boolean = false,
     val expandSearchOptionsDropdownMenu: Boolean = false,
-    val errorMessage: String = ""
+    val errorMessage: String = "",
+    val queryFeatured: Boolean = false,
+    val queryQualified: Boolean = false
 )

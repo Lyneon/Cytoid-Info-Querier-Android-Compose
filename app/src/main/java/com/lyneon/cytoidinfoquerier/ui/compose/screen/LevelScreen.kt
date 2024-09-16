@@ -83,6 +83,7 @@ import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
+import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelCategory
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
@@ -292,6 +293,42 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                     )
                 }
             }
+            Text(
+                text = "类别",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = uiState.queryFeatured,
+                    onClick = { viewModel.setQueryFeatured(!uiState.queryFeatured) },
+                    label = { Text(text = "Featured") },
+                    leadingIcon = {
+                        AnimatedVisibility(visible = uiState.queryFeatured) {
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                )
+                FilterChip(
+                    selected = uiState.queryQualified,
+                    onClick = { viewModel.setQueryQualified(!uiState.queryQualified) },
+                    label = { Text(text = "Qualified") },
+                    leadingIcon = {
+                        AnimatedVisibility(visible = uiState.queryQualified) {
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -436,6 +473,30 @@ private fun LevelCard(
                         musicPreviewUrl = searchLevelResult.musicPreview
                             ?: searchLevelResult.music
                     )
+                }
+                FlowRow(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(8.dp),
+                ) {
+                    searchLevelResult.category.forEach { category ->
+                        Text(
+                            text = category.replaceFirstChar { it.uppercaseChar() },
+                            maxLines = 1,
+                            color = Color.White,
+                            modifier = Modifier
+                                .background(
+                                    Brush.linearGradient(
+                                        when (category) {
+                                            SearchLevelCategory.Featured.value -> CytoidColors.featuredColor
+                                            SearchLevelCategory.Qualified.value -> CytoidColors.qualifiedColor
+                                            else -> CytoidColors.hardColor
+                                        }
+                                    ), RoundedCornerShape(CornerSize(100))
+                                )
+                                .padding(8.dp)
+                        )
+                    }
                 }
             }
             Column {

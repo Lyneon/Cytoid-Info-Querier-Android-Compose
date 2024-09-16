@@ -11,9 +11,19 @@ class SearchLevelsRepository {
         sortStrategy: SearchLevelSortingStrategy = SearchLevelSortingStrategy.CreationDate,
         order: SearchLevelOrder = SearchLevelOrder.Descending,
         page: Int,
-        limit: Int
+        limit: Int,
+        featured: Boolean,
+        qualified: Boolean
     ): List<SearchLevelsResult> {
         if (search.isEmpty() || page < 0 || limit < 1) return emptyList()
-        return RemoteDataSource.searchLevels(search, sortStrategy, order, page, limit)
+        return RemoteDataSource.searchLevels(
+            search,
+            sortStrategy,
+            order,
+            page,
+            limit,
+            featured,
+            qualified
+        )
     }
 }

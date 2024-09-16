@@ -99,11 +99,13 @@ object RemoteDataSource {
         sortStrategy: SearchLevelSortingStrategy,
         order: SearchLevelOrder,
         page: Int,
-        limit: Int
+        limit: Int,
+        featured: Boolean,
+        qualified: Boolean
     ): List<SearchLevelsResult> {
         return fetch<List<SearchLevelsResult>>(
             Request.Builder()
-                .url("https://services.cytoid.io/search/levels?search=$search&sort=${sortStrategy.value}&order=${order.value}&page=$page&limit=$limit")
+                .url("https://services.cytoid.io/search/levels?search=$search&sort=${sortStrategy.value}&order=${order.value}&page=$page&limit=$limit&featured=$featured&qualified=$qualified")
                 .cytoidHeader()
                 .build()
         )
