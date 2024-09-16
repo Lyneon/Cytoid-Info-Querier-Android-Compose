@@ -457,6 +457,8 @@ private fun LevelCard(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     searchLevelResult.category.forEach { category ->
                         Text(
@@ -491,7 +493,7 @@ private fun LevelCard(
                     }"
                 )
                 Text(
-                    "上次修改于${
+                    "最后更新于${
                         DateParser.parseISO8601Date(searchLevelResult.modificationDate)
                             .formatToTimeString()
                     }"

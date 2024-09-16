@@ -95,6 +95,22 @@ data class SearchLevelsResult(
                 it.notesCount
             )
         },
-        coverRemoteURL = this.cover?.original
+        coverRemoteURL = this.cover?.original,
+        owner = if (this.owner == null) null else Level.Owner(
+            this.owner.uid,
+            this.owner.id,
+            Level.Owner.Avatar(
+                this.owner.avatar.original,
+                this.owner.avatar.small,
+                this.owner.avatar.medium,
+                this.owner.avatar.large
+            )
+        ),
+        tags = this.tags,
+        category = this.category,
+        creationDate = this.creationDate,
+        modificationDate = this.modificationDate,
+        plays = this.plays,
+        downloads = this.downloads
     )
 }
