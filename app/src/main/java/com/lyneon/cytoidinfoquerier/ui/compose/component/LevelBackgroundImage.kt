@@ -29,7 +29,8 @@ fun LevelBackgroundImage(
     levelID: String,
     backgroundImageSize: ImageSize,
     disableLocalCache: Boolean = false,
-    remoteUrl: String?
+    remoteUrl: String?,
+    contentScale: ContentScale = ContentScale.FillWidth
 ) {
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
@@ -52,7 +53,7 @@ fun LevelBackgroundImage(
                 onLoading = { isLoading = true },
                 onSuccess = { isLoading = false },
                 onError = { isLoading = false },
-                contentScale = ContentScale.FillWidth
+                contentScale = contentScale
             )
         } else {
             if (remoteUrl == null) {
@@ -60,7 +61,7 @@ fun LevelBackgroundImage(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(id = R.drawable.sayakacry),
                     contentDescription = null,
-                    contentScale = ContentScale.FillWidth
+                    contentScale = contentScale
                 )
             } else {
                 AsyncImage(
@@ -79,7 +80,7 @@ fun LevelBackgroundImage(
                         }
                     },
                     onError = { isLoading = false },
-                    contentScale = ContentScale.FillWidth
+                    contentScale = contentScale
                 )
             }
         }
