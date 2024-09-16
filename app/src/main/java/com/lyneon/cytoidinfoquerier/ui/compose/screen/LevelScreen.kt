@@ -431,7 +431,7 @@ private fun LevelCard(
                                     MaterialTheme.colorScheme.primaryContainer,
                                     Shape.Pill.toComposeShape()
                                 )
-                                .padding(4.dp)
+                                .padding(top = 4.dp, bottom = 4.dp, start = 4.dp, end = 8.dp)
                         ) {
                             UserAvatar(
                                 modifier = Modifier.sizeIn(maxHeight = 32.dp, maxWidth = 32.dp),
@@ -473,7 +473,7 @@ private fun LevelCard(
                                         }
                                     ), RoundedCornerShape(CornerSize(100))
                                 )
-                                .padding(8.dp)
+                                .padding(vertical = 4.dp, horizontal = 8.dp)
                         )
                     }
                 }
@@ -590,6 +590,6 @@ private fun DifficultyPillText(
                     }
                 ), RoundedCornerShape(CornerSize(100))
             )
-            .padding(8.dp)
+            .padding(vertical = 4.dp, horizontal = 8.dp)
     )
 }
