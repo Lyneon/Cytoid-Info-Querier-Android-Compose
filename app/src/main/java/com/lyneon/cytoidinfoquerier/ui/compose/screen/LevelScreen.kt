@@ -88,7 +88,6 @@ import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
-import com.lyneon.cytoidinfoquerier.data.model.shared.Level
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
@@ -392,26 +391,7 @@ private fun LevelCard(
     Card(
         modifier = Modifier
             .clickable {
-                sharedViewModel.sharedLevelForLevelDetailScreen = Level(
-                    title = searchLevelResult.title,
-                    uid = searchLevelResult.uid,
-                    description = searchLevelResult.description,
-                    artist = searchLevelResult.metadata.artist?.name,
-                    charter = searchLevelResult.metadata.charter?.name,
-                    illustrator = searchLevelResult.metadata.illustrator?.name,
-                    storyboarder = searchLevelResult.metadata.storyboarder?.name,
-                    musicURL = searchLevelResult.music,
-                    musicPreviewURL = searchLevelResult.musicPreview,
-                    charts = searchLevelResult.charts.map {
-                        Level.Chart(
-                            it.difficultyLevel,
-                            it.difficultyType,
-                            it.difficultyName,
-                            it.notesCount
-                        )
-                    },
-                    coverRemoteURL = searchLevelResult.cover?.original
-                )
+                sharedViewModel.sharedLevelForLevelDetailScreen = searchLevelResult.toSharedLevel()
                 navController.navigate(MainActivity.Screen.LevelDetail.route) {
                     launchSingleTop = true
                     popUpTo(MainActivity.Screen.LevelDetail.route)

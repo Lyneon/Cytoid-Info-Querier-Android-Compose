@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.data.model.webapi
 
+import com.lyneon.cytoidinfoquerier.data.model.shared.Level
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -74,5 +75,26 @@ data class SearchLevelsResult(
         val thumbnail: String? = null,
         val cover: String? = null,
         val stripe: String? = null
+    )
+
+    fun toSharedLevel() = Level(
+        title = this.title,
+        uid = this.uid,
+        description = this.description,
+        artist = this.metadata.artist?.name,
+        charter = this.metadata.charter?.name,
+        illustrator = this.metadata.illustrator?.name,
+        storyboarder = this.metadata.storyboarder?.name,
+        musicURL = this.music,
+        musicPreviewURL = this.musicPreview,
+        charts = this.charts.map {
+            Level.Chart(
+                it.difficultyLevel,
+                it.difficultyType,
+                it.difficultyName,
+                it.notesCount
+            )
+        },
+        coverRemoteURL = this.cover?.original
     )
 }
