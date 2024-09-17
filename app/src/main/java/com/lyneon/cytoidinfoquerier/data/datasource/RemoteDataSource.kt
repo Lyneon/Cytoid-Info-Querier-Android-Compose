@@ -8,8 +8,10 @@ import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
+import com.lyneon.cytoidinfoquerier.data.model.graphql.LevelLeaderboard
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.data.model.webapi.LevelComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
@@ -111,6 +113,33 @@ object RemoteDataSource {
         )
     }
 
+    suspend fun fetchLevelLeaderboard(
+        levelUID: String,
+        difficultyType: String,
+        start: Int,
+        limit: Int
+    ): LevelLeaderboard {
+        val requestBody = GraphQL.getQueryString(
+            LevelLeaderboard.getRequestBodyString(levelUID, difficultyType, start, limit)
+        )
+        return fetch<LevelLeaderboard>(
+            Request.Builder()
+                .url("https://services.cytoid.io/graphql")
+                .post(requestBody.toRequestBody("application/json".toMediaType()))
+                .cytoidHeader()
+                .build()
+        )
+    }
+
+    suspend fun fetchLevelComments(levelUID: String): List<LevelComment> {
+        return fetch<List<LevelComment>>(
+            Request.Builder()
+                .url("https://services.cytoid.io/threads/level/$levelUID")
+                .cytoidHeader()
+                .build()
+        )
+    }
+
     private fun Request.Builder.cytoidHeader() = this.header("User-Agent", "CytoidClient/2.1.1")
 
     private suspend inline fun <reified T> fetch(request: Request): T {
@@ -134,7 +163,9 @@ object RemoteDataSource {
 
     private inline fun <reified T> ResponseBody.decode(): T {
         val data = try {
-            json.decodeFromString<T>(this.string())
+            val responseBodyString = this.string()
+            Log.i("RemoteDataSource", "Response body: $responseBodyString")
+            json.decodeFromString<T>(responseBodyString)
         } catch (e: Exception) {
             Log.e(
                 "RemoteDataSource",
