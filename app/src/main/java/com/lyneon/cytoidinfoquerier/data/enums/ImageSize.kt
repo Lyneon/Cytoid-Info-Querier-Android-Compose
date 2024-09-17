@@ -3,7 +3,6 @@ package com.lyneon.cytoidinfoquerier.data.enums
 enum class AvatarSize(val value: String) {
     Original("original"),
     Large("large"),
-    Medium("medium"),
     Small("small")
 }
 
