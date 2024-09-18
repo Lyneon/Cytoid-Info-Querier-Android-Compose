@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,18 +51,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -389,13 +396,102 @@ private fun LevelLeaderboardCard(
                     .horizontalScroll(rememberScrollState())
             ) {
                 levelLeaderboard?.data?.chart?.leaderboard?.let { leaderboard ->
+                    val textMeasurer = rememberTextMeasurer()
+                    val localDensity = LocalDensity.current
+                    val localTextStyle = LocalTextStyle.current
+                    var ownerUIDColumnWidth by remember { mutableStateOf(0.dp) }
+                    var scoreColumnWidth by remember { mutableStateOf(0.dp) }
+                    var accuracyColumnWidth by remember { mutableStateOf(0.dp) }
+                    var maxComboColumnWidth by remember { mutableStateOf(0.dp) }
+                    var detailsColumnWidth by remember { mutableStateOf(0.dp) }
+                    val modsColumnWidth = 128.dp
+                    var dateColumnWidth by remember { mutableStateOf(0.dp) }
+
+                    LaunchedEffect(leaderboard) {
+                        ownerUIDColumnWidth = with(localDensity) {
+                            leaderboard.maxOf {
+                                textMeasurer.measure(
+                                    it.owner?.uid ?: it.owner?.id ?: "",
+                                    style = localTextStyle,
+                                    overflow = TextOverflow.Visible,
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    skipCache = true
+                                ).size.width
+                            }.toDp()
+                        }
+                        scoreColumnWidth = with(localDensity) {
+                            leaderboard.maxOf {
+                                textMeasurer.measure(
+                                    it.score.toString(),
+                                    style = localTextStyle,
+                                    overflow = TextOverflow.Visible,
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    skipCache = true
+                                ).size.width
+                            }.toDp()
+                        }
+                        accuracyColumnWidth = with(localDensity) {
+                            leaderboard.maxOf {
+                                textMeasurer.measure(
+                                    (it.accuracy * 100).toString() + "%",
+                                    style = localTextStyle,
+                                    overflow = TextOverflow.Visible,
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    skipCache = true
+                                ).size.width
+                            }.toDp()
+                        }
+                        maxComboColumnWidth = with(localDensity) {
+                            leaderboard.maxOf {
+                                textMeasurer.measure(
+                                    it.details.maxCombo.toString() + "x",
+                                    style = localTextStyle,
+                                    overflow = TextOverflow.Visible,
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    skipCache = true
+                                ).size.width
+                            }.toDp()
+                        }
+                        detailsColumnWidth = with(localDensity) {
+                            leaderboard.maxOf {
+                                textMeasurer.measure(
+                                    it.details.perfect.toString() + "/" +
+                                            it.details.great.toString() + "/" +
+                                            it.details.good.toString() + "/" +
+                                            it.details.bad.toString() + "/" +
+                                            it.details.miss.toString(),
+                                    style = localTextStyle,
+                                    overflow = TextOverflow.Visible,
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    skipCache = true
+                                ).size.width
+                            }.toDp()+16.dp
+                        }
+                        dateColumnWidth = with(localDensity) {
+                            leaderboard.maxOf {
+                                textMeasurer.measure(
+                                    DateParser.parseISO8601Date(it.date)
+                                        .formatToTimeString(),
+                                    style = localTextStyle,
+                                    overflow = TextOverflow.Visible,
+                                    softWrap = false,
+                                    maxLines = 1,
+                                    skipCache = true
+                                ).size.width
+                            }.toDp()
+                        }
+                    }
+
                     leaderboard.forEach { leaderboardRecord ->
                         leaderboardRecord.owner?.let { owner ->
-                            val textMeasurer = rememberTextMeasurer()
-
                             Row(
                                 modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(32.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 UserAvatar(
@@ -406,47 +502,22 @@ private fun LevelLeaderboardCard(
                                 )
                                 Text(
                                     text = owner.let { it.uid ?: it.id },
-                                    modifier = Modifier.width(
-                                        textMeasurer.measure(
-                                            "UserName",
-                                            style = LocalTextStyle.current
-                                        ).size.width.dp
-                                    )
+                                    modifier = Modifier.width(ownerUIDColumnWidth)
                                 )
                                 Text(
                                     text = leaderboardRecord.score.toString(),
-                                    modifier = Modifier.width(
-                                        textMeasurer.measure(
-                                            "999999",
-                                            style = LocalTextStyle.current
-                                        ).size.width.dp
-                                    )
+                                    modifier = Modifier.width(scoreColumnWidth)
                                 )
                                 Text(
-                                    text = (leaderboardRecord.accuracy*100).toString() + "%",
-                                    modifier = Modifier.width(
-                                        textMeasurer.measure(
-                                            "100.0%",
-                                            style = LocalTextStyle.current
-                                        ).size.width.dp
-                                    )
+                                    text = (leaderboardRecord.accuracy * 100).toString() + "%",
+                                    modifier = Modifier.width(accuracyColumnWidth)
                                 )
                                 Text(
                                     text = leaderboardRecord.details.maxCombo.toString() + "x",
-                                    modifier = Modifier.width(
-                                        textMeasurer.measure(
-                                            "1000x",
-                                            style = LocalTextStyle.current
-                                        ).size.width.dp
-                                    )
+                                    modifier = Modifier.width(maxComboColumnWidth)
                                 )
                                 Row(
-                                    modifier = Modifier.width(
-                                        textMeasurer.measure(
-                                            "1000/0000",
-                                            style = LocalTextStyle.current
-                                        ).size.width.dp
-                                    ),
+                                    modifier = Modifier.width(detailsColumnWidth)
                                 ) {
                                     Text(
                                         text = leaderboardRecord.details.perfect.toString(),
@@ -475,42 +546,54 @@ private fun LevelLeaderboardCard(
                                 }
                                 Row(
                                     modifier = Modifier
-                                        .width(160.dp)
+                                        .width(modsColumnWidth)
                                         .horizontalScroll(rememberScrollState()),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     leaderboardRecord.mods.forEach { mod ->
-                                        Image(
-                                            painter = painterResource(
-                                                id = when (mod) {
-                                                    "HideNotes" -> R.drawable.mod_hide_notes
-                                                    "HideScanline" -> R.drawable.mod_hide_scanline
-                                                    "Slow" -> R.drawable.mod_slow
-                                                    "Fast" -> R.drawable.mod_fast
-                                                    "Hard" -> R.drawable.mod_hyper
-                                                    "ExHard" -> R.drawable.mod_another
-                                                    "AP" -> R.drawable.mod_ap
-                                                    "FC" -> R.drawable.mod_fc
-                                                    "FlipAll" -> R.drawable.mod_flip_all
-                                                    "FlipX" -> R.drawable.mod_flip_x
-                                                    "FlipY" -> R.drawable.mod_flip_y
-                                                    else -> throw Exception("Unknown condition branch enter action")
-                                                }
-                                            ),
-                                            contentDescription = mod,
-                                            modifier = Modifier.height(32.dp)
-                                        )
+                                        var modTextIsVisible by remember { mutableStateOf(false) }
+                                        Column(
+                                            modifier = Modifier
+                                                .pointerInput(Unit) {
+                                                    detectTapGestures(
+                                                        onTap = {
+                                                            modTextIsVisible = !modTextIsVisible
+                                                        }
+                                                    )
+                                                },
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Image(
+                                                painter = painterResource(
+                                                    id = when (mod) {
+                                                        "HideNotes" -> R.drawable.mod_hide_notes
+                                                        "HideScanline" -> R.drawable.mod_hide_scanline
+                                                        "Slow" -> R.drawable.mod_slow
+                                                        "Fast" -> R.drawable.mod_fast
+                                                        "Hard" -> R.drawable.mod_hyper
+                                                        "ExHard" -> R.drawable.mod_another
+                                                        "AP" -> R.drawable.mod_ap
+                                                        "FC" -> R.drawable.mod_fc
+                                                        "FlipAll" -> R.drawable.mod_flip_all
+                                                        "FlipX" -> R.drawable.mod_flip_x
+                                                        "FlipY" -> R.drawable.mod_flip_y
+                                                        else -> throw Exception("Unknown condition branch enter action")
+                                                    }
+                                                ),
+                                                contentDescription = mod,
+                                                modifier = Modifier
+                                                    .height(32.dp)
+                                            )
+                                            AnimatedVisibility(visible = modTextIsVisible) {
+                                                Text(text = mod)
+                                            }
+                                        }
                                     }
                                 }
                                 Text(
                                     text = DateParser.parseISO8601Date(leaderboardRecord.date)
                                         .formatToTimeString(),
-                                    modifier = Modifier.width(
-                                        textMeasurer.measure(
-                                            "19700101",
-                                            style = LocalTextStyle.current
-                                        ).size.width.dp
-                                    )
+                                    modifier = Modifier.width(dateColumnWidth)
                                 )
                             }
                         }
@@ -583,8 +666,8 @@ private fun LevelDetailsCard(level: Level) {
                     ) {
                         UserAvatar(
                             userUid = level.owner.uid ?: level.owner.id,
-                            avatarSize = AvatarSize.Small,
-                            remoteAvatarUrl = level.owner.avatar.small ?: ""
+                            avatarSize = AvatarSize.Large,
+                            remoteAvatarUrl = level.owner.avatar.large ?: ""
                         )
                         Text(
                             text = level.owner.uid ?: level.owner.id
