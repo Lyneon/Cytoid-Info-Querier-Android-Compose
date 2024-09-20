@@ -1,7 +1,12 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -38,6 +43,7 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -97,11 +103,13 @@ import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun LevelDetailScreen(
     navController: NavController,
-    viewModel: LevelDetailViewModel = viewModel()
+    viewModel: LevelDetailViewModel = viewModel(),
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentLeaderboard by viewModel.currentLeaderboard.collectAsState()
@@ -258,7 +266,9 @@ fun LevelDetailScreen(
                         leaderboardColumnWidths,
                         leaderboardHorizontallyScrollState,
                         viewModel,
-                        uiState
+                        uiState,
+                        sharedTransitionScope,
+                        animatedContentScope
                     )
                 } else {
                     PortraitLevelDetailScreen(
@@ -269,7 +279,9 @@ fun LevelDetailScreen(
                         leaderboardColumnWidths,
                         leaderboardHorizontallyScrollState,
                         viewModel,
-                        uiState
+                        uiState,
+                        sharedTransitionScope,
+                        animatedContentScope
                     )
                 }
             }
@@ -287,7 +299,9 @@ private fun LandscapeLevelDetailScreen(
     leaderboardColumnWidths: LeaderboardColumnWidths,
     leaderboardHorizontalScrollState: ScrollState,
     viewModel: LevelDetailViewModel,
-    uiState: LevelDetailUIState
+    uiState: LevelDetailUIState,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
 ) {
     Row(
         modifier = Modifier
@@ -301,7 +315,7 @@ private fun LandscapeLevelDetailScreen(
                 .nestedScroll(nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item { LevelHeaderCard(level) }
+            item { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
             item { LevelDetailsCard(level) }
             item { LevelMetadataCard(level) }
             item { HorizontalDivider() }
@@ -453,7 +467,7 @@ private fun LandscapeLevelDetailScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PortraitLevelDetailScreen(
     level: Level,
@@ -463,7 +477,9 @@ private fun PortraitLevelDetailScreen(
     leaderboardColumnWidths: LeaderboardColumnWidths,
     leaderboardHorizontalScrollState: ScrollState,
     viewModel: LevelDetailViewModel,
-    uiState: LevelDetailUIState
+    uiState: LevelDetailUIState,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         var enableRefreshButton by remember { mutableStateOf(false) }
@@ -479,7 +495,7 @@ private fun PortraitLevelDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                ) { LevelHeaderCard(level) }
+                ) { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
             }
             item {
                 Box(
@@ -639,42 +655,57 @@ private fun PortraitLevelDetailScreen(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun LevelHeaderCard(level: Level) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize()
-    ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+private fun LevelHeaderCard(
+    level: Level,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
+) {
+    with(sharedTransitionScope) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
         ) {
-            Card {
-                LevelBackgroundImage(
-                    modifier = Modifier.fillMaxWidth(),
-                    levelID = level.uid,
-                    backgroundImageSize = ImageSize.Original,
-                    remoteUrl = level.coverRemoteURL
+            Column(
+                modifier = Modifier.padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Card {
+                    LevelBackgroundImage(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .sharedBounds(
+                                sharedTransitionScope.rememberSharedContentState("${level.uid}_backgroundImage"),
+                                animatedContentScope,
+                                clipInOverlayDuringTransition = sharedTransitionScope.OverlayClip(
+                                    CardDefaults.shape
+                                )
+                            ),
+                        levelID = level.uid,
+                        backgroundImageSize = ImageSize.Original,
+                        remoteUrl = level.coverRemoteURL
+                    )
+                }
+                Text(text = level.title, style = MaterialTheme.typography.headlineLarge)
+                level.artist?.let { Text(text = it) }
+                LevelChartsDifficultiesFlowRow(level.charts)
+                Text(
+                    "创建于${
+                        DateParser.parseISO8601Date(level.creationDate)
+                            .formatToTimeString()
+                    }"
                 )
+                Text(
+                    "最后更新于${
+                        DateParser.parseISO8601Date(level.modificationDate)
+                            .formatToTimeString()
+                    }"
+                )
+                Text("下载次数：${level.downloads}")
+                Text("游玩次数：${level.plays}")
             }
-            Text(text = level.title, style = MaterialTheme.typography.headlineLarge)
-            level.artist?.let { Text(text = it) }
-            LevelChartsDifficultiesFlowRow(level.charts)
-            Text(
-                "创建于${
-                    DateParser.parseISO8601Date(level.creationDate)
-                        .formatToTimeString()
-                }"
-            )
-            Text(
-                "最后更新于${
-                    DateParser.parseISO8601Date(level.modificationDate)
-                        .formatToTimeString()
-                }"
-            )
-            Text("下载次数：${level.downloads}")
-            Text("游玩次数：${level.plays}")
         }
     }
 }

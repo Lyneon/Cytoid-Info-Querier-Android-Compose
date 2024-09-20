@@ -2,11 +2,17 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +46,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -110,7 +117,9 @@ import java.util.Locale
 @Composable
 fun LevelScreen(
     viewModel: LevelViewModel = viewModel(),
-    navController: NavController
+    navController: NavController,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchResult by viewModel.searchResult.collectAsState()
@@ -182,7 +191,7 @@ fun LevelScreen(
                     exoPlayer,
                     playbackState,
                     sharedViewModel,
-                    navController
+                    navController, sharedTransitionScope, animatedContentScope
                 )
             }
         }
@@ -332,6 +341,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun ResultDisplayList(
     uiState: LevelUIState,
@@ -339,7 +349,9 @@ private fun ResultDisplayList(
     exoPlayer: ExoPlayer,
     playbackState: Int,
     sharedViewModel: SharedViewModel,
-    navController: NavController
+    navController: NavController,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
 ) {
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
@@ -368,7 +380,9 @@ private fun ResultDisplayList(
                         exoPlayer = exoPlayer,
                         playbackState = playbackState,
                         sharedViewModel = sharedViewModel,
-                        navController = navController
+                        navController = navController,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope = animatedContentScope
                     )
                 }
             }
@@ -376,131 +390,162 @@ private fun ResultDisplayList(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun LevelCard(
     searchLevelResult: SearchLevelsResult,
     exoPlayer: ExoPlayer,
     playbackState: Int,
     sharedViewModel: SharedViewModel,
-    navController: NavController
+    navController: NavController,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedContentScope: AnimatedContentScope
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
-    Card(
-        modifier = Modifier
-            .clickable {
-                sharedViewModel.sharedLevelForLevelDetailScreen = searchLevelResult.toSharedLevel()
-                navController.navigate(MainActivity.Screen.LevelDetail.route) {
-                    launchSingleTop = true
-                    popUpTo(MainActivity.Screen.LevelDetail.route)
+    with(sharedTransitionScope) {
+        Card(
+            modifier = Modifier
+                .clickable {
+                    sharedViewModel.sharedLevelForLevelDetailScreen =
+                        searchLevelResult.toSharedLevel()
+                    navController.navigate(MainActivity.Screen.LevelDetail.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.LevelDetail.route)
+                    }
                 }
-            }
-            .animateContentSize()
-    ) {
-        Column(
-            modifier = Modifier.padding(8.dp)
+                .animateContentSize()
         ) {
-            Box {
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    LevelBackgroundImage(
-                        modifier = Modifier.fillMaxWidth(),
-                        levelID = searchLevelResult.uid,
-                        backgroundImageSize = ImageSize.Cover,
-                        remoteUrl = searchLevelResult.cover?.cover
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .heightIn(max = 64.dp)
-                        .fillMaxWidth()
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    searchLevelResult.owner?.let { levelOwner ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Box {
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        LevelBackgroundImage(
                             modifier = Modifier
-                                .animateContentSize()
-                                .background(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    Shape.Pill.toComposeShape()
-                                )
-                                .padding(top = 4.dp, bottom = 4.dp, start = 4.dp, end = 8.dp)
+                                .fillMaxWidth()
+                                .sharedBounds(
+                                    sharedTransitionScope.rememberSharedContentState("${searchLevelResult.uid}_backgroundImage"),
+                                    animatedContentScope,
+                                    clipInOverlayDuringTransition = sharedTransitionScope.OverlayClip(
+                                        CardDefaults.shape
+                                    )
+                                ),
+                            levelID = searchLevelResult.uid,
+                            backgroundImageSize = ImageSize.Cover,
+                            remoteUrl = searchLevelResult.cover?.cover
+                        )
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        modifier = Modifier
+                            .heightIn(max = 64.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
+                        visible = !sharedTransitionScope.isTransitionActive,
+                        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+                        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            UserAvatar(
-                                modifier = Modifier.sizeIn(maxHeight = 32.dp, maxWidth = 32.dp),
-                                userUid = levelOwner.uid ?: levelOwner.id,
-                                avatarSize = AvatarSize.Small,
-                                remoteAvatarUrl = levelOwner.avatar.small ?: ""
-                            )
-                            Text(
-                                text = levelOwner.uid ?: levelOwner.id,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                            searchLevelResult.owner?.let { levelOwner ->
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .animateContentSize()
+                                        .background(
+                                            MaterialTheme.colorScheme.primaryContainer,
+                                            Shape.Pill.toComposeShape()
+                                        )
+                                        .padding(
+                                            top = 4.dp,
+                                            bottom = 4.dp,
+                                            start = 4.dp,
+                                            end = 8.dp
+                                        )
+                                ) {
+                                    UserAvatar(
+                                        modifier = Modifier.sizeIn(
+                                            maxHeight = 32.dp,
+                                            maxWidth = 32.dp
+                                        ),
+                                        userUid = levelOwner.uid ?: levelOwner.id,
+                                        avatarSize = AvatarSize.Small,
+                                        remoteAvatarUrl = levelOwner.avatar.small ?: ""
+                                    )
+                                    Text(
+                                        text = levelOwner.uid ?: levelOwner.id,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                            MusicPreviewButton(
+                                exoPlayer = exoPlayer,
+                                playbackState = playbackState,
+                                musicPreviewUrl = searchLevelResult.musicPreview
+                                    ?: searchLevelResult.music
                             )
                         }
                     }
-                    MusicPreviewButton(
-                        exoPlayer = exoPlayer,
-                        playbackState = playbackState,
-                        musicPreviewUrl = searchLevelResult.musicPreview
-                            ?: searchLevelResult.music
-                    )
-                }
-                FlowRow(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    searchLevelResult.category.forEach { category ->
-                        Text(
-                            text = category.replaceFirstChar { it.uppercaseChar() },
-                            maxLines = 1,
-                            color = Color.White,
-                            modifier = Modifier
-                                .background(
-                                    Brush.linearGradient(
-                                        when (category) {
-                                            SearchLevelCategory.Featured.value -> CytoidColors.featuredColor
-                                            SearchLevelCategory.Qualified.value -> CytoidColors.qualifiedColor
-                                            else -> CytoidColors.hardColor
-                                        }
-                                    ), RoundedCornerShape(CornerSize(100))
+                    androidx.compose.animation.AnimatedVisibility(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(8.dp),
+                        visible = !sharedTransitionScope.isTransitionActive,
+                        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                    ) {
+                        FlowRow(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            searchLevelResult.category.forEach { category ->
+                                Text(
+                                    text = category.replaceFirstChar { it.uppercaseChar() },
+                                    maxLines = 1,
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .background(
+                                            Brush.linearGradient(
+                                                when (category) {
+                                                    SearchLevelCategory.Featured.value -> CytoidColors.featuredColor
+                                                    SearchLevelCategory.Qualified.value -> CytoidColors.qualifiedColor
+                                                    else -> CytoidColors.hardColor
+                                                }
+                                            ), RoundedCornerShape(CornerSize(100))
+                                        )
+                                        .padding(vertical = 4.dp, horizontal = 8.dp)
                                 )
-                                .padding(vertical = 4.dp, horizontal = 8.dp)
-                        )
+                            }
+                        }
                     }
                 }
-            }
-            Column {
-                TitleText(
-                    searchLevelResult.title,
-                    searchLevelResult.metadata.artist?.name
-                )
-                ChartsRow(searchLevelResult.charts)
-                Text(
-                    "创建于${
-                        DateParser.parseISO8601Date(searchLevelResult.creationDate)
-                            .formatToTimeString()
-                    }"
-                )
-                Text(
-                    "最后更新于${
-                        DateParser.parseISO8601Date(searchLevelResult.modificationDate)
-                            .formatToTimeString()
-                    }"
-                )
-                Text("下载次数：${searchLevelResult.downloads}")
-                Text("游玩次数：${searchLevelResult.plays}")
-                Text(searchLevelResult.uid)
+                Column {
+                    TitleText(
+                        searchLevelResult.title,
+                        searchLevelResult.metadata.artist?.name
+                    )
+                    ChartsRow(searchLevelResult.charts)
+                    Text(
+                        "创建于${
+                            DateParser.parseISO8601Date(searchLevelResult.creationDate)
+                                .formatToTimeString()
+                        }"
+                    )
+                    Text(
+                        "最后更新于${
+                            DateParser.parseISO8601Date(searchLevelResult.modificationDate)
+                                .formatToTimeString()
+                        }"
+                    )
+                    Text("下载次数：${searchLevelResult.downloads}")
+                    Text("游玩次数：${searchLevelResult.plays}")
+                    Text(searchLevelResult.uid)
+                }
             }
         }
     }

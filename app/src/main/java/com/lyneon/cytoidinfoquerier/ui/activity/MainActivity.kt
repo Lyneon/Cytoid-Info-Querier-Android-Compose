@@ -5,6 +5,8 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -417,86 +419,93 @@ private fun RailContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun MainContent(navHostController: NavHostController) {
-    NavHost(
-        navController = navHostController,
-        startDestination = MainActivity.Screen.Home.route,
-        enterTransition = {
-            fadeIn() + scaleIn(initialScale = 0.8f)
-        },
-        exitTransition = {
-            fadeOut() + scaleOut(targetScale = 0.8f)
-        }
-    ) {
-        composable(MainActivity.Screen.Home.route) { HomeScreen(navController = navHostController) }
-        composable(MainActivity.Screen.Analytics.route) {
-            AnalyticsScreen(
-                navController = navHostController,
-                navBackStackEntry = it
-            )
-        }
-        composable(MainActivity.Screen.Analytics.route + "/{initialCytoidID}/{initialCacheType}/{initialCacheTime}") {
-            AnalyticsScreen(
-                navController = navHostController,
-                navBackStackEntry = it,
-                withInitials = true
-            )
-        }
-        composable(MainActivity.Screen.Analytics.route + "/{shortcutPreset}") {
-            AnalyticsScreen(
-                navController = navHostController,
-                navBackStackEntry = it,
-                withShortcutPreset = true
-            )
-        }
-        composable(MainActivity.Screen.Profile.route) {
-            ProfileScreen(
-                navController = navHostController,
-                navBackStackEntry = it
-            )
-        }
-        composable(MainActivity.Screen.Profile.route + "/{initialCytoidID}/{initialCacheTime}") {
-            ProfileScreen(
-                navController = navHostController,
-                navBackStackEntry = it,
-                withInitials = true
-            )
-        }
-        composable(MainActivity.Screen.Profile.route + "/shortcut") {
-            ProfileScreen(
-                navController = navHostController,
-                navBackStackEntry = it,
-                withShortcut = true
-            )
-        }
-        composable(MainActivity.Screen.Settings.route) { SettingsScreen(navController = navHostController) }
-        composable(MainActivity.Screen.GridColumnsCountSetting.route) {
-            GridColumnsCountSettingScreen(
-                navController = navHostController
-            )
-        }
-        composable(MainActivity.Screen.History.route) {
-            HistoryScreen(
-                navController = navHostController,
-                navBackStackEntry = it
-            )
-        }
-        composable(MainActivity.Screen.About.route) {
-            AboutScreen(navController = navHostController)
-        }
-        composable(MainActivity.Screen.Level.route) {
-            LevelScreen(
-                navController = navHostController
-            )
-        }
-        composable(MainActivity.Screen.Tool.route) {
-            ToolScreen()
-        }
-        composable(MainActivity.Screen.LevelDetail.route) {
-            LevelDetailScreen(
-                navController = navHostController
-            )
+    SharedTransitionLayout {
+        NavHost(
+            navController = navHostController,
+            startDestination = MainActivity.Screen.Home.route,
+            enterTransition = {
+                fadeIn() + scaleIn(initialScale = 0.8f)
+            },
+            exitTransition = {
+                fadeOut() + scaleOut(targetScale = 0.8f)
+            }
+        ) {
+            composable(MainActivity.Screen.Home.route) { HomeScreen(navController = navHostController) }
+            composable(MainActivity.Screen.Analytics.route) {
+                AnalyticsScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it
+                )
+            }
+            composable(MainActivity.Screen.Analytics.route + "/{initialCytoidID}/{initialCacheType}/{initialCacheTime}") {
+                AnalyticsScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it,
+                    withInitials = true
+                )
+            }
+            composable(MainActivity.Screen.Analytics.route + "/{shortcutPreset}") {
+                AnalyticsScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it,
+                    withShortcutPreset = true
+                )
+            }
+            composable(MainActivity.Screen.Profile.route) {
+                ProfileScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it
+                )
+            }
+            composable(MainActivity.Screen.Profile.route + "/{initialCytoidID}/{initialCacheTime}") {
+                ProfileScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it,
+                    withInitials = true
+                )
+            }
+            composable(MainActivity.Screen.Profile.route + "/shortcut") {
+                ProfileScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it,
+                    withShortcut = true
+                )
+            }
+            composable(MainActivity.Screen.Settings.route) { SettingsScreen(navController = navHostController) }
+            composable(MainActivity.Screen.GridColumnsCountSetting.route) {
+                GridColumnsCountSettingScreen(
+                    navController = navHostController
+                )
+            }
+            composable(MainActivity.Screen.History.route) {
+                HistoryScreen(
+                    navController = navHostController,
+                    navBackStackEntry = it
+                )
+            }
+            composable(MainActivity.Screen.About.route) {
+                AboutScreen(navController = navHostController)
+            }
+            composable(MainActivity.Screen.Level.route) {
+                LevelScreen(
+                    navController = navHostController,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
+            composable(MainActivity.Screen.Tool.route) {
+                ToolScreen()
+            }
+            composable(MainActivity.Screen.LevelDetail.route) {
+                LevelDetailScreen(
+                    navController = navHostController,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this
+                )
+            }
         }
     }
 }
