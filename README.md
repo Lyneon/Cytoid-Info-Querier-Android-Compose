@@ -13,7 +13,7 @@ Android 7.0+
 
 ## Todo List
 
-- [ ] 关卡查询
+- [x] 关卡查询
 - [x] Rating计算器
 - 你告诉我
 
