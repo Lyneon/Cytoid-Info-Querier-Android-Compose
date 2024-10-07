@@ -220,8 +220,7 @@ class AnalyticsViewModel(
 
     fun saveRecordsAsPicture() {
         viewModelScope.launch(Dispatchers.IO) {
-            require(_profileDetails.value != null)
-            withContext(Dispatchers.IO) {
+            if (profileDetails.value != null) withContext(Dispatchers.IO) {
                 AnalyticsImageHandler.getRecordsImage(
                     profileDetails = profileDetails.value!!,
                     records = (if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords)
@@ -234,7 +233,7 @@ class AnalyticsViewModel(
                     keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
                 ).saveIntoMediaStore()
                 "图片已保存至媒体库".showToast()
-            }
+            } else "保存失败".showToast()
         }
     }
 }
