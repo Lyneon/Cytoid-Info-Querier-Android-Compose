@@ -78,6 +78,7 @@ data class SearchLevelsResult(
     )
 
     fun toSharedLevel() = Level(
+        id = this.id,
         title = this.title,
         uid = this.uid,
         description = this.description,

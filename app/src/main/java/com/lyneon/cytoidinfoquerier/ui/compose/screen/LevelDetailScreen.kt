@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
@@ -667,6 +666,10 @@ private fun LevelHeaderCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .animateContentSize()
+                .sharedElement(
+                    sharedTransitionScope.rememberSharedContentState("${level.id}_card"),
+                    animatedContentScope
+                )
         ) {
             Column(
                 modifier = Modifier.padding(8.dp),
@@ -677,7 +680,7 @@ private fun LevelHeaderCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .sharedBounds(
-                                sharedTransitionScope.rememberSharedContentState("${level.uid}_backgroundImage"),
+                                sharedTransitionScope.rememberSharedContentState("${level.id}_backgroundImage"),
                                 animatedContentScope,
                                 clipInOverlayDuringTransition = sharedTransitionScope.OverlayClip(
                                     CardDefaults.shape
@@ -688,23 +691,66 @@ private fun LevelHeaderCard(
                         remoteUrl = level.coverRemoteURL
                     )
                 }
-                Text(text = level.title, style = MaterialTheme.typography.headlineLarge)
-                level.artist?.let { Text(text = it) }
-                LevelChartsDifficultiesFlowRow(level.charts)
+                Text(
+                    text = level.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_title"),
+                        animatedContentScope
+                    )
+                )
+                level.artist?.let {
+                    Text(
+                        text = it, modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${level.id}_artist"),
+                            animatedContentScope
+                        )
+                    )
+                }
+                LevelChartsDifficultiesFlowRow(
+                    level.charts, Modifier.sharedBounds(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_difficulties"),
+                        animatedContentScope,
+                        resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
+                    )
+                )
                 Text(
                     "创建于${
                         DateParser.parseISO8601Date(level.creationDate)
                             .formatToTimeString()
-                    }"
+                    }", modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_creationDate"),
+                        animatedContentScope
+                    )
                 )
                 Text(
                     "最后更新于${
                         DateParser.parseISO8601Date(level.modificationDate)
                             .formatToTimeString()
-                    }"
+                    }", modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_modificationDate"),
+                        animatedContentScope
+                    )
                 )
-                Text("下载次数：${level.downloads}")
-                Text("游玩次数：${level.plays}")
+                Text(
+                    "下载次数：${level.downloads}", modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_downloads"),
+                        animatedContentScope
+                    )
+                )
+                Text(
+                    "游玩次数：${level.plays}", modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_plays"),
+                        animatedContentScope
+                    )
+                )
+                Text(
+                    level.uid,
+                    modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${level.id}_uid"),
+                        animatedContentScope
+                    )
+                )
             }
         }
     }
@@ -717,36 +763,46 @@ private fun BottomNavigationPaddingSpacer(
     Spacer(modifier = Modifier.height(padding))
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LevelChartsDifficultiesFlowRow(charts: List<Level.Chart>) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+private fun LevelChartsDifficultiesFlowRow(
+    charts: List<Level.Chart>,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
     ) {
-        charts.forEach { chart ->
-            item {
-                Text(
-                    text = " ${
-                        chart.difficultyName
-                            ?: chart.difficultyType.replaceFirstChar {
-                                if (it.isLowerCase()) it.titlecase(
-                                    Locale.getDefault()
-                                ) else it.toString()
-                            }
-                    } ${chart.difficultyLevel} ",
-                    color = Color.White,
-                    modifier = Modifier
-                        .background(
-                            Brush.linearGradient(
-                                when (chart.difficultyType) {
-                                    "easy" -> CytoidColors.easyColor
-                                    "extreme" -> CytoidColors.extremeColor
-                                    else -> CytoidColors.hardColor
-                                }
-                            ), Shape.Pill.toComposeShape()
-                        )
-                        .padding(vertical = 4.dp, horizontal = 8.dp)
-                )
+        charts.sortedBy {
+            when (it.difficultyType) {
+                "easy" -> 0
+                "hard" -> 1
+                "extreme" -> 2
+                else -> 3
             }
+        }.forEach { chart ->
+            Text(
+                text = " ${
+                    chart.difficultyName
+                        ?: chart.difficultyType.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.getDefault()
+                            ) else it.toString()
+                        }
+                } ${chart.difficultyLevel} ",
+                color = Color.White,
+                modifier = Modifier
+                    .background(
+                        Brush.linearGradient(
+                            when (chart.difficultyType) {
+                                "easy" -> CytoidColors.easyColor
+                                "extreme" -> CytoidColors.extremeColor
+                                else -> CytoidColors.hardColor
+                            }
+                        ), Shape.Pill.toComposeShape()
+                    )
+                    .padding(vertical = 4.dp, horizontal = 8.dp)
+            )
         }
     }
 }
