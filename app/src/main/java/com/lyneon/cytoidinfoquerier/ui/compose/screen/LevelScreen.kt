@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -412,7 +413,6 @@ private fun LevelCard(
                         popUpTo(MainActivity.Screen.LevelDetail.route)
                     }
                 }
-                .animateContentSize()
         ) {
             Column(
                 modifier = Modifier.padding(8.dp)
@@ -424,6 +424,7 @@ private fun LevelCard(
                         LevelBackgroundImage(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .aspectRatio(1.6f)
                                 .sharedBounds(
                                     sharedTransitionScope.rememberSharedContentState("${searchLevelResult.uid}_backgroundImage"),
                                     animatedContentScope,
@@ -432,8 +433,8 @@ private fun LevelCard(
                                     )
                                 ),
                             levelID = searchLevelResult.uid,
-                            backgroundImageSize = ImageSize.Cover,
-                            remoteUrl = searchLevelResult.cover?.cover
+                            backgroundImageSize = ImageSize.Thumbnail,
+                            remoteUrl = searchLevelResult.cover?.thumbnail
                         )
                     }
                     androidx.compose.animation.AnimatedVisibility(
