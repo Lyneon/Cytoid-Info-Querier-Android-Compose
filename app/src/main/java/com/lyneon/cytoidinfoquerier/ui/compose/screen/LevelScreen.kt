@@ -196,7 +196,7 @@ fun LevelScreen(
                 .fillMaxWidth()
                 .animateContentSize()
                 .onGloballyPositioned {
-                    topBarHeight = (it.size.height.div(localDensity.density)).dp
+                    topBarHeight = it.size.height.div(localDensity.density).dp
                 }
                 .offset(y = animatedTopBarOffset)
             ) {
