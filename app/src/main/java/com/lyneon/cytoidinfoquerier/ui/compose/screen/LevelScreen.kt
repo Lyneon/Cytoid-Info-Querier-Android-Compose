@@ -103,6 +103,7 @@ import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.DifficultyPillText
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
@@ -683,36 +684,4 @@ private fun ChartsRow(
             }
         }
     }
-}
-
-@Composable
-private fun DifficultyPillText(
-    modifier: Modifier = Modifier,
-    difficultyName: String?,
-    difficultyLevel: Int,
-    difficultyType: String
-) {
-    Text(
-        text = " ${
-            difficultyName
-                ?: difficultyType.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                }
-        } $difficultyLevel ",
-        maxLines = 1,
-        color = Color.White,
-        modifier = modifier
-            .background(
-                Brush.linearGradient(
-                    when (difficultyType) {
-                        "easy" -> CytoidColors.easyColor
-                        "extreme" -> CytoidColors.extremeColor
-                        else -> CytoidColors.hardColor
-                    }
-                ), RoundedCornerShape(CornerSize(100))
-            )
-            .padding(vertical = 4.dp, horizontal = 8.dp)
-    )
 }

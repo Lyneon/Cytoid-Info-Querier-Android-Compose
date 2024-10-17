@@ -5,6 +5,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
@@ -89,6 +90,7 @@ import com.lyneon.cytoidinfoquerier.data.model.graphql.LevelLeaderboard
 import com.lyneon.cytoidinfoquerier.data.model.shared.Level
 import com.lyneon.cytoidinfoquerier.data.model.webapi.LevelComment
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.DifficultyPillText
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.LevelDetailUIState
@@ -98,9 +100,6 @@ import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
-import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
-import com.patrykandpatrick.vico.core.common.shape.Shape
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -335,7 +334,8 @@ private fun LandscapeLevelDetailScreen(
 
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .animateContentSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
@@ -708,11 +708,10 @@ private fun LevelHeaderCard(
                     )
                 }
                 LevelChartsDifficultiesFlowRow(
-                    level.charts, Modifier.sharedBounds(
-                        sharedTransitionScope.rememberSharedContentState("${level.id}_difficulties"),
-                        animatedContentScope,
-                        resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
-                    )
+                    level.charts,
+                    level.id,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedContentScope
                 )
                 Text(
                     "创建于${
@@ -767,7 +766,10 @@ private fun BottomNavigationPaddingSpacer(
 @Composable
 private fun LevelChartsDifficultiesFlowRow(
     charts: List<Level.Chart>,
-    modifier: Modifier = Modifier
+    levelID: Int,
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -781,28 +783,17 @@ private fun LevelChartsDifficultiesFlowRow(
                 else -> 3
             }
         }.forEach { chart ->
-            Text(
-                text = " ${
-                    chart.difficultyName
-                        ?: chart.difficultyType.replaceFirstChar {
-                            if (it.isLowerCase()) it.titlecase(
-                                Locale.getDefault()
-                            ) else it.toString()
-                        }
-                } ${chart.difficultyLevel} ",
-                color = Color.White,
-                modifier = Modifier
-                    .background(
-                        Brush.linearGradient(
-                            when (chart.difficultyType) {
-                                "easy" -> CytoidColors.easyColor
-                                "extreme" -> CytoidColors.extremeColor
-                                else -> CytoidColors.hardColor
-                            }
-                        ), Shape.Pill.toComposeShape()
-                    )
-                    .padding(vertical = 4.dp, horizontal = 8.dp)
-            )
+            with(sharedTransitionScope) {
+                DifficultyPillText(
+                    modifier = Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState("${levelID}_${chart.difficultyType}"),
+                        animatedVisibilityScope
+                    ),
+                    difficultyName = chart.difficultyName,
+                    difficultyType = chart.difficultyType,
+                    difficultyLevel = chart.difficultyLevel,
+                )
+            }
         }
     }
 }
