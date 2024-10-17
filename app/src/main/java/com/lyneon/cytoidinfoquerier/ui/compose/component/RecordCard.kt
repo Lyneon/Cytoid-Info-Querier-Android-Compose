@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -104,7 +104,6 @@ fun RecordCard(
                 )
             }
             .capturable(captureController)
-            .animateContentSize()
     ) {
         Column(
             modifier = Modifier.padding(8.dp)
@@ -115,10 +114,10 @@ fun RecordCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         LevelBackgroundImage(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().aspectRatio(1.6f),
                             levelID = level.uid,
-                            backgroundImageSize = ImageSize.Original,
-                            remoteUrl = level.bundle?.backgroundImage?.original
+                            backgroundImageSize = ImageSize.Thumbnail,
+                            remoteUrl = level.bundle?.backgroundImage?.thumbnail
                         )
                     }
                     Box(

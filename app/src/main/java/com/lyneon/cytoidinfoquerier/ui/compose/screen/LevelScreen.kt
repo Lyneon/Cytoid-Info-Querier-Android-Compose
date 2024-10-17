@@ -4,9 +4,11 @@ import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,10 +26,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -75,7 +79,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -97,6 +103,7 @@ import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.DifficultyPillText
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
@@ -111,7 +118,6 @@ import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -141,23 +147,11 @@ fun LevelScreen(
         })
     }
     val sharedViewModel = viewModel<SharedViewModel>(LocalContext.current as MainActivity)
+    var topBarHeight by remember { mutableStateOf(0.dp) }
+    val animatedTopBarOffset by animateDpAsState(if (sharedTransitionScope.isTransitionActive) -topBarHeight else 0.dp)
+    val localDensity = LocalDensity.current
 
     Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = stringResource(id = R.string.level)) },
-                actions = {
-                    if (uiState.foldTextFiled) {
-                        IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = "展开输入框"
-                            )
-                        }
-                    }
-                }
-            )
-        },
         floatingActionButton = {
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
                 FloatingActionButton(onClick = { exoPlayer.stop() }) {
@@ -177,22 +171,49 @@ fun LevelScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 16.dp)
         ) {
-            LevelInputField(uiState, viewModel)
             searchResult?.let {
-                ResultDisplayList(
-                    uiState,
-                    it,
-                    exoPlayer,
-                    playbackState,
-                    sharedViewModel,
-                    navController, sharedTransitionScope, animatedContentScope
+                Box(
+                    modifier = Modifier.offset(y = topBarHeight + animatedTopBarOffset)
+                ) {
+                    ResultDisplayList(
+                        uiState,
+                        it,
+                        exoPlayer,
+                        playbackState,
+                        sharedViewModel,
+                        navController, sharedTransitionScope, animatedContentScope
+                    )
+                }
+            }
+            Column(modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .animateContentSize()
+                .onGloballyPositioned {
+                    topBarHeight = it.size.height.div(localDensity.density).dp
+                }
+                .offset(y = animatedTopBarOffset)
+            ) {
+                CenterAlignedTopAppBar(
+                    title = { Text(text = stringResource(id = R.string.level)) },
+                    actions = {
+                        if (uiState.foldTextFiled) {
+                            IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "展开输入框"
+                                )
+                            }
+                        }
+                    }
                 )
+                LevelInputField(uiState, viewModel)
             }
         }
     }
@@ -374,7 +395,7 @@ private fun ResultDisplayList(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             searchResult.forEach { searchLevelResult ->
-                item(key = searchLevelResult.uid) {
+                item(key = searchLevelResult.id) {
                     LevelCard(
                         searchLevelResult = searchLevelResult,
                         exoPlayer = exoPlayer,
@@ -412,7 +433,10 @@ private fun LevelCard(
                         popUpTo(MainActivity.Screen.LevelDetail.route)
                     }
                 }
-                .animateContentSize()
+                .sharedElement(
+                    sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_card"),
+                    animatedContentScope
+                )
         ) {
             Column(
                 modifier = Modifier.padding(8.dp)
@@ -424,16 +448,17 @@ private fun LevelCard(
                         LevelBackgroundImage(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .aspectRatio(1.6f)
                                 .sharedBounds(
-                                    sharedTransitionScope.rememberSharedContentState("${searchLevelResult.uid}_backgroundImage"),
+                                    sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_backgroundImage"),
                                     animatedContentScope,
                                     clipInOverlayDuringTransition = sharedTransitionScope.OverlayClip(
                                         CardDefaults.shape
                                     )
                                 ),
                             levelID = searchLevelResult.uid,
-                            backgroundImageSize = ImageSize.Cover,
-                            remoteUrl = searchLevelResult.cover?.cover
+                            backgroundImageSize = ImageSize.Thumbnail,
+                            remoteUrl = searchLevelResult.cover?.thumbnail
                         )
                     }
                     androidx.compose.animation.AnimatedVisibility(
@@ -525,26 +550,72 @@ private fun LevelCard(
                     }
                 }
                 Column {
-                    TitleText(
-                        searchLevelResult.title,
-                        searchLevelResult.metadata.artist?.name
+                    Text(
+                        text = searchLevelResult.title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        maxLines = 2,
+                        modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_title"),
+                            animatedContentScope
+                        )
                     )
-                    ChartsRow(searchLevelResult.charts)
+                    searchLevelResult.metadata.artist?.name?.let {
+                        Text(
+                            text = it,
+                            maxLines = 1,
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_artist"),
+                                animatedContentScope
+                            )
+                        )
+                    }
+                    ChartsRow(
+                        searchLevelResult.charts,
+                        levelID = searchLevelResult.id,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedContentScope
+                    )
                     Text(
                         "创建于${
                             DateParser.parseISO8601Date(searchLevelResult.creationDate)
                                 .formatToTimeString()
-                        }"
+                        }",
+                        modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_creationDate"),
+                            animatedContentScope
+                        )
                     )
                     Text(
                         "最后更新于${
                             DateParser.parseISO8601Date(searchLevelResult.modificationDate)
                                 .formatToTimeString()
-                        }"
+                        }",
+                        modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_modificationDate"),
+                            animatedContentScope
+                        )
                     )
-                    Text("下载次数：${searchLevelResult.downloads}")
-                    Text("游玩次数：${searchLevelResult.plays}")
-                    Text(searchLevelResult.uid)
+                    Text(
+                        "下载次数：${searchLevelResult.downloads}",
+                        modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_downloads"),
+                            animatedContentScope
+                        )
+                    )
+                    Text(
+                        "游玩次数：${searchLevelResult.plays}",
+                        modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_plays"),
+                            animatedContentScope
+                        )
+                    )
+                    Text(
+                        searchLevelResult.uid,
+                        modifier = Modifier.sharedElement(
+                            sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_uid"),
+                            animatedContentScope
+                        )
+                    )
                 }
             }
         }
@@ -584,59 +655,32 @@ private fun MusicPreviewButton(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-private fun TitleText(levelTitle: String, levelArtistName: String?) {
-    Column {
-        Text(
-            text = levelTitle,
-            style = MaterialTheme.typography.headlineMedium,
-            maxLines = 2
-        )
-        levelArtistName?.let { Text(text = it, maxLines = 1) }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ChartsRow(charts: List<SearchLevelsResult.LevelChart>) {
+private fun ChartsRow(
+    charts: List<SearchLevelsResult.LevelChart>,
+    modifier: Modifier = Modifier,
+    levelID: Int,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
     FlowRow(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         charts.sortedBy { it.difficultyLevel }.forEach { chart ->
-            DifficultyPillText(chart.difficultyName, chart.difficultyLevel, chart.difficultyType)
+            with(sharedTransitionScope) {
+                DifficultyPillText(
+                    Modifier.sharedElement(
+                        sharedTransitionScope.rememberSharedContentState(
+                            "${levelID}_${chart.difficultyType}"
+                        ), animatedVisibilityScope
+                    ), chart.difficultyName,
+                    chart.difficultyLevel,
+                    chart.difficultyType
+                )
+            }
         }
     }
-}
-
-@Composable
-private fun DifficultyPillText(
-    difficultyName: String?,
-    difficultyLevel: Int,
-    difficultyType: String
-) {
-    Text(
-        text = " ${
-            difficultyName
-                ?: difficultyType.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                }
-        } $difficultyLevel ",
-        maxLines = 1,
-        color = Color.White,
-        modifier = Modifier
-            .background(
-                Brush.linearGradient(
-                    when (difficultyType) {
-                        "easy" -> CytoidColors.easyColor
-                        "extreme" -> CytoidColors.extremeColor
-                        else -> CytoidColors.hardColor
-                    }
-                ), RoundedCornerShape(CornerSize(100))
-            )
-            .padding(vertical = 4.dp, horizontal = 8.dp)
-    )
 }

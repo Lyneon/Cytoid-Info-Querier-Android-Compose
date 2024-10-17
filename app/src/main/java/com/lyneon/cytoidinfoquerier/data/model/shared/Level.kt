@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Level(
+    val id: Int,
     val title: String,
     val uid: String,
     val description: String?,
