@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -136,6 +137,7 @@ fun LevelDetailScreen(
                 0,
                 10
             )
+            viewModel.setDisplayLeaderboardStart(1)
         }
     }
     LaunchedEffect(currentLeaderboard) {
@@ -364,6 +366,7 @@ private fun LandscapeLevelDetailScreen(
                                         start - 1,
                                         end - start + 1
                                     )
+                                    viewModel.setDisplayLeaderboardStart(start)
                                 }
                                 enableRefreshButton = false
                                 "正在刷新排行榜".showToast()
@@ -448,8 +451,11 @@ private fun LandscapeLevelDetailScreen(
                         )
                     }
                 }
-                items(leaderboard?.data?.chart?.leaderboard ?: emptyList()) { leaderboardRecord ->
+                itemsIndexed(
+                    leaderboard?.data?.chart?.leaderboard ?: emptyList()
+                ) { index, leaderboardRecord ->
                     LeaderboardListItem(
+                        uiState.displayLeaderboardStart + index,
                         leaderboardHorizontalScrollState,
                         leaderboardRecord,
                         leaderboardColumnWidths.ownerUIDColumnWidth,
@@ -540,8 +546,10 @@ private fun PortraitLevelDetailScreen(
                                     start - 1,
                                     end - start + 1
                                 )
+                                viewModel.setDisplayLeaderboardStart(start)
                             }
                             enableRefreshButton = false
+                            "正在刷新排行榜".showToast()
                         },
                         enabled = enableRefreshButton
                     ) {
@@ -623,12 +631,15 @@ private fun PortraitLevelDetailScreen(
                     )
                 }
             }
-            items(leaderboard?.data?.chart?.leaderboard ?: emptyList()) { leaderboardRecord ->
+            itemsIndexed(
+                leaderboard?.data?.chart?.leaderboard ?: emptyList()
+            ) { index, leaderboardRecord ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
                     LeaderboardListItem(
+                        uiState.displayLeaderboardStart + index,
                         leaderboardHorizontalScrollState,
                         leaderboardRecord,
                         leaderboardColumnWidths.ownerUIDColumnWidth,
@@ -968,6 +979,7 @@ private fun CommentListItem(
 
 @Composable
 private fun LeaderboardListItem(
+    position: Int,
     horizontalScrollState: ScrollState,
     leaderboardRecord: LevelLeaderboard.LevelLeaderboardData.Chart.LeaderboardRecord,
     ownerUIDColumnWidth: Dp,
@@ -985,6 +997,10 @@ private fun LeaderboardListItem(
         horizontalArrangement = Arrangement.spacedBy(32.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Text(
+            text = "$position.",
+            modifier = Modifier.width(48.dp)
+        )
         leaderboardRecord.owner?.let { owner ->
             UserAvatar(
                 modifier = Modifier.size(48.dp),

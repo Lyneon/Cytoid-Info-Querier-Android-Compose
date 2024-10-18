@@ -38,6 +38,10 @@ class LevelDetailViewModel(
         updateUIState { copy(leaderboardEnd = end) }
     }
 
+    fun setDisplayLeaderboardStart(start: Int) {
+        updateUIState { copy(displayLeaderboardStart = start) }
+    }
+
     fun updateCurrentLeaderboard(
         levelUID: String,
         difficultyType: String,
@@ -76,5 +80,6 @@ class LevelDetailViewModel(
 data class LevelDetailUIState(
     val selectedLevelLeaderboardDifficultyType: String? = null,
     val leaderboardStart: String = "1",
-    val leaderboardEnd: String = "10"
+    val leaderboardEnd: String = "10",
+    val displayLeaderboardStart: Int = 1
 )
