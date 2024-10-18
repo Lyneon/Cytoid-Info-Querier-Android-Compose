@@ -346,7 +346,10 @@ private fun LandscapeLevelDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "排行榜", style = MaterialTheme.typography.headlineSmall)
+                        Text(
+                            text = stringResource(R.string.leaderboard),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
                         IconButton(
                             onClick = {
                                 val start = uiState.leaderboardStart.toIntOrNull()
@@ -524,7 +527,7 @@ private fun PortraitLevelDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "排行榜",
+                        text = stringResource(R.string.leaderboard),
                         style = MaterialTheme.typography.headlineSmall
                     )
                     IconButton(

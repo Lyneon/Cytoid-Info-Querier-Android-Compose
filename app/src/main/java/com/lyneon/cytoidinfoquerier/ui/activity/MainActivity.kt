@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Button
@@ -63,6 +64,7 @@ import com.lyneon.cytoidinfoquerier.ui.compose.screen.AnalyticsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.GridColumnsCountSettingScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HistoryScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.HomeScreen
+import com.lyneon.cytoidinfoquerier.ui.compose.screen.LeaderboardScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.LevelDetailScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.LevelScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ProfileScreen
@@ -151,7 +153,8 @@ class MainActivity : BaseActivity() {
         About("about"),
         Level("level"),
         Tool("tool"),
-        LevelDetail("levelDetail")
+        LevelDetail("levelDetail"),
+        Leaderboard("leaderboard"),
     }
 }
 
@@ -229,6 +232,19 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                         navHostController.navigate(MainActivity.Screen.Level.route) {
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Level.route)
+                        }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.leaderboard)) },
+                    icon = {
+                        Icon(imageVector = Icons.Default.Leaderboard, contentDescription = null)
+                    },
+                    selected = currentScreenRoute == MainActivity.Screen.Leaderboard.route,
+                    onClick = {
+                        navHostController.navigate(MainActivity.Screen.Leaderboard.route) {
+                            launchSingleTop = true
+                            popUpTo(MainActivity.Screen.Leaderboard.route)
                         }
                     }
                 )
@@ -368,6 +384,19 @@ private fun RailContent(
                 label = { Text(text = stringResource(R.string.level)) }
             )
             NavigationRailItem(
+                selected = currentScreenRoute == MainActivity.Screen.Leaderboard.route,
+                onClick = {
+                    navHostController.navigate(MainActivity.Screen.Leaderboard.route) {
+                        launchSingleTop = true
+                        popUpTo(MainActivity.Screen.Leaderboard.route)
+                    }
+                },
+                icon = {
+                    Icon(imageVector = Icons.Default.Leaderboard, contentDescription = null)
+                },
+                label = { Text(text = stringResource(R.string.leaderboard)) }
+            )
+            NavigationRailItem(
                 selected = currentScreenRoute.startsWith(MainActivity.Screen.Tool.route),
                 onClick = {
                     navHostController.navigate(MainActivity.Screen.Tool.route) {
@@ -505,6 +534,9 @@ private fun MainContent(navHostController: NavHostController) {
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this
                 )
+            }
+            composable(MainActivity.Screen.Leaderboard.route) {
+                LeaderboardScreen()
             }
         }
     }
