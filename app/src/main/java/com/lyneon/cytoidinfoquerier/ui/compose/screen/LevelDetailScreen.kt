@@ -968,7 +968,7 @@ private fun CommentListItem(
 
 @Composable
 private fun LeaderboardListItem(
-    horizonalScrollState: ScrollState,
+    horizontalScrollState: ScrollState,
     leaderboardRecord: LevelLeaderboard.LevelLeaderboardData.Chart.LeaderboardRecord,
     ownerUIDColumnWidth: Dp,
     scoreColumnWidth: Dp,
@@ -980,7 +980,7 @@ private fun LeaderboardListItem(
     Row(
         modifier = Modifier
             .height(48.dp)
-            .horizontalScroll(horizonalScrollState)
+            .horizontalScroll(horizontalScrollState)
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(32.dp),
         verticalAlignment = Alignment.CenterVertically
