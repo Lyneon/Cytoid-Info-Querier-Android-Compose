@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.AnimatedContentScope
@@ -120,6 +121,7 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LevelScreen(
     viewModel: LevelViewModel = viewModel(),
@@ -170,11 +172,10 @@ fun LevelScreen(
                 }
             }
         }
-    ) { paddingValues ->
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 16.dp)
         ) {
             searchResult?.let {
