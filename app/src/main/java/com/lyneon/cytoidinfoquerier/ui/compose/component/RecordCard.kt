@@ -200,10 +200,7 @@ fun RecordCard(
                                     kotlin.runCatching {
                                         URL(record.chart.level.bundle?.backgroundImage?.original)
                                             .toBitmap()
-                                            .saveIntoMediaStore(
-                                                BaseApplication.context.contentResolver,
-                                                ContentValues()
-                                            )
+                                            .saveIntoMediaStore()
                                     }.onSuccess {
                                         BaseApplication.context
                                             .getString(R.string.saved_into_gallery)

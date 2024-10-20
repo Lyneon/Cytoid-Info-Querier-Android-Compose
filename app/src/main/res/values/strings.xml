@@ -83,4 +83,19 @@
     <string name="tool">工具</string>
     <string name="search">搜索</string>
     <string name="leaderboard">排行榜</string>
+    <string name="score">分数</string>
+    <string name="accuracy">精准度</string>
+    <string name="play_time">游玩时间</string>
+    <string name="rating">Rating</string>
+    <string name="recent_rating">Rating（60日内）</string>
+    <string name="creation_date">创建日期</string>
+    <string name="modification_date">修改日期</string>
+    <string name="song_duration">曲目长度</string>
+    <string name="downloads_count">下载次数</string>
+    <string name="plays_count">游玩次数</string>
+    <string name="level_rating">关卡评分</string>
+    <string name="difficulty">难度</string>
+    <string name="picture_compress_format">图片压缩格式</string>
+    <string name="close">关闭</string>
+    <string name="picture_compress_format_description">JPEG：有损压缩。压缩质量从0（最小文件大小）到100（最佳视觉质量）\n\nPNG：无损压缩，这意味着它不会降低图片质量。因此对于PNG格式，压缩质量设置会被忽略\n\nWEBP：有损压缩。压缩质量从0（最小文件大小）到100（最佳视觉质量）\n（此项已弃用并将在未来移除。请选用下面两个更明确的格式）\n\nWEBP_LOSSY：有损压缩。压缩质量从0（最小文件大小）到100（最佳视觉质量）\n\nWEBP_LOSSLESS：无损压缩。可以设置压缩努力程度从0（快速压缩，文件相对较大）到100（花费更多时间压缩，文件更小）\n\n提示：WEBP通常能提供比JPEG更高的压缩率，但编码时间也比JPEG更长\n\n注意：QQ目前不支持直接发送WEBP图片，需要以文件形式发送</string>
 </resources>
