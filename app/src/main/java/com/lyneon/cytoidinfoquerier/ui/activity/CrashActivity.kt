@@ -16,7 +16,6 @@ import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.CrashActivityScreen
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 
-
 class CrashActivity : BaseActivity() {
     companion object {
         const val KEY_EXTRA_CRASH_MESSAGE = "crashMessage"
