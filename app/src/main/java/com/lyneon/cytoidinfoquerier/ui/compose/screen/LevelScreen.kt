@@ -100,6 +100,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelCategory
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
+import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy.Companion.displayName
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
