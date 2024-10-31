@@ -395,7 +395,7 @@ private fun PictureCompressSettingCard() {
                         )
                     },
                     valueRange = 0f..100f,
-                    steps = 99,
+                    steps = 101,
                 )
                 Text(text = "${compressQuality}%")
             }
