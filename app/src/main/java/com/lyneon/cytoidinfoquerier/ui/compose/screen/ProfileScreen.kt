@@ -10,7 +10,6 @@ import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -301,7 +300,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 12.dp)
         ) {
             ProfileInputField(uiState, viewModel)
             if (uiState.errorMessage.isNotEmpty()) {

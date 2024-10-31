@@ -1,6 +1,5 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.AnimatedContentScope
@@ -9,7 +8,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -28,11 +26,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -80,9 +76,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -122,7 +116,6 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LevelScreen(
     viewModel: LevelViewModel = viewModel(),
@@ -150,11 +143,23 @@ fun LevelScreen(
         })
     }
     val sharedViewModel = viewModel<SharedViewModel>(LocalContext.current as MainActivity)
-    var topBarHeight by remember { mutableStateOf(0.dp) }
-    val animatedTopBarOffset by animateDpAsState(if (sharedTransitionScope.isTransitionActive) -topBarHeight else 0.dp)
-    val localDensity = LocalDensity.current
 
     Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(id = R.string.level)) },
+                actions = {
+                    if (uiState.foldTextFiled) {
+                        IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "展开输入框"
+                            )
+                        }
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
                 FloatingActionButton(onClick = { exoPlayer.stop() }) {
@@ -173,49 +178,22 @@ fun LevelScreen(
                 }
             }
         }
-    ) {
-        Box(
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(top = paddingValues.calculateTopPadding())
+                .padding(horizontal = 12.dp)
         ) {
+            LevelInputField(uiState, viewModel)
             searchResult?.let {
-                Box(
-                    modifier = Modifier.offset(y = topBarHeight + animatedTopBarOffset)
-                ) {
-                    ResultDisplayList(
-                        uiState,
-                        it,
-                        exoPlayer,
-                        playbackState,
-                        sharedViewModel,
-                        navController, sharedTransitionScope, animatedContentScope
-                    )
-                }
-            }
-            Column(modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .animateContentSize()
-                .onGloballyPositioned {
-                    topBarHeight = it.size.height.div(localDensity.density).dp
-                }
-                .offset(y = animatedTopBarOffset)
-            ) {
-                CenterAlignedTopAppBar(
-                    title = { Text(text = stringResource(id = R.string.level)) },
-                    actions = {
-                        if (uiState.foldTextFiled) {
-                            IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
-                                Icon(
-                                    imageVector = Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "展开输入框"
-                                )
-                            }
-                        }
-                    }
+                ResultDisplayList(
+                    uiState,
+                    it,
+                    exoPlayer,
+                    playbackState,
+                    sharedViewModel,
+                    navController, sharedTransitionScope, animatedContentScope
                 )
-                LevelInputField(uiState, viewModel)
             }
         }
     }

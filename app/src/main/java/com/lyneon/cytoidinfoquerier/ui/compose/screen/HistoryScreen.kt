@@ -78,7 +78,9 @@ fun HistoryScreen(
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
+            modifier = Modifier
+                .padding(top = paddingValues.calculateTopPadding())
+                .padding(horizontal = 12.dp)
         ) {
             uiState.historyType.let { type ->
                 val localHistoryTypeDir =
@@ -89,9 +91,7 @@ fun HistoryScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(
-                                start = 16.dp,
                                 top = 16.dp,
-                                end = 16.dp,
                                 bottom = paddingValues.calculateBottomPadding()
                             ),
                             verticalArrangement = Arrangement.spacedBy(16.dp)

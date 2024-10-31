@@ -244,6 +244,7 @@ fun LevelDetailScreen(
         Column(
             modifier = Modifier
                 .padding(top = paddingValues.calculateTopPadding())
+                .padding(horizontal = 12.dp)
                 .fillMaxSize()
         ) {
             if (level == null) {
