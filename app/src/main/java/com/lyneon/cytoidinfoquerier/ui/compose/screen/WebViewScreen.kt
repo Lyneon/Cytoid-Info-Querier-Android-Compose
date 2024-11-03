@@ -108,9 +108,6 @@ fun WebViewScreen(navController: NavController, navBackStackEntry: NavBackStackE
                     }
                 }
                 settings.userAgentString = CytoidConstant.clientUA
-                settings.domStorageEnabled = true
-                settings.databaseEnabled = true
-                settings.useWideViewPort = true
                 settings.javaScriptEnabled = true
                 loadUrl(
                     URLDecoder.decode(
