@@ -70,6 +70,7 @@ import com.lyneon.cytoidinfoquerier.ui.compose.screen.LevelScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ProfileScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.SettingsScreen
 import com.lyneon.cytoidinfoquerier.ui.compose.screen.ToolScreen
+import com.lyneon.cytoidinfoquerier.ui.compose.screen.WebViewScreen
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.MMKVId
@@ -155,6 +156,7 @@ class MainActivity : BaseActivity() {
         Tool("tool"),
         LevelDetail("levelDetail"),
         Leaderboard("leaderboard"),
+        WebView("webview")
     }
 }
 
@@ -537,6 +539,9 @@ private fun MainContent(navHostController: NavHostController) {
             }
             composable(MainActivity.Screen.Leaderboard.route) {
                 LeaderboardScreen()
+            }
+            composable(MainActivity.Screen.WebView.route + "/{initialUrl}") {
+                WebViewScreen(navHostController,it)
             }
         }
     }

@@ -74,6 +74,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.compose.material3:material3-window-size-class:1.3.0")
+    implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")

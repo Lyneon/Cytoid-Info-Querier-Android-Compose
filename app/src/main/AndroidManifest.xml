@@ -6,13 +6,16 @@
 
     <queries>
         <package android:name="me.tigerhix.cytoid" />
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
     </queries>
 
     <application
-        android:enableOnBackInvokedCallback="true"
         android:name=".BaseApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -36,6 +39,21 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activity.DownloadLevelActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CytoidInfoQuerierCompose">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="cytoid_info_querier_download_level_activity"
+                    android:scheme="ciq" />
             </intent-filter>
         </activity>
 
