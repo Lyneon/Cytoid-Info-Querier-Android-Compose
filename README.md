@@ -13,6 +13,8 @@ Android 7.0+
 
 ## Todo List
 
+- [x] 关卡查询
+- [x] Rating计算器
 - [ ] Profile：收藏夹
 - [ ] 排行榜查询
 - [ ] ~~符语~~ 多语言支持
