@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.lyneon.cytoidinfoquerier"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.lyneon.cytoidinfoquerier"
