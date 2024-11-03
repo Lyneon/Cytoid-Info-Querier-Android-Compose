@@ -111,7 +111,7 @@ import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
-import com.patrykandpatrick.vico.core.common.shape.Shape
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
@@ -463,7 +463,7 @@ private fun LevelCard(
                                         .animateContentSize()
                                         .background(
                                             MaterialTheme.colorScheme.primaryContainer,
-                                            Shape.Pill.toComposeShape()
+                                            CorneredShape.Pill.toComposeShape()
                                         )
                                         .padding(
                                             top = 4.dp,

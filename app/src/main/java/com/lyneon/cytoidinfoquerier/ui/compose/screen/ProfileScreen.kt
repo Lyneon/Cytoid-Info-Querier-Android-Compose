@@ -123,10 +123,9 @@ import com.lyneon.cytoidinfoquerier.util.extension.toBitmap
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEndAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
-import com.patrykandpatrick.vico.compose.cartesian.decoration.rememberHorizontalLine
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
@@ -135,37 +134,40 @@ import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.fixed
 import com.patrykandpatrick.vico.compose.common.component.rememberLayeredComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
-import com.patrykandpatrick.vico.compose.common.component.rememberShadow
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.common.of
-import com.patrykandpatrick.vico.compose.common.shape.markerCornered
+import com.patrykandpatrick.vico.compose.common.component.shadow
+import com.patrykandpatrick.vico.compose.common.dimensions
+import com.patrykandpatrick.vico.compose.common.shape.markerCorneredShape
 import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
 import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
-import com.patrykandpatrick.vico.core.cartesian.Insets
 import com.patrykandpatrick.vico.core.cartesian.Scroll
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarkerValueFormatter
 import com.patrykandpatrick.vico.core.common.Dimensions
 import com.patrykandpatrick.vico.core.common.HorizontalPosition
+import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.LayeredComponent
 import com.patrykandpatrick.vico.core.common.VerticalPosition
 import com.patrykandpatrick.vico.core.common.component.Shadow
 import com.patrykandpatrick.vico.core.common.component.ShapeComponent
 import com.patrykandpatrick.vico.core.common.component.TextComponent
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.Corner
-import com.patrykandpatrick.vico.core.common.shape.Shape
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -846,13 +848,12 @@ private fun DetailsChart(
             showIndicator: Boolean = true,
             valueFormatter: CartesianMarkerValueFormatter = DefaultCartesianMarkerValueFormatter()
         ): CartesianMarker {
-            val mLabelBackgroundShape = Shape.markerCornered(Corner.FullyRounded)
+            val mLabelBackgroundShape = markerCorneredShape(Corner.FullyRounded)
             val mLabelBackground =
                 rememberShapeComponent(
                     color = MaterialTheme.colorScheme.surfaceBright,
                     shape = mLabelBackgroundShape,
-                    shadow =
-                    rememberShadow(
+                    shadow = shadow(
                         radius = LABEL_BACKGROUND_SHADOW_RADIUS_DP.dp,
                         dy = LABEL_BACKGROUND_SHADOW_DY_DP.dp,
                     ),
@@ -861,14 +862,14 @@ private fun DetailsChart(
                 rememberTextComponent(
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlignment = Layout.Alignment.ALIGN_CENTER,
-                    padding = Dimensions.of(8.dp, 4.dp),
+                    padding = dimensions(8.dp, 4.dp),
                     background = mLabelBackground,
                     minWidth = TextComponent.MinWidth.fixed(40.dp),
                 )
             val mIndicatorFrontComponent =
-                rememberShapeComponent(MaterialTheme.colorScheme.surface, Shape.Pill)
-            val mIndicatorCenterComponent = rememberShapeComponent(shape = Shape.Pill)
-            val mIndicatorRearComponent = rememberShapeComponent(shape = Shape.Pill)
+                rememberShapeComponent(MaterialTheme.colorScheme.surface, CorneredShape.Pill)
+            val mIndicatorCenterComponent = rememberShapeComponent(shape = CorneredShape.Pill)
+            val mIndicatorRearComponent = rememberShapeComponent(shape = CorneredShape.Pill)
             val mIndicator =
                 rememberLayeredComponent(
                     rear = mIndicatorRearComponent,
@@ -876,9 +877,9 @@ private fun DetailsChart(
                     rememberLayeredComponent(
                         rear = mIndicatorCenterComponent,
                         front = mIndicatorFrontComponent,
-                        padding = Dimensions.of(5.dp),
+                        padding = dimensions(5.dp),
                     ),
-                    padding = Dimensions.of(10.dp),
+                    padding = dimensions(10.dp),
                 )
             val mGuideline = rememberAxisGuidelineComponent()
             return remember(mLabel, labelPosition, mIndicator, showIndicator, mGuideline) {
@@ -892,19 +893,19 @@ private fun DetailsChart(
                                 LayeredComponent(
                                     rear = ShapeComponent(
                                         Color(color).copy(alpha = 0.15f).toArgb(),
-                                        Shape.Pill
+                                        CorneredShape.Pill
                                     ),
                                     front =
                                     LayeredComponent(
                                         rear = ShapeComponent(
                                             color = color,
-                                            shape = Shape.Pill,
+                                            shape = CorneredShape.Pill,
                                             shadow = Shadow(radiusDp = 12f, color = color),
                                         ),
                                         front = mIndicatorFrontComponent,
-                                        padding = Dimensions.of(5.dp),
+                                        padding = dimensions(5.dp),
                                     ),
-                                    padding = Dimensions.of(10.dp),
+                                    padding = dimensions(10.dp),
                                 )
                             }
                         } else null,
@@ -1001,25 +1002,50 @@ private fun DetailsChart(
                 chart = rememberCartesianChart(
                     layers = arrayOf(
                         rememberLineCartesianLayer(
-                            axisValueOverrider = AxisValueOverrider.adaptiveYValues(1f)
+                            rangeProvider = object : CartesianLayerRangeProvider {
+                                override fun getMinY(
+                                    minY: Double,
+                                    maxY: Double,
+                                    extraStore: ExtraStore
+                                ): Double {
+                                    return minY
+                                }
+                            }
                         ),
                         rememberColumnCartesianLayer(
-                            axisValueOverrider = AxisValueOverrider.adaptiveYValues(1f)
+                            rangeProvider = object :
+                                CartesianLayerRangeProvider {
+                                override fun getMinY(
+                                    minY: Double,
+                                    maxY: Double,
+                                    extraStore: ExtraStore
+                                ): Double {
+                                    return minY
+                                }
+                            }
                         ),
                         rememberLineCartesianLayer(
-                            axisValueOverrider = AxisValueOverrider.adaptiveYValues(1f)
+                            rangeProvider = object :
+                                CartesianLayerRangeProvider {
+                                override fun getMinY(
+                                    minY: Double,
+                                    maxY: Double,
+                                    extraStore: ExtraStore
+                                ): Double {
+                                    return minY
+                                }
+                            }
                         )
                     ),
-                    startAxis = rememberStartAxis(
+                    startAxis = VerticalAxis.rememberStart(
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
-                        valueFormatter = { value, _, _ ->
+                        valueFormatter = { _, value, _ ->
                             when (tabIndex) {
                                 0 -> value.run {
                                     if (keep2DecimalPlace) setPrecision(2) else this
                                 }.toString()
 
                                 1 -> value.toInt().toString()
-
                                 2 -> "${
                                     value.run {
                                         if (keep2DecimalPlace) setPrecision(2) else this
@@ -1030,12 +1056,12 @@ private fun DetailsChart(
                             }
                         }
                     ),
-                    endAxis = rememberEndAxis(
+                    endAxis = VerticalAxis.rememberEnd(
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
-                        valueFormatter = { _, _, _ -> "" }
+                        itemPlacer = VerticalAxis.ItemPlacer.count({ 0 })
                     ),
-                    bottomAxis = rememberBottomAxis(
-                        valueFormatter = { value, _, _ ->
+                    bottomAxis = HorizontalAxis.rememberBottom(
+                        valueFormatter = { _, value, _ ->
                             if (value.toInt() < timeSeries.size) {
                                 timeSeries[value.toInt()].date.replace("-", "w").substring(2)
                             } else "null"
@@ -1065,7 +1091,7 @@ private fun DetailsChart(
                         }
                     ),
                     decorations = listOf(
-                        rememberHorizontalLine(
+                        HorizontalLine(
                             y = {
                                 when (tabIndex) {
                                     0 -> ratingSeries.average()
@@ -1116,7 +1142,7 @@ private fun DetailsChart(
                                 padding = Dimensions(8f, 8f),
                                 background = ShapeComponent(
                                     MaterialTheme.colorScheme.surfaceContainer.toArgb(),
-                                    Shape.rounded(8f)
+                                    CorneredShape.rounded(8f)
                                 ),
                                 lineCount = 3,
                                 color = vicoTheme.textColor.toArgb()
@@ -1228,7 +1254,7 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
                     .padding(8.dp)
                     .background(
                         Color(0xFF414558),
-                        Shape.Pill.toComposeShape()
+                        CorneredShape.Pill.toComposeShape()
                     )
                     .padding(8.dp)
             )
@@ -1379,7 +1405,7 @@ private fun LevelCard(
                                                 "extreme" -> CytoidColors.extremeColor
                                                 else -> CytoidColors.hardColor
                                             }
-                                        ), Shape.Pill.toComposeShape()
+                                        ), CorneredShape.Pill.toComposeShape()
                                     )
                                     .padding(8.dp)
                             )
