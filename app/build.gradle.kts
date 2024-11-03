@@ -69,7 +69,7 @@ dependencies {
     implementation("com.tencent:mmkv:1.3.7")
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.compose.material:material-icons-extended:1.7.5")
-    implementation("dev.shreyaspatil:capturable:2.1.0")
+    implementation("dev.shreyaspatil:capturable:3.0.0")
     implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.28")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
     implementation("androidx.media3:media3-exoplayer:1.4.1")
