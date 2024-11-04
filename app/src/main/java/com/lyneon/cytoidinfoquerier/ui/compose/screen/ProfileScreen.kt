@@ -58,6 +58,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -559,6 +560,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
     profileGraphQL.data.profile?.let { profile ->
@@ -590,12 +592,22 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                 }
                 AnimatedVisibility(visible = !folded) {
                     SelectionContainer {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        FlowRow(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             profile.badges.forEach {
-                                Text(text = it.title)
-                                it.description?.let { it1 -> Text(text = it1) }
+                                OutlinedCard {
+                                    Column(
+                                        modifier = Modifier.padding(8.dp)
+                                    ) {
+                                        Text(
+                                            text = it.title,
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
+                                        it.description?.let { it1 -> Text(text = it1) }
+                                    }
+                                }
                             }
                         }
                     }
