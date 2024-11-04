@@ -30,3 +30,5 @@ Android 7.0+
 - [MMKV](https://github.com/Tencent/MMKV)
 - [Capturable](https://github.com/PatilShreyas/Capturable)
 - [Vico](https://github.com/patrykandpatrick/vico)
+- [android-browser-helper](https://github.com/GoogleChrome/android-browser-helper)
+- [compose-markdown](https://github.com/jeziellago/compose-markdown)

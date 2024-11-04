@@ -169,6 +169,7 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.Corner
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -549,9 +550,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            SelectionContainer {
-                                Text(text = profile.bio)
-                            }
+                            MarkdownText(markdown = profile.bio, isTextSelectable = true)
                         }
                     }
                 }
