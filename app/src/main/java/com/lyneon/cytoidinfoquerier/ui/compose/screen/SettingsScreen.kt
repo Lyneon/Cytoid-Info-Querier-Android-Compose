@@ -4,10 +4,16 @@ import android.graphics.Bitmap.CompressFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -24,13 +30,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarDuration
@@ -119,6 +124,11 @@ fun SettingsScreen(
             GridColumnsCountSettingCard(navController)
             PictureCompressSettingCard()
             TestCrashSettingCard(snackBarHostState)
+            Spacer(
+                modifier = Modifier.height(
+                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                )
+            )
         }
     }
 }
@@ -335,11 +345,11 @@ private fun TestCrashSettingCard(snackBarHostState: SnackbarHostState) {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PictureCompressSettingCard() {
     val mmkv = remember { MMKV.mmkvWithID(MMKVId.AppSettings.id) }
     var showCompressFormatTipsDialog by rememberSaveable { mutableStateOf(false) }
-    var showCompressFormatSelectMenu by rememberSaveable { mutableStateOf(false) }
     var compressFormat by remember {
         mutableStateOf(
             mmkv.decodeString(
@@ -363,7 +373,6 @@ private fun PictureCompressSettingCard() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showCompressFormatSelectMenu = true }
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -384,7 +393,27 @@ private fun PictureCompressSettingCard() {
                         contentDescription = null
                     )
                 }
-                Text(text = compressFormat)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    for (format in CompressFormat.entries) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = compressFormat == format.name,
+                                onClick = {
+                                    compressFormat = format.name
+                                    mmkv.encode(
+                                        AppSettingsMMKVKeys.PICTURE_COMPRESS_FORMAT.name,
+                                        compressFormat
+                                    )
+                                }
+                            )
+                            Text(text = format.name)
+                        }
+                    }
+                }
                 Slider(
                     value = compressQuality.toFloat(),
                     onValueChange = {
@@ -399,22 +428,6 @@ private fun PictureCompressSettingCard() {
                 )
                 Text(text = "${compressQuality}%")
             }
-        }
-    }
-
-    DropdownMenu(
-        expanded = showCompressFormatSelectMenu,
-        onDismissRequest = { showCompressFormatSelectMenu = false }
-    ) {
-        for (format in CompressFormat.entries) {
-            DropdownMenuItem(
-                text = { Text(text = format.name) },
-                onClick = {
-                    compressFormat = format.name
-                    mmkv.encode(AppSettingsMMKVKeys.PICTURE_COMPRESS_FORMAT.name, compressFormat)
-                    showCompressFormatSelectMenu = false
-                }
-            )
         }
     }
 
