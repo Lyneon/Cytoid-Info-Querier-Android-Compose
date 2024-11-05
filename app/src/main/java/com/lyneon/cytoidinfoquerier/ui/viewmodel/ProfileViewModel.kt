@@ -7,7 +7,6 @@ import com.lyneon.cytoidinfoquerier.data.repository.ProfileScreenDataModelReposi
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -77,24 +76,21 @@ class ProfileViewModel(
     }
 
     fun enqueueQuery() {
-        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+        setIsQuerying(true)
+        viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
             updateUIState {
                 copy(errorMessage = throwable.message.toString())
             }
-            setIsQuerying(false)
         }) {
             uiState.value.let { uiState ->
-                async {
-                    updateProfileScreenDataModel(
-                        profileScreenDataModelRepository.getProfileScreenDataModel(
-                            cytoidID = uiState.cytoidID,
-                            disableLocalCache = uiState.ignoreLocalCacheData
-                        )
+                updateProfileScreenDataModel(
+                    profileScreenDataModelRepository.getProfileScreenDataModel(
+                        cytoidID = uiState.cytoidID,
+                        disableLocalCache = uiState.ignoreLocalCacheData
                     )
-                }.await()
-                updateUIState { copy(isQuerying = false) }
+                )
             }
-        }
+        }.invokeOnCompletion { setIsQuerying(false) }
     }
 
     private fun updateUIState(update: ProfileUiState.() -> ProfileUiState) {
