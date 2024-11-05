@@ -6,8 +6,6 @@ import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
 import com.lyneon.cytoidinfoquerier.data.repository.SearchLevelsRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -66,46 +64,25 @@ class LevelViewModel(
         updateUIState { copy(queryQualified = qualified) }
     }
 
-    fun searchLevels(
-        search: String,
-        sortStrategy: SearchLevelSortingStrategy,
-        order: SearchLevelOrder,
-        page: Int,
-        limit: Int,
-        featured: Boolean,
-        qualified: Boolean
-    ) = viewModelScope.launch {
-        try {
+    fun searchLevels() = viewModelScope.launch {
+        uiState.value.run {
             _searchResult.update {
-                async(Dispatchers.IO) {
+                try {
                     searchLevelsRepository.searchLevels(
-                        search,
-                        sortStrategy,
-                        order,
-                        page,
-                        limit,
-                        featured,
-                        qualified
+                        searchQuery,
+                        querySortStrategy,
+                        queryOrder,
+                        queryPage,
+                        queryLimit,
+                        queryFeatured,
+                        queryQualified
                     )
-                }.await()
+                } catch (e: Exception) {
+                    updateUIState { copy(errorMessage = e.stackTraceToString()) }
+                    emptyList()
+                }
             }
             updateUIState { copy(isSearching = false) }
-        } catch (e: Exception) {
-            updateUIState { copy(errorMessage = e.stackTraceToString()) }
-        }
-    }
-
-    fun enqueueSearch() {
-        uiState.value.run {
-            searchLevels(
-                searchQuery,
-                querySortStrategy,
-                queryOrder,
-                queryPage,
-                queryLimit,
-                queryFeatured,
-                queryQualified
-            )
         }
     }
 

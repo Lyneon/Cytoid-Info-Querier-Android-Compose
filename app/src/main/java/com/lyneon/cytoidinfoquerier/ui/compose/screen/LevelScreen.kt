@@ -243,7 +243,7 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
                             viewModel.setErrorMessage("")
                             scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
                                 viewModel.setIsSearching(true)
-                                viewModel.enqueueSearch()
+                                viewModel.searchLevels()
                             }
                         }) {
                             Icon(imageVector = Icons.Default.Search, contentDescription = "搜索")
