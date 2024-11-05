@@ -31,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -118,11 +119,29 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AppUserIDSettingCard()
-            SentrySettingCard(uiState, viewModel, snackBarHostState)
+            HorizontalDivider()
+            Text(
+                text = stringResource(R.string.data),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(start = 8.dp)
+            )
             DeleteImageCacheCard(snackBarHostState)
             DeleteQueryCacheCard(snackBarHostState)
-            GridColumnsCountSettingCard(navController)
             PictureCompressSettingCard()
+            HorizontalDivider()
+            Text(
+                text = stringResource(R.string.user_interface),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+            GridColumnsCountSettingCard(navController)
+            HorizontalDivider()
+            Text(
+                text = stringResource(R.string.debug),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+            SentrySettingCard(uiState, viewModel, snackBarHostState)
             TestCrashSettingCard(snackBarHostState)
             Spacer(
                 modifier = Modifier.height(
