@@ -8,7 +8,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -27,11 +26,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -79,9 +76,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -99,6 +94,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelCategory
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
+import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy.Companion.displayName
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
@@ -115,7 +111,7 @@ import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
-import com.patrykandpatrick.vico.core.common.shape.Shape
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
@@ -147,11 +143,23 @@ fun LevelScreen(
         })
     }
     val sharedViewModel = viewModel<SharedViewModel>(LocalContext.current as MainActivity)
-    var topBarHeight by remember { mutableStateOf(0.dp) }
-    val animatedTopBarOffset by animateDpAsState(if (sharedTransitionScope.isTransitionActive) -topBarHeight else 0.dp)
-    val localDensity = LocalDensity.current
 
     Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(id = R.string.level)) },
+                actions = {
+                    if (uiState.foldTextFiled) {
+                        IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "展开输入框"
+                            )
+                        }
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
                 FloatingActionButton(onClick = { exoPlayer.stop() }) {
@@ -171,49 +179,21 @@ fun LevelScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 12.dp)
         ) {
+            LevelInputField(uiState, viewModel)
             searchResult?.let {
-                Box(
-                    modifier = Modifier.offset(y = topBarHeight + animatedTopBarOffset)
-                ) {
-                    ResultDisplayList(
-                        uiState,
-                        it,
-                        exoPlayer,
-                        playbackState,
-                        sharedViewModel,
-                        navController, sharedTransitionScope, animatedContentScope
-                    )
-                }
-            }
-            Column(modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .animateContentSize()
-                .onGloballyPositioned {
-                    topBarHeight = it.size.height.div(localDensity.density).dp
-                }
-                .offset(y = animatedTopBarOffset)
-            ) {
-                CenterAlignedTopAppBar(
-                    title = { Text(text = stringResource(id = R.string.level)) },
-                    actions = {
-                        if (uiState.foldTextFiled) {
-                            IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
-                                Icon(
-                                    imageVector = Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "展开输入框"
-                                )
-                            }
-                        }
-                    }
+                ResultDisplayList(
+                    uiState,
+                    it,
+                    exoPlayer,
+                    playbackState,
+                    sharedViewModel,
+                    navController, sharedTransitionScope, animatedContentScope
                 )
-                LevelInputField(uiState, viewModel)
             }
         }
     }
@@ -263,7 +243,7 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
                             viewModel.setErrorMessage("")
                             scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
                                 viewModel.setIsSearching(true)
-                                viewModel.enqueueSearch()
+                                viewModel.searchLevels()
                             }
                         }) {
                             Icon(imageVector = Icons.Default.Search, contentDescription = "搜索")
@@ -483,7 +463,7 @@ private fun LevelCard(
                                         .animateContentSize()
                                         .background(
                                             MaterialTheme.colorScheme.primaryContainer,
-                                            Shape.Pill.toComposeShape()
+                                            CorneredShape.Pill.toComposeShape()
                                         )
                                         .padding(
                                             top = 4.dp,

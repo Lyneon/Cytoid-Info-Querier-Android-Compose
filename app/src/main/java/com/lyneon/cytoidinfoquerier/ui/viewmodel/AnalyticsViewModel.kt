@@ -16,8 +16,6 @@ import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -97,26 +95,24 @@ class AnalyticsViewModel(
         updateUIState { copy(isQuerying = isQuerying) }
     }
 
-    fun enqueueQuery() =
-        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
-            updateUIState {
-                copy(errorMessage = throwable.message.toString())
+    fun enqueueQuery() {
+        setIsQuerying(true)
+        viewModelScope.launch(
+            CoroutineExceptionHandler { _, throwable ->
+                updateUIState { copy(errorMessage = throwable.message.toString()) }
             }
-            setIsQuerying(false)
-        }) {
-            setIsQuerying(true)
-            val queryRecordsJob = async {
+        ) {
+            launch {
                 when (uiState.value.queryType) {
                     AnalyticsUIState.QueryType.BestRecords -> updateBestRecords()
                     AnalyticsUIState.QueryType.RecentRecords -> updateRecentRecords()
                 }
             }
-            val queryProfileDetailsJob = async {
+            launch {
                 updateProfileDetails()
             }
-            awaitAll(queryRecordsJob, queryProfileDetailsJob)
-            setIsQuerying(false)
-        }
+        }.invokeOnCompletion { setIsQuerying(false) }
+    }
 
     fun loadSpecificCacheBestRecords(timeStamp: Long) {
         viewModelScope.launch(Dispatchers.IO) {

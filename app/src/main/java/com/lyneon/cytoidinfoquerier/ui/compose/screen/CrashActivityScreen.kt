@@ -74,7 +74,7 @@ fun CrashActivityScreen(crashMessage: String) {
                 text = crashMessage,
                 Modifier
                     .verticalScroll(rememberScrollState())
-                    .padding(6.dp)
+                    .padding(horizontal = 12.dp)
             )
         }
     }

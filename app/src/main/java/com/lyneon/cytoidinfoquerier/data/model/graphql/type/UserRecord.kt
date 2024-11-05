@@ -16,7 +16,7 @@ data class UserRecord(
     val rating: Float,
     val date: String,
     val chart: RecordChart?
-)  {
+) {
     @Serializable
     data class RecordDetails(
         val perfect: Int,
@@ -30,8 +30,16 @@ data class UserRecord(
     @Serializable
     data class RecordChart(
         @SerialName("difficulty") val difficultyLevel: Int,
-        @SerialName("type") val difficultyType: String, // easy，hard, extreme
-        @SerialName("name") val difficultyName: String?, // 谱师自行指定的难度名称
+
+        /**
+         * easy，hard, extreme
+         */
+        @SerialName("type") val difficultyType: String,
+
+        /**
+         * 谱师自行指定的难度名称
+         */
+        @SerialName("name") val difficultyName: String?,
         val notesCount: Int,
         val level: RecordLevel?
     ) {

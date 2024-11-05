@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.data.datasource
 
 import android.util.Log
 import com.lyneon.cytoidinfoquerier.data.GraphQL
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.data.constant.OkHttpSingleton
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
@@ -33,9 +34,9 @@ object RemoteDataSource {
         )
         return fetch<BestRecords>(
             Request.Builder()
-                .url("https://services.cytoid.io/graphql")
+                .url("${CytoidConstant.serverUrl}/graphql")
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
-                .cytoidHeader()
+                .cytoidClientUAHeader()
                 .build()
         )
     }
@@ -56,9 +57,9 @@ object RemoteDataSource {
         )
         return fetch<RecentRecords>(
             Request.Builder()
-                .url("https://services.cytoid.io/graphql")
+                .url("${CytoidConstant.serverUrl}/graphql")
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
-                .cytoidHeader()
+                .cytoidClientUAHeader()
                 .build()
         ).apply {
             this.queryArguments =
@@ -71,9 +72,9 @@ object RemoteDataSource {
             GraphQL.getQueryString(ProfileGraphQL.getRequestBodyString(cytoidID = cytoidID))
         return fetch<ProfileGraphQL>(
             Request.Builder()
-                .url("https://services.cytoid.io/graphql")
+                .url("${CytoidConstant.serverUrl}/graphql")
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
-                .cytoidHeader()
+                .cytoidClientUAHeader()
                 .build()
         )
     }
@@ -81,8 +82,8 @@ object RemoteDataSource {
     suspend fun fetchProfileCommentList(id: String): List<ProfileComment> {
         return fetch<List<ProfileComment>>(
             Request.Builder()
-                .url("https://services.cytoid.io/threads/profile/$id")
-                .cytoidHeader()
+                .url("${CytoidConstant.serverUrl}/threads/profile/$id")
+                .cytoidClientUAHeader()
                 .build()
         )
     }
@@ -90,8 +91,8 @@ object RemoteDataSource {
     suspend fun fetchProfileDetails(cytoidID: String): ProfileDetails {
         return fetch<ProfileDetails>(
             Request.Builder()
-                .url("https://services.cytoid.io/profile/$cytoidID/details")
-                .cytoidHeader()
+                .url("${CytoidConstant.serverUrl}/profile/$cytoidID/details")
+                .cytoidClientUAHeader()
                 .build()
         )
     }
@@ -107,8 +108,8 @@ object RemoteDataSource {
     ): List<SearchLevelsResult> {
         return fetch<List<SearchLevelsResult>>(
             Request.Builder()
-                .url("https://services.cytoid.io/search/levels?search=$search&sort=${sortStrategy.value}&order=${order.value}&page=$page&limit=$limit&featured=$featured&qualified=$qualified")
-                .cytoidHeader()
+                .url("${CytoidConstant.serverUrl}/search/levels?search=$search&sort=${sortStrategy.value}&order=${order.value}&page=$page&limit=$limit&featured=$featured&qualified=$qualified")
+                .cytoidClientUAHeader()
                 .build()
         )
     }
@@ -124,9 +125,9 @@ object RemoteDataSource {
         )
         return fetch<LevelLeaderboard>(
             Request.Builder()
-                .url("https://services.cytoid.io/graphql")
+                .url("${CytoidConstant.serverUrl}/graphql")
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
-                .cytoidHeader()
+                .cytoidClientUAHeader()
                 .build()
         )
     }
@@ -134,13 +135,13 @@ object RemoteDataSource {
     suspend fun fetchLevelComments(levelUID: String): List<LevelComment> {
         return fetch<List<LevelComment>>(
             Request.Builder()
-                .url("https://services.cytoid.io/threads/level/$levelUID")
-                .cytoidHeader()
+                .url("${CytoidConstant.serverUrl}/threads/level/$levelUID")
+                .cytoidClientUAHeader()
                 .build()
         )
     }
 
-    private fun Request.Builder.cytoidHeader() = this.header("User-Agent", "CytoidClient/2.1.1")
+    private fun Request.Builder.cytoidClientUAHeader() = this.header("User-Agent", CytoidConstant.clientUA)
 
     private suspend inline fun <reified T> fetch(request: Request): T {
         val response = withContext(Dispatchers.IO) {

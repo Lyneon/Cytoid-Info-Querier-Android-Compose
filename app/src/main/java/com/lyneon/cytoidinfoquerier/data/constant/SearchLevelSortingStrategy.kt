@@ -1,11 +1,27 @@
 package com.lyneon.cytoidinfoquerier.data.constant
 
-enum class SearchLevelSortingStrategy(val value: String, val displayName: String) {
-    CreationDate("creation_date", "创建日期"),
-    ModificationDate("modification_date", "修改日期"),
-    Duration("duration", "曲目长度"),
-    Downloads("downloads", "下载次数"),
-    Plays("plays", "游玩次数"),
-    Rating("rating", "评分"),
-    Difficulty("difficulty", "难度")
+import com.lyneon.cytoidinfoquerier.BaseApplication
+import com.lyneon.cytoidinfoquerier.R
+
+enum class SearchLevelSortingStrategy(val value: String) {
+    CreationDate("creation_date"),
+    ModificationDate("modification_date"),
+    Duration("duration"),
+    Downloads("downloads"),
+    Plays("plays"),
+    Rating("rating"),
+    Difficulty("difficulty");
+
+    companion object {
+        val SearchLevelSortingStrategy.displayName: String
+            get() = when (this) {
+                CreationDate -> BaseApplication.context.getString(R.string.creation_date)
+                ModificationDate -> BaseApplication.context.getString(R.string.modification_date)
+                Duration -> BaseApplication.context.getString(R.string.song_duration)
+                Downloads -> BaseApplication.context.getString(R.string.downloads_count)
+                Plays -> BaseApplication.context.getString(R.string.plays_count)
+                Rating -> BaseApplication.context.getString(R.string.level_rating)
+                Difficulty -> BaseApplication.context.getString(R.string.difficulty)
+            }
+    }
 }

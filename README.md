@@ -15,7 +15,6 @@ Android 7.0+
 
 - [x] 关卡查询
 - [x] Rating计算器
-- [ ] Profile：收藏夹
 - [ ] 排行榜查询
 - [ ] ~~符语~~ 多语言支持
 - 你告诉我
@@ -30,3 +29,5 @@ Android 7.0+
 - [MMKV](https://github.com/Tencent/MMKV)
 - [Capturable](https://github.com/PatilShreyas/Capturable)
 - [Vico](https://github.com/patrykandpatrick/vico)
+- [android-browser-helper](https://github.com/GoogleChrome/android-browser-helper)
+- [compose-markdown](https://github.com/jeziellago/compose-markdown)

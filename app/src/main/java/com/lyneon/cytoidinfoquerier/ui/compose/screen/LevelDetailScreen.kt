@@ -3,6 +3,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +41,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
@@ -81,6 +84,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelCategory
@@ -100,6 +104,8 @@ import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import java.net.URLEncoder
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -136,6 +142,7 @@ fun LevelDetailScreen(
                 0,
                 10
             )
+            viewModel.setDisplayLeaderboardStart(1)
         }
     }
     LaunchedEffect(currentLeaderboard) {
@@ -233,6 +240,24 @@ fun LevelDetailScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            val initialUrl = URLEncoder.encode(
+                                "https://cytoid.io/levels/${level?.uid}/download?callback=ciq://cytoid_info_querier_download_level_activity",
+                                "UTF-8"
+                            )
+                            navController.navigate(MainActivity.Screen.WebView.route + "/$initialUrl")
+                            BaseApplication.context.getString(R.string.tip_open_in_broswer_when_webview_dont_work)
+                                .showToast(Toast.LENGTH_LONG)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = stringResource(R.string.download)
+                        )
+                    }
+                },
                 title = { Text(text = "关卡详情") },
                 colors = TopAppBarDefaults.topAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
                 scrollBehavior = scrollBehavior
@@ -242,6 +267,7 @@ fun LevelDetailScreen(
         Column(
             modifier = Modifier
                 .padding(top = paddingValues.calculateTopPadding())
+                .padding(horizontal = 12.dp)
                 .fillMaxSize()
         ) {
             if (level == null) {
@@ -302,9 +328,7 @@ private fun LandscapeLevelDetailScreen(
     animatedContentScope: AnimatedContentScope
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         LazyColumn(
@@ -344,7 +368,10 @@ private fun LandscapeLevelDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "排行榜", style = MaterialTheme.typography.headlineSmall)
+                        Text(
+                            text = stringResource(R.string.leaderboard),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
                         IconButton(
                             onClick = {
                                 val start = uiState.leaderboardStart.toIntOrNull()
@@ -364,6 +391,7 @@ private fun LandscapeLevelDetailScreen(
                                         start - 1,
                                         end - start + 1
                                     )
+                                    viewModel.setDisplayLeaderboardStart(start)
                                 }
                                 enableRefreshButton = false
                                 "正在刷新排行榜".showToast()
@@ -448,8 +476,11 @@ private fun LandscapeLevelDetailScreen(
                         )
                     }
                 }
-                items(leaderboard?.data?.chart?.leaderboard ?: emptyList()) { leaderboardRecord ->
+                itemsIndexed(
+                    leaderboard?.data?.chart?.leaderboard ?: emptyList()
+                ) { index, leaderboardRecord ->
                     LeaderboardListItem(
+                        uiState.displayLeaderboardStart + index,
                         leaderboardHorizontalScrollState,
                         leaderboardRecord,
                         leaderboardColumnWidths.ownerUIDColumnWidth,
@@ -491,34 +522,26 @@ private fun PortraitLevelDetailScreen(
         ) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
             }
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) { LevelDetailsCard(level) }
             }
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) { LevelMetadataCard(level) }
             }
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "排行榜",
+                        text = stringResource(R.string.leaderboard),
                         style = MaterialTheme.typography.headlineSmall
                     )
                     IconButton(
@@ -540,8 +563,10 @@ private fun PortraitLevelDetailScreen(
                                     start - 1,
                                     end - start + 1
                                 )
+                                viewModel.setDisplayLeaderboardStart(start)
                             }
                             enableRefreshButton = false
+                            "正在刷新排行榜".showToast()
                         },
                         enabled = enableRefreshButton
                     ) {
@@ -551,9 +576,7 @@ private fun PortraitLevelDetailScreen(
             }
             item {
                 FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -588,9 +611,7 @@ private fun PortraitLevelDetailScreen(
             }
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -623,12 +644,14 @@ private fun PortraitLevelDetailScreen(
                     )
                 }
             }
-            items(leaderboard?.data?.chart?.leaderboard ?: emptyList()) { leaderboardRecord ->
+            itemsIndexed(
+                leaderboard?.data?.chart?.leaderboard ?: emptyList()
+            ) { index, leaderboardRecord ->
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     LeaderboardListItem(
+                        uiState.displayLeaderboardStart + index,
                         leaderboardHorizontalScrollState,
                         leaderboardRecord,
                         leaderboardColumnWidths.ownerUIDColumnWidth,
@@ -642,9 +665,7 @@ private fun PortraitLevelDetailScreen(
             }
             items(commentList) { comment ->
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     CommentListItem(comment)
                 }
@@ -968,7 +989,8 @@ private fun CommentListItem(
 
 @Composable
 private fun LeaderboardListItem(
-    horizonalScrollState: ScrollState,
+    position: Int,
+    horizontalScrollState: ScrollState,
     leaderboardRecord: LevelLeaderboard.LevelLeaderboardData.Chart.LeaderboardRecord,
     ownerUIDColumnWidth: Dp,
     scoreColumnWidth: Dp,
@@ -980,11 +1002,15 @@ private fun LeaderboardListItem(
     Row(
         modifier = Modifier
             .height(48.dp)
-            .horizontalScroll(horizonalScrollState)
+            .horizontalScroll(horizontalScrollState)
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(32.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Text(
+            text = "$position.",
+            modifier = Modifier.width(48.dp)
+        )
         leaderboardRecord.owner?.let { owner ->
             UserAvatar(
                 modifier = Modifier.size(48.dp),

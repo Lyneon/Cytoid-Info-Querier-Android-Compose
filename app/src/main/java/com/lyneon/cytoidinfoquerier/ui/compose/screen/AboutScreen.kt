@@ -65,7 +65,7 @@ fun AboutScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 12.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -228,8 +228,9 @@ private fun CytoidInfoCard() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
-                    bitmap = cytoidPackageInfo.applicationInfo.loadIcon(BaseApplication.context.packageManager)
-                        .toBitmap().asImageBitmap(), contentDescription = null,
+                    bitmap = (cytoidPackageInfo.applicationInfo?.loadIcon(BaseApplication.context.packageManager)
+                        ?.toBitmap() ?: BaseApplication.context.getDrawable(R.drawable.sayakacry)!!
+                        .toBitmap()).asImageBitmap(), contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)

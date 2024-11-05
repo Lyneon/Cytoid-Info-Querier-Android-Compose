@@ -23,31 +23,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 object LocalDataSource {
-    /*
-    suspend inline fun <reified T> loadJSONString(cytoidID: String, timeStamp: Long): T =
-        withContext(Dispatchers.IO) {
-            val localTDir =
-                BaseApplication.context.getExternalFilesDir(T::class.simpleName)
-            val targetUserTDir = File(localTDir, cytoidID)
-            val targetUserTFile = File(targetUserTDir, "$timeStamp.json")
-            Json.decodeFromString(targetUserTFile.readText())
-        }
-
-    suspend inline fun <reified T> saveJSONString(cytoidID: String, data: T): Boolean =
-        withContext(Dispatchers.IO) {
-            val localTDir =
-                BaseApplication.context.getExternalFilesDir(T::class.simpleName)
-            val currentTimeStamp = System.currentTimeMillis()
-            val targetUserTDir = File(localTDir, cytoidID)
-            if (!targetUserTDir.exists()) targetUserTDir.mkdirs()
-            val targetUserTFile =
-                File(targetUserTDir, "${currentTimeStamp}.json")
-            targetUserTFile.writeText(Json.encodeToString(data))
-            cytoidID.setLastCacheTime<T>(currentTimeStamp)
-            return@withContext true
-        }
-        */
-
     suspend fun loadBestRecords(cytoidID: String, timeStamp: Long): BestRecords =
         json.decodeFromString(loadJSONString(LocalDataType.BestRecords.name, cytoidID, timeStamp))
 
