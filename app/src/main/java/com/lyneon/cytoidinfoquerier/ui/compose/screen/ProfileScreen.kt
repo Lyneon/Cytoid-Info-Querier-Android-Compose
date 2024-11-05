@@ -1,6 +1,5 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
-import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
 import android.text.Layout
@@ -1480,10 +1479,7 @@ private fun LevelCard(
                             kotlin.runCatching {
                                 URL(level.bundle?.backgroundImage?.original)
                                     .toBitmap()
-                                    .saveIntoMediaStore(
-                                        context.contentResolver,
-                                        ContentValues()
-                                    )
+                                    .saveIntoMediaStore(context.contentResolver)
                             }.onSuccess {
                                 context
                                     .getString(R.string.saved_into_gallery)

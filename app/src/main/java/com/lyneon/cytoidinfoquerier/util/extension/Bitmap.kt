@@ -1,10 +1,10 @@
 package com.lyneon.cytoidinfoquerier.util.extension
 
 import android.content.ContentResolver
-import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.provider.MediaStore
+import androidx.core.content.contentValuesOf
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.graphics.drawable.toBitmap
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -14,7 +14,6 @@ import com.tencent.mmkv.MMKV
 
 fun Bitmap.saveIntoMediaStore(
     contentResolver: ContentResolver = BaseApplication.context.contentResolver,
-    contentValues: ContentValues = ContentValues(),
     compressFormat: CompressFormat = CompressFormat.valueOf(
         MMKV.mmkvWithID(MMKVId.AppSettings.id).decodeString(
             AppSettingsMMKVKeys.PICTURE_COMPRESS_FORMAT.name,
@@ -25,7 +24,16 @@ fun Bitmap.saveIntoMediaStore(
         .decodeInt(AppSettingsMMKVKeys.PICTURE_COMPRESS_QUALITY.name, 80)
 ) {
     val insertUri =
-        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValuesOf(
+                MediaStore.Images.ImageColumns.MIME_TYPE to when (compressFormat) {
+                    CompressFormat.PNG -> "image/png"
+                    CompressFormat.JPEG -> "image/jpeg"
+                    else -> "image/webp"
+                }
+            )
+        )
     insertUri?.let {
         contentResolver.openOutputStream(it).use { outputStream ->
             outputStream?.let { it1 -> this.compress(compressFormat, quality, it1) }

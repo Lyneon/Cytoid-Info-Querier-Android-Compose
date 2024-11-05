@@ -425,7 +425,7 @@ private fun PictureCompressSettingCard() {
                                     compressFormat = format.name
                                     mmkv.encode(
                                         AppSettingsMMKVKeys.PICTURE_COMPRESS_FORMAT.name,
-                                        compressFormat
+                                        format.name
                                     )
                                 }
                             )
@@ -445,7 +445,7 @@ private fun PictureCompressSettingCard() {
                     valueRange = 0f..100f,
                     steps = 101,
                 )
-                Text(text = "${compressQuality}%")
+                Text(text = compressQuality.toString())
             }
         }
     }
