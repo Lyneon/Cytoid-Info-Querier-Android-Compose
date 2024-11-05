@@ -120,7 +120,7 @@ fun DownloadLevelActivityScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             OutlinedTextField(
-                                value = (Uri.parse(saveUri.value).path ?: ""),
+                                value = Uri.parse(saveUri.value).path ?: "",
                                 enabled = false,
                                 onValueChange = { },
                                 label = { Text(text = "下载至") },
@@ -146,8 +146,8 @@ fun DownloadLevelActivityScreen(
                             Text(text = "更改路径")
                         }
                         Button(
-                            enabled = (System.currentTimeMillis() < (downloadExpire?.toLong()
-                                ?: 0L)) && (saveUri.value != ""),
+                            enabled = System.currentTimeMillis() < (downloadExpire?.toLong()
+                                ?: 0L) && saveUri.value != "",
                             onClick = {
                                 DocumentFile.fromTreeUri(
                                     context,

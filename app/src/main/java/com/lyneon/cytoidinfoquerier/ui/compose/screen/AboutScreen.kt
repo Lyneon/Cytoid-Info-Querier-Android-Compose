@@ -228,8 +228,8 @@ private fun CytoidInfoCard() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
-                    bitmap = ((cytoidPackageInfo.applicationInfo?.loadIcon(BaseApplication.context.packageManager)
-                        ?.toBitmap()) ?: BaseApplication.context.getDrawable(R.drawable.sayakacry)!!
+                    bitmap = (cytoidPackageInfo.applicationInfo?.loadIcon(BaseApplication.context.packageManager)
+                        ?.toBitmap() ?: BaseApplication.context.getDrawable(R.drawable.sayakacry)!!
                         .toBitmap()).asImageBitmap(), contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
