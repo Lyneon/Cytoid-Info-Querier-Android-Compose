@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,7 +24,11 @@ fun LeaderboardScreen() {
         }
     ) { contentPadding ->
         Column(
-            modifier = Modifier.padding(contentPadding)
-        ) { }
+            modifier = Modifier
+                .padding(top = contentPadding.calculateTopPadding())
+                .padding(horizontal = 12.dp)
+        ) {
+            ErrorMessageCard(errorMessage = stringResource(R.string.todo))
+        }
     }
 }

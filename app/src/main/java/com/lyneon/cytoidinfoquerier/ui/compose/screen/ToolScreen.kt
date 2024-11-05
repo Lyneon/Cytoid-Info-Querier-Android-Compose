@@ -152,10 +152,10 @@ private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(onClick = {
-                    viewModel.pingCytoidIO()
-                    viewModel.setPingResult("Pinging cytoid.io...")
+                    viewModel.testConnectionToCytoidIO()
+                    viewModel.setPingResult("Connecting to cytoid.io...")
                 }) {
-                    Text(text = stringResource(id = R.string.ping_cytoid_io))
+                    Text(text = "cytoid.io")
                 }
             }
             if (uiState.pingResult.isNotEmpty()) {

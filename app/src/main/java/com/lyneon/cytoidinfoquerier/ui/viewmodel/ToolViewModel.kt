@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.data.constant.OkHttpSingleton
 import com.lyneon.cytoidinfoquerier.util.extension.getStatusMessageFromCode
 import kotlinx.coroutines.Dispatchers
@@ -78,22 +79,18 @@ class ToolViewModel : ViewModel() {
         }
     }
 
-    fun pingCytoidIO() {
+    fun testConnectionToCytoidIO() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = OkHttpSingleton.instance.newCall(
                     Request.Builder().url("https://cytoid.io/")
-                        .head()
                         .removeHeader("User-Agent")
-                        .addHeader(
-                            "User-Agent",
-                            "CytoidClient/2.1.1"
-                        )
+                        .addHeader("User-Agent", CytoidConstant.clientUA)
                         .build()
                 ).execute()
-                setPingResult("ping result:\ncytoid.io:${response.code} ${response.getStatusMessageFromCode()}")
+                setPingResult("Result:\ncytoid.io: ${response.code} ${response.getStatusMessageFromCode()}")
             } catch (e: Exception) {
-                setPingResult("ping failed:\n${e.message}")
+                setPingResult("Connect to cytoid.io failed:\n${e.message}")
             }
         }
     }
