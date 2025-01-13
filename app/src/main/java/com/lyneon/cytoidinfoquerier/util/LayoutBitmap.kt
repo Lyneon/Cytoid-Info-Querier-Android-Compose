@@ -3,9 +3,13 @@ package com.lyneon.cytoidinfoquerier.util
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import androidx.core.graphics.alpha
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import com.lyneon.cytoidinfoquerier.util.extension.ceil
 import com.lyneon.cytoidinfoquerier.util.extension.enableAntiAlias
-import com.lyneon.cytoidinfoquerier.util.extension.lineHeight
+import com.lyneon.cytoidinfoquerier.util.extension.textHeight
 import kotlin.math.abs
 
 /**
@@ -26,7 +30,8 @@ abstract class LayoutBitmap {
                 component.paint
             )
 
-            is ImageComponent -> canvas.drawBitmap(component.bitmap, x, y, null)
+            is ImageComponent -> canvas.drawBitmap(component.bitmap, x, y, component.paint)
+
             is SpaceComponent -> {}
             is RectComponent -> canvas.drawRect(
                 x,
@@ -63,8 +68,8 @@ abstract class LayoutBitmap {
         componentsList.add(textComponent)
     }
 
-    fun addBitmap(bitmap: Bitmap) {
-        componentsList.add(ImageComponent(bitmap))
+    fun addBitmap(bitmap: Bitmap, paint: Paint = Paint()) {
+        componentsList.add(ImageComponent(bitmap, paint))
     }
 
     fun addBitmap(imageComponent: ImageComponent) {
@@ -98,6 +103,17 @@ abstract class LayoutBitmap {
     fun setBackgroundColor(a: Int, r: Int, g: Int, b: Int) {
         componentsList.add(BackgroundColorComponent(a, r, g, b))
     }
+
+    fun setBackgroundColor(color: Int) {
+        componentsList.add(
+            BackgroundColorComponent(
+                color.alpha,
+                color.red,
+                color.green,
+                color.blue
+            )
+        )
+    }
 }
 
 sealed interface LayoutBitmapComponent {
@@ -110,10 +126,10 @@ class TextComponent(val text: String, val paint: Paint) :
     override val width: Int
         get() = paint.measureText(text).ceil.toInt()
     override val height: Int
-        get() = paint.lineHeight.ceil.toInt()
+        get() = paint.textHeight.ceil.toInt()
 }
 
-class ImageComponent(val bitmap: Bitmap) : LayoutBitmapComponent {
+class ImageComponent(val bitmap: Bitmap,val paint: Paint) : LayoutBitmapComponent {
     override val width: Int get() = bitmap.width
     override val height: Int get() = bitmap.height
 }
