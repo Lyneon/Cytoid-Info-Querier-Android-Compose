@@ -104,4 +104,7 @@
     <string name="user_interface">用户界面</string>
     <string name="data">数据</string>
     <string name="debug">调试</string>
+    <string name="loading">正在加载</string>
+    <string name="top_leaderboard">榜首排名</string>
+    <string name="leaderboard_too_large_query_count">大于100的查询数量会被服务器当作100处理！</string>
 </resources>

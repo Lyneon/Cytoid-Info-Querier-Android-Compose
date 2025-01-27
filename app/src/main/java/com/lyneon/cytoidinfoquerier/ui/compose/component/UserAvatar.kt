@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
@@ -37,12 +38,14 @@ fun UserAvatar(
     userUid: String,
     avatarSize: AvatarSize = AvatarSize.Large,
     remoteAvatarUrl: String,
-    showLoadingIndicator: Boolean = true
+    showLoadingIndicator: Boolean = true,
+    clickToOpenProfileInBrowser: Boolean = true
 ) {
     var isLoading by remember { mutableStateOf(false) }
 
     Box(
-        modifier = modifier
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
         val localAvatarFile =
             LocalDataSource.getAvatarBitmapFile(
@@ -57,15 +60,19 @@ fun UserAvatar(
                 modifier = Modifier
                     .heightIn(max = 96.dp)
                     .clip(CircleShape)
-                    .clickable {
-                        BaseApplication.context.startActivity(
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("https://cytoid.io/profile/${userUid}")
-                            )
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                .addCategory(Intent.CATEGORY_BROWSABLE)
-                        )
+                    .apply {
+                        if (clickToOpenProfileInBrowser) {
+                            clickable {
+                                BaseApplication.context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://cytoid.io/profile/${userUid}")
+                                    )
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        .addCategory(Intent.CATEGORY_BROWSABLE)
+                                )
+                            }
+                        }
                     },
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null
@@ -80,15 +87,19 @@ fun UserAvatar(
                     modifier = Modifier
                         .heightIn(max = 96.dp)
                         .clip(CircleShape)
-                        .clickable {
-                            BaseApplication.context.startActivity(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("https://cytoid.io/profile/${userUid}")
-                                )
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    .addCategory(Intent.CATEGORY_BROWSABLE)
-                            )
+                        .apply {
+                            if (clickToOpenProfileInBrowser) {
+                                clickable {
+                                    BaseApplication.context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse("https://cytoid.io/profile/${userUid}")
+                                        )
+                                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            .addCategory(Intent.CATEGORY_BROWSABLE)
+                                    )
+                                }
+                            }
                         },
                     model = getImageRequestBuilderForCytoid(remoteAvatarUrl)
                         .build(),
