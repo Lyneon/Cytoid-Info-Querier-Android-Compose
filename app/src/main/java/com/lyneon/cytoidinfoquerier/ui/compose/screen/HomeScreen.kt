@@ -15,12 +15,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.AccessibleForward
 import androidx.compose.material.icons.automirrored.filled.Shortcut
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,20 +37,33 @@ import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.MMKVId
+import com.lyneon.cytoidinfoquerier.util.OrientationUtils
 import com.tencent.mmkv.MMKV
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
     val appUserCytoidID =
         MMKV.mmkvWithID(MMKVId.AppSettings.id)
             .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text(text = stringResource(id = R.string.home)) })
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.home)) },
+                navigationIcon = {
+                    if (!OrientationUtils.isLandscape) {
+                        IconButton(onClick = onDrawerButtonClick) {
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = stringResource(R.string.open_drawer)
+                            )
+                        }
+                    }
+                }
+            )
         }
     ) { paddingValues ->
         Column(
