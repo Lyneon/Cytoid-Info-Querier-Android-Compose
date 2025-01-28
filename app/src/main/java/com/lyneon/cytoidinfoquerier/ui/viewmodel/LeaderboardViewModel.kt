@@ -1,5 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
+import android.util.Log
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +35,7 @@ class LeaderboardViewModel(
                 val leaderboard = leaderboardRepository.getLeaderboardTop(limit)
                 uiState.isLoading.value = false
                 this@LeaderboardViewModel._leaderboard.value = leaderboard
+                uiState.listState.requestScrollToItem(0)
             } catch (e: Exception) {
                 uiState.isLoading.value = false
                 uiState.errorMessage.value = e.message ?: "未知错误"
@@ -65,6 +68,7 @@ class LeaderboardViewModel(
                 val leaderboard = leaderboardRepository.getLeaderboardAroundUser(limit, userId)
                 uiState.isLoading.value = false
                 this@LeaderboardViewModel._leaderboard.value = leaderboard
+                uiState.listState.requestScrollToItem(limit)
             } catch (e: Exception) {
                 uiState.isLoading.value = false
                 uiState.errorMessage.value = e.message ?: "未知错误"
@@ -81,4 +85,5 @@ class LeaderboardScreenUIState {
     val errorMessage: MutableState<String?> = mutableStateOf(null)
     val cytoidId: MutableState<String?> = mutableStateOf(AppSettings.cytoidID)
     val limit: MutableState<String> = mutableStateOf("50")
+    val listState: LazyListState = LazyListState()
 }

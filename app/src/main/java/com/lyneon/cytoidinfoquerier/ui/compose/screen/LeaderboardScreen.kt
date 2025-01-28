@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -72,6 +73,7 @@ fun LeaderboardScreen(
     val limit by remember { uiState.limit }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var keep2decimalPlaces by remember { mutableStateOf(false) }
+    val listState = remember { uiState.listState }
 
     // 刚进入页面时自动加载榜首排行
     LaunchedEffect(Unit) {
@@ -110,7 +112,7 @@ fun LeaderboardScreen(
                             ) {
                                 Text(
                                     text = "查询设置",
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = Color.Gray
                                 )
                                 TextField(
@@ -213,11 +215,12 @@ fun LeaderboardScreen(
                         LazyColumn(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            state = listState
                         ) {
                             leaderboard.forEach {
                                 item {
-                                    LeaderboardEntryCard(it, keep2decimalPlaces)
+                                    LeaderboardEntryCard(it, keep2decimalPlaces, it.uid == cytoidId)
                                 }
                             }
                         }
@@ -251,9 +254,14 @@ fun LoadingIndicator(description: String? = null) {
 }
 
 @Composable
-fun LeaderboardEntryCard(entry: LeaderboardEntry, keep2decimalPlaces: Boolean) {
+fun LeaderboardEntryCard(
+    entry: LeaderboardEntry,
+    keep2decimalPlaces: Boolean,
+    highlight: Boolean = false
+) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = if (highlight) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified)
     ) {
         Row(
             modifier = Modifier
