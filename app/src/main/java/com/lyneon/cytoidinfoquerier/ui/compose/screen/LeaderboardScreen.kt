@@ -27,6 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -108,45 +109,53 @@ fun LeaderboardScreen(
                                 expandSettings = false
                             }
                         ) {
-                            Column(
-                                modifier = Modifier.padding(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = "查询设置",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray
-                                )
-                                TextField(
-                                    value = cytoidId ?: "",
-                                    onValueChange = {
-                                        uiState.cytoidId.value = it
-                                    },
-                                    label = { Text("Cytoid ID") }
-                                )
-                                Column {
+                            DropdownMenuItem(
+                                text = {
                                     TextField(
-                                        value = limit,
+                                        value = cytoidId ?: "",
                                         onValueChange = {
-                                            if (it.isDigitsOnly()) {
-                                                uiState.limit.value = it
-                                            }
+                                            uiState.cytoidId.value = it
                                         },
-                                        label = { Text("查询数量") }
+                                        label = { Text("Cytoid ID") }
                                     )
-                                    AnimatedVisibility(limit.toIntOrNull() != null && limit.toInt() > 100) {
-                                        Text(
-                                            text = BaseApplication.context.getString(R.string.leaderboard_too_large_query_count),
-                                            color = Color.Yellow,
-                                            style = MaterialTheme.typography.bodySmall
+                                },
+                                onClick = {},
+                                enabled = false
+                            )
+                            Column {
+                                DropdownMenuItem(
+                                    text = {
+                                        TextField(
+                                            value = limit,
+                                            onValueChange = {
+                                                if (it.isDigitsOnly()) {
+                                                    uiState.limit.value = it
+                                                }
+                                            },
+                                            label = { Text("查询数量") }
                                         )
-                                    }
+                                    },
+                                    onClick = {},
+                                    enabled = false
+                                )
+                                AnimatedVisibility(limit.toIntOrNull() != null && limit.toInt() > 100) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            ErrorMessageCard(BaseApplication.context.getString(R.string.leaderboard_too_large_query_count))
+                                        },
+                                        onClick = {},
+                                        enabled = false
+                                    )
                                 }
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                            }
+                            DropdownMenuItem(
+                                text = {
                                     Text(stringResource(R.string.keep_2_decimal_places))
+                                },
+                                onClick = {
+                                    keep2decimalPlaces = !keep2decimalPlaces
+                                },
+                                trailingIcon = {
                                     Switch(
                                         checked = keep2decimalPlaces,
                                         onCheckedChange = {
@@ -154,7 +163,7 @@ fun LeaderboardScreen(
                                         }
                                     )
                                 }
-                            }
+                            )
                         }
                     }
                 }
