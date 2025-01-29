@@ -12,6 +12,7 @@ android {
     defaultConfig {
         applicationId = "com.lyneon.cytoidinfoquerier"
         minSdk = 24
+        //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 15
         versionName = "2.3.0"
@@ -59,9 +60,9 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2024.12.01"
+    val composeBomVersion = "2025.01.00"
 
-    implementation("io.sentry:sentry-android:7.12.0")
+    implementation("io.sentry:sentry-android:8.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
@@ -82,7 +83,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.activity:activity-compose:1.10.0")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
