@@ -1,6 +1,5 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
-import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -23,7 +22,15 @@ class LeaderboardViewModel(
 ) : ViewModel() {
     val leaderboard: State<List<LeaderboardEntry>> = _leaderboard
 
+    private fun clear() {
+        this._leaderboard.value = emptyList()
+        uiState.errorMessage.value = null
+        uiState.loadingMessage.value = null
+        uiState.isLoading.value = false
+    }
+
     fun loadLeaderboardTop(limit: Int? = uiState.limit.value.toIntOrNull()) {
+        clear()
         if (limit == null) {
             uiState.errorMessage.value = "无效的的排名数量"
             return
@@ -49,6 +56,7 @@ class LeaderboardViewModel(
         userUid: String? = uiState.cytoidId.value,
         limit: Int? = uiState.limit.value.toIntOrNull()
     ) {
+        clear()
         if (!userUid.isValidCytoidID()) {
             uiState.errorMessage.value = "无效的Cytoid ID"
             return

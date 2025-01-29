@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -154,6 +155,21 @@ fun LevelScreen(
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowDown,
                                 contentDescription = "展开输入框"
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = {
+                            viewModel.randomLevel()
+                        },
+                        enabled = !uiState.isSearching
+                    ) {
+                        if (uiState.isSearching) {
+                            CircularProgressIndicator(modifier = Modifier.scale(0.8f))
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Casino,
+                                contentDescription = "随机关卡"
                             )
                         }
                     }

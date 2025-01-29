@@ -56,6 +56,7 @@ import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.model.webapi.LeaderboardEntry
+import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.LeaderboardViewModel
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
@@ -68,6 +69,7 @@ fun LeaderboardScreen(
     val uiState = viewModel.uiState
     val isLoading by remember { uiState.isLoading }
     val loadingMessage by remember { uiState.loadingMessage }
+    val errorMessage by remember { uiState.errorMessage }
     val leaderboard by remember { viewModel.leaderboard }
     val cytoidId by remember { uiState.cytoidId }
     val limit by remember { uiState.limit }
@@ -218,9 +220,19 @@ fun LeaderboardScreen(
                             contentPadding = PaddingValues(vertical = 8.dp),
                             state = listState
                         ) {
-                            leaderboard.forEach {
+                            if (errorMessage != null) {
                                 item {
-                                    LeaderboardEntryCard(it, keep2decimalPlaces, it.uid == cytoidId)
+                                    ErrorMessageCard(errorMessage!!)
+                                }
+                            } else {
+                                leaderboard.forEach {
+                                    item {
+                                        LeaderboardEntryCard(
+                                            it,
+                                            keep2decimalPlaces,
+                                            it.uid == cytoidId
+                                        )
+                                    }
                                 }
                             }
                         }
