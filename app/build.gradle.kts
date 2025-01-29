@@ -12,9 +12,10 @@ android {
     defaultConfig {
         applicationId = "com.lyneon.cytoidinfoquerier"
         minSdk = 24
+        //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 15
-        versionName = "2.3.0"
+        versionCode = 16
+        versionName = "2.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -59,29 +60,30 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2024.10.01"
+    val composeBomVersion = "2025.01.00"
 
-    implementation("io.sentry:sentry-android:7.12.0")
+    implementation("io.sentry:sentry-android:8.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.tencent:mmkv:1.3.7")
-    implementation("androidx.navigation:navigation-compose:2.8.3")
-    implementation("androidx.compose.material:material-icons-extended:1.7.5")
+    implementation("com.tencent:mmkv:2.0.2")
+    implementation("androidx.navigation:navigation-compose:2.8.5")
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation("dev.shreyaspatil:capturable:3.0.0")
     implementation("com.patrykandpatrick.vico:compose:2.0.0-beta.2")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
     implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
     implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
     implementation("com.github.jeziellago:compose-markdown:0.5.4")
     implementation("androidx.documentfile:documentfile:1.0.1")
+    implementation("com.google.android.material:material:1.12.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.activity:activity-compose:1.10.0")
     implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")

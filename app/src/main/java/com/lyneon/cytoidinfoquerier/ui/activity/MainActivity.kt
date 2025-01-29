@@ -3,6 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -31,6 +32,8 @@ import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,12 +47,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -80,6 +84,8 @@ import io.sentry.SentryLevel
 import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
 import io.sentry.android.core.SentryAndroidOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,8 +109,9 @@ class MainActivity : BaseActivity() {
         }
 
         setContent {
-            val mainActivity = LocalContext.current as MainActivity
+            val mainActivity = LocalActivity.current as MainActivity
             val navHostController = rememberNavController()
+            val mainActivityUIState by remember { mutableStateOf(MainActivityUIState()) }
 
             navHostController.addOnDestinationChangedListener { _, destination, _ ->
                 if (destination.route != Screen.GridColumnsCountSetting.route) {
@@ -128,13 +135,20 @@ class MainActivity : BaseActivity() {
                                     navHostController = navHostController
                                 ) { mainActivity.finish() }
                             }
-                            MainContent(navHostController = navHostController)
+                            MainContent(
+                                navHostController = navHostController,
+                                mainActivityUIState = mainActivityUIState
+                            )
                         } else
                             ModalNavigationDrawer(
                                 drawerContent = { DrawerContent(navHostController) { mainActivity.finish() } },
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxSize(),
+                                drawerState = mainActivityUIState.drawerState
                             ) {
-                                MainContent(navHostController = navHostController)
+                                MainContent(
+                                    navHostController = navHostController,
+                                    mainActivityUIState = mainActivityUIState
+                                )
                             }
                     }
                 }
@@ -452,7 +466,10 @@ private fun RailContent(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun MainContent(navHostController: NavHostController) {
+private fun MainContent(
+    navHostController: NavHostController,
+    mainActivityUIState: MainActivityUIState
+) {
     SharedTransitionLayout {
         NavHost(
             navController = navHostController,
@@ -464,7 +481,14 @@ private fun MainContent(navHostController: NavHostController) {
                 fadeOut() + scaleOut(targetScale = 0.8f)
             }
         ) {
-            composable(MainActivity.Screen.Home.route) { HomeScreen(navController = navHostController) }
+            composable(MainActivity.Screen.Home.route) {
+                val coroutinesScope = rememberCoroutineScope()
+                HomeScreen(navController = navHostController, onDrawerButtonClick = {
+                    coroutinesScope.launch(Dispatchers.Main) {
+                        mainActivityUIState.drawerState.open()
+                    }
+                })
+            }
             composable(MainActivity.Screen.Analytics.route) {
                 AnalyticsScreen(
                     navController = navHostController,
@@ -541,8 +565,12 @@ private fun MainContent(navHostController: NavHostController) {
                 LeaderboardScreen()
             }
             composable(MainActivity.Screen.WebView.route + "/{initialUrl}") {
-                WebViewScreen(navHostController,it)
+                WebViewScreen(navHostController, it)
             }
         }
     }
 }
+
+class MainActivityUIState(
+    val drawerState: DrawerState = DrawerState(DrawerValue.Closed)
+)

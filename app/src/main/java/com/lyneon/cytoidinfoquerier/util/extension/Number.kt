@@ -12,7 +12,7 @@ import kotlin.math.ceil
  */
 fun <T : Number> T.setPrecision(
     digits: Int,
-    roundingMode: RoundingMode = RoundingMode.CEILING
+    roundingMode: RoundingMode = RoundingMode.DOWN
 ): String {
     val df = DecimalFormat("#.${"#" * digits}")
     df.roundingMode = roundingMode

@@ -1,15 +1,22 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
+import com.lyneon.cytoidinfoquerier.data.constant.OkHttpSingleton
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
 import com.lyneon.cytoidinfoquerier.data.model.webapi.SearchLevelsResult
 import com.lyneon.cytoidinfoquerier.data.repository.SearchLevelsRepository
+import com.lyneon.cytoidinfoquerier.json
+import com.lyneon.cytoidinfoquerier.util.CytoidLevelUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.Request
 
 class LevelViewModel(
     private val searchLevelsRepository: SearchLevelsRepository = SearchLevelsRepository()
@@ -64,32 +71,51 @@ class LevelViewModel(
         updateUIState { copy(queryQualified = qualified) }
     }
 
-    fun searchLevels() = viewModelScope.launch {
+    fun searchLevels() = viewModelScope.launch(Dispatchers.IO) {
+        updateUIState { copy(isSearching = true) }
         uiState.value.run {
-            _searchResult.update {
-                try {
-                    searchLevelsRepository.searchLevels(
-                        searchQuery,
-                        querySortStrategy,
-                        queryOrder,
-                        queryPage,
-                        queryLimit,
-                        queryFeatured,
-                        queryQualified
-                    )
-                } catch (e: Exception) {
-                    updateUIState { copy(errorMessage = e.stackTraceToString()) }
-                    emptyList()
-                }
+            val searchResult = try {
+                searchLevelsRepository.searchLevelsWithPagesCount(
+                    searchQuery,
+                    querySortStrategy,
+                    queryOrder,
+                    queryPage,
+                    queryLimit,
+                    queryFeatured,
+                    queryQualified
+                )
+            } catch (e: Exception) {
+                updateUIState { copy(errorMessage = e.stackTraceToString()) }
+                Pair(emptyList(), 1)
             }
+            Log.d("LevelViewModel", "pages: ${searchResult.second}")
+            _searchResult.update { searchResult.first }
+            updateUIState { copy(totalPages = searchResult.second) }
             updateUIState { copy(isSearching = false) }
+        }
+    }
+
+    fun randomLevel() = viewModelScope.launch(Dispatchers.IO) {
+        updateUIState { copy(isSearching = true) }
+        val levelCount = CytoidLevelUtils.getLevelCount()
+        val request = Request.Builder()
+            .url("https://services.cytoid.io/levels?page=${(0 until levelCount).random()}&limit=1")
+            .removeHeader("User-Agent")
+            .addHeader("User-Agent", CytoidConstant.clientUA)
+            .build()
+        val response = OkHttpSingleton.instance.newCall(request).execute()
+        if (response.isSuccessful) response.body?.let {
+            val jsonString = it.string()
+            val searchResult: List<SearchLevelsResult> = json.decodeFromString(jsonString)
+            updateUIState { copy(isSearching = false, queryPage = 0, totalPages = 1) }
+            _searchResult.update { searchResult }
         }
     }
 
     private fun updateUIState(update: LevelUIState.() -> LevelUIState) =
         updateUIState(_uiState.value.update())
 
-    fun updateUIState(uiState: LevelUIState) = _uiState.update { uiState }
+    private fun updateUIState(uiState: LevelUIState) = _uiState.update { uiState }
 }
 
 data class LevelUIState(
@@ -103,5 +129,6 @@ data class LevelUIState(
     val expandSearchOptionsDropdownMenu: Boolean = false,
     val errorMessage: String = "",
     val queryFeatured: Boolean = false,
-    val queryQualified: Boolean = false
+    val queryQualified: Boolean = false,
+    val totalPages: Int = 1,
 )

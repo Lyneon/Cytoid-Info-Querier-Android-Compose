@@ -93,6 +93,7 @@ import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.LevelLeaderboard
 import com.lyneon.cytoidinfoquerier.data.model.shared.Level
 import com.lyneon.cytoidinfoquerier.data.model.webapi.LevelComment
+import com.lyneon.cytoidinfoquerier.data.model.webapi.LevelRating
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.DifficultyPillText
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
@@ -100,10 +101,13 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.LevelDetailUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.LevelDetailViewModel
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SharedViewModel
+import com.lyneon.cytoidinfoquerier.util.CytoidLevelUtils
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 
@@ -147,6 +151,9 @@ fun LevelDetailScreen(
     }
     LaunchedEffect(currentLeaderboard) {
         currentLeaderboard?.data?.chart?.leaderboard?.let { leaderboard ->
+            if (leaderboard.isEmpty()) {
+                return@LaunchedEffect
+            }
             leaderboardColumnWidths = LeaderboardColumnWidths(
                 ownerUIDColumnWidth = with(localDensity) {
                     leaderboard.maxOf {
@@ -829,6 +836,28 @@ private fun LevelDetailsCard(level: Level) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                var rating by remember { mutableStateOf<LevelRating?>(null) }
+
+                LaunchedEffect(level.uid) {
+                    launch(Dispatchers.IO) {
+                        rating = CytoidLevelUtils.getLevelRating(level.uid)
+                    }
+                }
+
+                rating?.let {
+                    Text(text = "平均评分")
+                    Text(
+                        text = if (it.total == 0) "N/A" else (it.average / 2).toString(),
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                    Text(
+                        text = "共${it.total}个评分"
+                    )
+                }
+            }
             level.owner?.let {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)

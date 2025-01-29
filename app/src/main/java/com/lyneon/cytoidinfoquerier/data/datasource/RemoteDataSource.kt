@@ -12,6 +12,7 @@ import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.LevelLeaderboard
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.data.model.webapi.LeaderboardEntry
 import com.lyneon.cytoidinfoquerier.data.model.webapi.LevelComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
@@ -141,7 +142,22 @@ object RemoteDataSource {
         )
     }
 
-    private fun Request.Builder.cytoidClientUAHeader() = this.header("User-Agent", CytoidConstant.clientUA)
+    suspend fun fetchLeaderboard(
+        limit: Int,
+        userId: String? = null
+    ): List<LeaderboardEntry> {
+        val url =
+            "https://services.cytoid.io/leaderboard?limit=$limit" + if (userId != null) "&user=$userId" else ""
+        return fetch<List<LeaderboardEntry>>(
+            Request.Builder()
+                .url(url)
+                .cytoidClientUAHeader()
+                .build()
+        )
+    }
+
+    private fun Request.Builder.cytoidClientUAHeader() =
+        this.header("User-Agent", CytoidConstant.clientUA)
 
     private suspend inline fun <reified T> fetch(request: Request): T {
         val response = withContext(Dispatchers.IO) {
