@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Launch
@@ -30,7 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
 import com.lyneon.cytoidinfoquerier.R
@@ -49,10 +52,11 @@ class ImportLevelActivity : ComponentActivity() {
 
         val intent = intent
         val shizukuBinder = Shizuku.getBinder()
-        val shizukuUid = Shizuku.getUid()
+        val shizukuUid = shizukuBinder?.run { Shizuku.getUid() } ?: -1
         val permission = when (shizukuUid) {
             0 -> "ROOT"
             2000 -> "ADB"
+            -1 -> "未连接"
             else -> "未知"
         }
 
@@ -93,6 +97,9 @@ class ImportLevelActivity : ComponentActivity() {
                                 Column(
                                     modifier = Modifier.padding(12.dp)
                                 ) {
+                                    val shizukuIntent =
+                                        packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
+
                                     Text(
                                         text = document?.name ?: "No name",
                                         style = MaterialTheme.typography.titleLarge
@@ -109,6 +116,20 @@ class ImportLevelActivity : ComponentActivity() {
                                             shizukuBinder?.run { "${permission}(${shizukuUid})" } ?: "未连接"
                                         }"
                                     )
+                                    Button(
+                                        onClick = {
+                                            startActivity(shizukuIntent)
+                                        },
+                                        enabled = shizukuIntent != null
+                                    ) {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(R.drawable.ic_shizuku),
+                                            contentDescription = "Shizuku设置",
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(text = "Shizuku设置")
+                                    }
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -134,6 +155,7 @@ class ImportLevelActivity : ComponentActivity() {
                                                     // Shizuku 14 is still not released
                                                 }
                                             },
+                                            enabled = shizukuBinder != null && (shizukuUid == 0 || shizukuUid == 2000),
                                             modifier = Modifier.weight(1f)
                                         ) {
                                             Icon(
