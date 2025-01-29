@@ -3,6 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -53,7 +54,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -109,7 +109,7 @@ class MainActivity : BaseActivity() {
         }
 
         setContent {
-            val mainActivity = LocalContext.current as MainActivity
+            val mainActivity = LocalActivity.current as MainActivity
             val navHostController = rememberNavController()
             val mainActivityUIState by remember { mutableStateOf(MainActivityUIState()) }
 
