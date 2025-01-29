@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
-import com.lyneon.cytoidinfoquerier.ui.activity.ui.theme.CytoidInfoQuerierComposeTheme
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
+import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import rikka.shizuku.Shizuku
 
