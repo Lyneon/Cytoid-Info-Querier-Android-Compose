@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
@@ -70,24 +71,26 @@ class LevelViewModel(
         updateUIState { copy(queryQualified = qualified) }
     }
 
-    fun searchLevels() = viewModelScope.launch {
+    fun searchLevels() = viewModelScope.launch(Dispatchers.IO) {
+        updateUIState { copy(isSearching = true) }
         uiState.value.run {
-            _searchResult.update {
-                try {
-                    searchLevelsRepository.searchLevels(
-                        searchQuery,
-                        querySortStrategy,
-                        queryOrder,
-                        queryPage,
-                        queryLimit,
-                        queryFeatured,
-                        queryQualified
-                    )
-                } catch (e: Exception) {
-                    updateUIState { copy(errorMessage = e.stackTraceToString()) }
-                    emptyList()
-                }
+            val searchResult = try {
+                searchLevelsRepository.searchLevelsWithPagesCount(
+                    searchQuery,
+                    querySortStrategy,
+                    queryOrder,
+                    queryPage,
+                    queryLimit,
+                    queryFeatured,
+                    queryQualified
+                )
+            } catch (e: Exception) {
+                updateUIState { copy(errorMessage = e.stackTraceToString()) }
+                Pair(emptyList(), 1)
             }
+            Log.d("LevelViewModel", "pages: ${searchResult.second}")
+            _searchResult.update { searchResult.first }
+            updateUIState { copy(totalPages = searchResult.second) }
             updateUIState { copy(isSearching = false) }
         }
     }
@@ -104,7 +107,7 @@ class LevelViewModel(
         if (response.isSuccessful) response.body?.let {
             val jsonString = it.string()
             val searchResult: List<SearchLevelsResult> = json.decodeFromString(jsonString)
-            updateUIState { copy(isSearching = false) }
+            updateUIState { copy(isSearching = false, queryPage = 0, totalPages = 1) }
             _searchResult.update { searchResult }
         }
     }
@@ -126,5 +129,6 @@ data class LevelUIState(
     val expandSearchOptionsDropdownMenu: Boolean = false,
     val errorMessage: String = "",
     val queryFeatured: Boolean = false,
-    val queryQualified: Boolean = false
+    val queryQualified: Boolean = false,
+    val totalPages: Int = 1,
 )

@@ -33,12 +33,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -401,6 +404,48 @@ private fun ResultDisplayList(
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope
                     )
+                }
+            }
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        8.dp,
+                        Alignment.CenterHorizontally
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val viewModel = viewModel<LevelViewModel>()
+
+                    IconButton(onClick = {
+                        if (uiState.queryPage > 0) {
+                            viewModel.setQueryPage(uiState.queryPage - 1)
+                            viewModel.searchLevels()
+                        }
+                    }, enabled = uiState.queryPage > 0) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronLeft,
+                            contentDescription = "上一页"
+                        )
+                    }
+                    Text(
+                        text = "${uiState.queryPage + 1}/${uiState.totalPages}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                    IconButton(onClick = {
+                        if (uiState.queryPage < uiState.totalPages - 1) {
+                            viewModel.setQueryPage(uiState.queryPage + 1)
+                            viewModel.searchLevels()
+                        }
+                    }, enabled = uiState.queryPage < uiState.totalPages - 1) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "下一页"
+                        )
+                    }
                 }
             }
         }
