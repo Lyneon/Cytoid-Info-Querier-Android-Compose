@@ -56,6 +56,86 @@
                     android:scheme="ciq" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.activity.ImportLevelActivity"
+            android:exported="true"
+            android:label="@string/import_to_cytoid"
+            android:theme="@style/Theme.CytoidInfoQuerierCompose">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathSuffix=".cytoidlevel" />
+                <data android:pathSuffix=".cytoidlevel.zip" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="*/*" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.cytoidlevel.zip" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.cytoidlevel" />
+                <data android:pathPattern=".*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.cytoidlevel.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.cytoidlevel.zip" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
     </application>
 

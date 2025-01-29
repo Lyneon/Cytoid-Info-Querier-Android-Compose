@@ -79,6 +79,8 @@ dependencies {
     implementation("com.github.jeziellago:compose-markdown:0.5.4")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("dev.rikka.shizuku:api:12.1.0")
+    implementation("dev.rikka.shizuku:provider:12.1.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
