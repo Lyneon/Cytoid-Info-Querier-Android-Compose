@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.activity
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,12 +23,14 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,12 +38,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.documentfile.provider.DocumentFile
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 class ImportLevelActivity : ComponentActivity() {
@@ -51,14 +55,6 @@ class ImportLevelActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val intent = intent
-        val shizukuBinder = Shizuku.getBinder()
-        val shizukuUid = shizukuBinder?.run { Shizuku.getUid() } ?: -1
-        val permission = when (shizukuUid) {
-            0 -> "ROOT"
-            2000 -> "ADB"
-            -1 -> "未连接"
-            else -> "未知"
-        }
 
         setContent {
             CytoidInfoQuerierComposeTheme {
@@ -81,8 +77,6 @@ class ImportLevelActivity : ComponentActivity() {
                     ) {
                         val data = intent.data
                         data?.let {
-                            val document =
-                                DocumentFile.fromSingleUri(this@ImportLevelActivity, data)
                             var sourcePath by remember {
                                 mutableStateOf(data.toString().run {
                                     this.substring(this.lastIndexOf("/storage/emulated/0/"))
@@ -90,6 +84,8 @@ class ImportLevelActivity : ComponentActivity() {
                             }
                             val targetPath =
                                 "/storage/emulated/0/Android/data/me.tigerhix.cytoid/files/Cytoid/"
+                            var commandOutput by remember { mutableStateOf("") }
+                            val scope = rememberCoroutineScope()
 
                             Card(
                                 modifier = Modifier.fillMaxWidth()
@@ -101,20 +97,15 @@ class ImportLevelActivity : ComponentActivity() {
                                         packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
 
                                     Text(
-                                        text = document?.name ?: "No name",
+                                        text = sourcePath.substringAfterLast("/"),
                                         style = MaterialTheme.typography.titleLarge
                                     )
-                                    Text(text = "Uri: ${document?.uri.toString()}")
+                                    Text(text = "Uri: $data")
                                     TextField(
                                         value = sourcePath,
                                         onValueChange = { sourcePath = it },
                                         label = { Text(text = "绝对路径") },
                                         modifier = Modifier.fillMaxWidth()
-                                    )
-                                    Text(
-                                        text = "Shizuku状态：${
-                                            shizukuBinder?.run { "${permission}(${shizukuUid})" } ?: "未连接"
-                                        }"
                                     )
                                     Button(
                                         onClick = {
@@ -136,8 +127,13 @@ class ImportLevelActivity : ComponentActivity() {
                                     ) {
                                         Button(
                                             onClick = {
-                                                if (shizukuBinder == null) {
+                                                val shizuku = Shizuku.getBinder()
+                                                if (shizuku == null || !Shizuku.pingBinder()) {
                                                     "未连接到Shizuku！".showToast()
+                                                    return@Button
+                                                }
+                                                if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                                                    Shizuku.requestPermission(1)
                                                     return@Button
                                                 }
                                                 if (Shizuku.getVersion() < 14) {
@@ -147,15 +143,23 @@ class ImportLevelActivity : ComponentActivity() {
                                                         null
                                                     )
                                                     process.outputStream.use {
-                                                        it.write(("cp $sourcePath $targetPath\nexit\n").toByteArray())
+                                                        it.write(("cp -v $sourcePath $targetPath\nexit\n").toByteArray())
                                                         it.flush()
+                                                    }
+                                                    scope.launch(Dispatchers.IO) {
+                                                        val exitCode = process.waitFor()
+                                                        process.inputStream.use {
+                                                            it.reader().use { reader ->
+                                                                commandOutput =
+                                                                    "${reader.readText()}\n进程已结束，退出码为$exitCode"
+                                                            }
+                                                        }
                                                     }
                                                     "已执行导入操作！请自行进入游戏查看导入结果。".showToast()
                                                 } else {
                                                     // Shizuku 14 is still not released
                                                 }
                                             },
-                                            enabled = shizukuBinder != null && (shizukuUid == 0 || shizukuUid == 2000),
                                             modifier = Modifier.weight(1f)
                                         ) {
                                             Icon(
@@ -183,6 +187,13 @@ class ImportLevelActivity : ComponentActivity() {
                                             Text(text = "启动Cytoid")
                                         }
                                     }
+                                    OutlinedTextField(
+                                        value = commandOutput,
+                                        onValueChange = {},
+                                        label = { Text(text = "命令输出") },
+                                        readOnly = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
                                 }
                             }
                         } ?: run {
