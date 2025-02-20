@@ -60,16 +60,16 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2025.01.00"
+    val composeBomVersion = "2025.02.00"
 
-    implementation("io.sentry:sentry-android:8.0.0")
+    implementation("io.sentry:sentry-android:8.2.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.tencent:mmkv:2.0.2")
-    implementation("androidx.navigation:navigation-compose:2.8.5")
-    implementation("androidx.compose.material:material-icons-extended:1.7.6")
+    implementation("androidx.navigation:navigation-compose:2.8.7")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("dev.shreyaspatil:capturable:3.0.0")
     implementation("com.patrykandpatrick.vico:compose:2.0.0-beta.2")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
