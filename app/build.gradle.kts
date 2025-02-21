@@ -14,8 +14,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 18
-        versionName = "2.5.1"
+        versionCode = 20
+        versionName = "2.6.1-${getCurrentBranchName()}-${getCurrentCommitHash()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -98,4 +98,33 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+fun getCurrentBranchName(): String {
+    return try {
+        val process = ProcessBuilder("git", "branch", "--show-current")
+            .directory(project.rootDir)
+            .redirectErrorStream(true)
+            .start()
+        process.inputStream.bufferedReader().use {
+            it.readLine()?.trim()?.takeIf { str -> str.isNotEmpty() } ?: "unknownBranch"
+        }
+    } catch (e: Exception) {
+        "unknownBranch"
+    }
+}
+
+
+fun getCurrentCommitHash(): String {
+    return try {
+        val process = ProcessBuilder().command("git", "rev-parse", "--short", "HEAD")
+            .directory(project.rootDir)
+            .redirectErrorStream(true)
+            .start()
+        process.inputStream.bufferedReader().use {
+            it.readLine()?.trim()?.takeIf { str -> str.isNotEmpty() } ?: "unknownCommit"
+        }
+    } catch (e: Exception) {
+        "unknownCommit"
+    }
 }
