@@ -1573,7 +1573,7 @@ private fun CommentList(commentList: List<ProfileComment>) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         UserAvatar(
-                            modifier = Modifier.size(48.dp),
+                            size = 48.dp,
                             userUid = comment.owner.uid,
                             remoteAvatarUrl = comment.owner.avatar.large
                         )

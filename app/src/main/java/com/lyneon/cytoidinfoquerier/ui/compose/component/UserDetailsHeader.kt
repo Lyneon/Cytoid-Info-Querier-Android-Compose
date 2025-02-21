@@ -31,7 +31,7 @@ fun UserDetailsHeader(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.heightIn(max = 96.dp)
     ) {
-        UserAvatar(profileDetails = profileDetails)
+        UserAvatar(size = 96.dp, profileDetails = profileDetails)
         Column(
             modifier = Modifier.fillMaxHeight()
         ) {

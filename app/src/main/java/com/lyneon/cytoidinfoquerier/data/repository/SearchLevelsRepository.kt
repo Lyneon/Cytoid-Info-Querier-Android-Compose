@@ -56,4 +56,37 @@ class SearchLevelsRepository {
             throw Exception("Failed to fetch levels")
         }
     }
+
+    fun searchLevelsByTagWithPagesCount(
+        tag: String,
+        sortStrategy: SearchLevelSortingStrategy = SearchLevelSortingStrategy.CreationDate,
+        order: SearchLevelOrder = SearchLevelOrder.Descending,
+        page: Int,
+        limit: Int,
+        featured: Boolean,
+        qualified: Boolean
+    ): Pair<List<SearchLevelsResult>, Int> {
+        val request = Request.Builder()
+            .url(
+                "${CytoidConstant.serverUrl}/search/levels?tags=${
+                    tag.replace(
+                        ' ',
+                        '+'
+                    )
+                }&sort=${sortStrategy.value}&order=${order.value}&page=$page&limit=$limit&featured=$featured&qualified=$qualified"
+            )
+            .removeHeader("User-Agent")
+            .addHeader("User-Agent", CytoidConstant.clientUA)
+            .build()
+        val response = OkHttpSingleton.instance.newCall(request).execute()
+        if (response.isSuccessful) {
+            response.body?.let {
+                val levels: List<SearchLevelsResult> = json.decodeFromString(it.string())
+                val totalPages = response.headers["x-total-page"]?.toInt() ?: 1
+                return Pair(levels, totalPages)
+            } ?: throw Exception("Failed to parse levels")
+        } else {
+            throw Exception("Failed to fetch levels")
+        }
+    }
 }
