@@ -3,7 +3,6 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -348,8 +346,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
 
     DropdownMenu(
         modifier = Modifier
-            .padding(MenuDefaults.DropdownMenuItemContentPadding)
-            .animateContentSize(),
+            .padding(MenuDefaults.DropdownMenuItemContentPadding),
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
     ) {
@@ -362,23 +359,13 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             FilterChip(
                 selected = uiState.queryType == AnalyticsUIState.QueryType.BestRecords,
                 onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords) },
-                label = { Text(text = AnalyticsUIState.QueryType.BestRecords.displayName) },
-                leadingIcon = {
-                    AnimatedVisibility(visible = uiState.queryType == AnalyticsUIState.QueryType.BestRecords) {
-                        Icon(imageVector = Icons.Default.Done, contentDescription = null)
-                    }
-                }
+                label = { Text(text = AnalyticsUIState.QueryType.BestRecords.displayName) }
             )
             Spacer(modifier = Modifier.width(8.dp))
             FilterChip(
                 selected = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords,
                 onClick = { viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords) },
-                label = { Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName) },
-                leadingIcon = {
-                    AnimatedVisibility(visible = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords) {
-                        Icon(imageVector = Icons.Default.Done, contentDescription = null)
-                    }
-                }
+                label = { Text(text = AnalyticsUIState.QueryType.RecentRecords.displayName) }
             )
         }
         TextField(
@@ -417,15 +404,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                         FilterChip(
                             selected = uiState.querySort == sort,
                             onClick = { viewModel.setQuerySort(sort) },
-                            label = { Text(text = sort.displayName) },
-                            leadingIcon = {
-                                AnimatedVisibility(visible = uiState.querySort == sort) {
-                                    Icon(
-                                        imageVector = Icons.Default.Done,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
+                            label = { Text(text = sort.displayName) }
                         )
                     }
                 }

@@ -71,8 +71,17 @@ class LevelViewModel(
         updateUIState { copy(queryQualified = qualified) }
     }
 
-    fun searchLevels() = viewModelScope.launch(Dispatchers.IO) {
+    fun setQueryTag(tag: String) {
+        updateUIState { copy(queryTag = tag) }
+    }
+
+    fun setIsSearchByTag(isSearchByTag: Boolean) {
+        updateUIState { copy(isSearchByTag = isSearchByTag) }
+    }
+
+    fun searchLevels(resetPage: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
         updateUIState { copy(isSearching = true) }
+        if (resetPage) updateUIState { copy(queryPage = 0) }
         uiState.value.run {
             val searchResult = try {
                 searchLevelsRepository.searchLevelsWithPagesCount(
@@ -112,6 +121,31 @@ class LevelViewModel(
         }
     }
 
+    fun searchLevelsByTag(resetPage: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
+        updateUIState { copy(isSearching = true) }
+        if (resetPage) updateUIState { copy(queryPage = 0) }
+        uiState.value.run {
+            val searchResult = try {
+                searchLevelsRepository.searchLevelsByTagWithPagesCount(
+                    queryTag,
+                    querySortStrategy,
+                    queryOrder,
+                    queryPage,
+                    queryLimit,
+                    queryFeatured,
+                    queryQualified
+                )
+            } catch (e: Exception) {
+                updateUIState { copy(errorMessage = e.stackTraceToString()) }
+                Pair(emptyList(), 1)
+            }
+            Log.d("LevelViewModel", "pages: ${searchResult.second}")
+            _searchResult.update { searchResult.first }
+            updateUIState { copy(totalPages = searchResult.second) }
+            updateUIState { copy(isSearching = false) }
+        }
+    }
+
     private fun updateUIState(update: LevelUIState.() -> LevelUIState) =
         updateUIState(_uiState.value.update())
 
@@ -131,4 +165,6 @@ data class LevelUIState(
     val queryFeatured: Boolean = false,
     val queryQualified: Boolean = false,
     val totalPages: Int = 1,
+    val queryTag: String = "",
+    val isSearchByTag: Boolean = false
 )

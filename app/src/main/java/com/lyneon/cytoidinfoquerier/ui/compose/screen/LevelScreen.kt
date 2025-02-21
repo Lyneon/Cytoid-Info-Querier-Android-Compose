@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -30,7 +31,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -65,6 +65,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -80,7 +81,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -146,7 +146,7 @@ fun LevelScreen(
             })
         })
     }
-    val sharedViewModel = viewModel<SharedViewModel>(LocalContext.current as MainActivity)
+    val sharedViewModel = viewModel<SharedViewModel>(LocalActivity.current as MainActivity)
 
     Scaffold(
         topBar = {
@@ -262,7 +262,8 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
                             viewModel.setErrorMessage("")
                             scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
                                 viewModel.setIsSearching(true)
-                                viewModel.searchLevels()
+                                viewModel.setIsSearchByTag(false)
+                                viewModel.searchLevels(resetPage = true)
                             }
                         }) {
                             Icon(imageVector = Icons.Default.Search, contentDescription = "搜索")
@@ -279,8 +280,7 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
 private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelViewModel) {
     DropdownMenu(
         modifier = Modifier
-            .padding(MenuDefaults.DropdownMenuItemContentPadding)
-            .animateContentSize(),
+            .padding(MenuDefaults.DropdownMenuItemContentPadding),
         expanded = uiState.expandSearchOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandSearchOptionsDropdownMenu(false) }
     ) {
@@ -309,15 +309,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                     FilterChip(
                         selected = uiState.querySortStrategy == sort,
                         onClick = { viewModel.setQuerySortStrategy(sort) },
-                        label = { Text(text = sort.displayName) },
-                        leadingIcon = {
-                            AnimatedVisibility(visible = uiState.querySortStrategy == sort) {
-                                Icon(
-                                    imageVector = Icons.Default.Done,
-                                    contentDescription = null
-                                )
-                            }
-                        }
+                        label = { Text(text = sort.displayName) }
                     )
                 }
             }
@@ -358,6 +350,23 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                 )
             }
         }
+        TextField(
+            value = uiState.queryTag,
+            label = { Text("搜索指定标签") },
+            onValueChange = {
+                viewModel.setQueryTag(it)
+            },
+            trailingIcon = {
+                TextButton(onClick = {
+                    viewModel.setIsSearching(true)
+                    viewModel.setIsSearchByTag(true)
+                    viewModel.searchLevelsByTag(resetPage = true)
+                }) {
+                    Text("搜索")
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -422,7 +431,11 @@ private fun ResultDisplayList(
                     IconButton(onClick = {
                         if (uiState.queryPage > 0) {
                             viewModel.setQueryPage(uiState.queryPage - 1)
-                            viewModel.searchLevels()
+                            if (uiState.isSearchByTag) {
+                                viewModel.searchLevelsByTag()
+                            } else {
+                                viewModel.searchLevels()
+                            }
                         }
                     }, enabled = uiState.queryPage > 0) {
                         Icon(
@@ -438,7 +451,11 @@ private fun ResultDisplayList(
                     IconButton(onClick = {
                         if (uiState.queryPage < uiState.totalPages - 1) {
                             viewModel.setQueryPage(uiState.queryPage + 1)
-                            viewModel.searchLevels()
+                            if (uiState.isSearchByTag) {
+                                viewModel.searchLevelsByTag()
+                            } else {
+                                viewModel.searchLevels()
+                            }
                         }
                     }, enabled = uiState.queryPage < uiState.totalPages - 1) {
                         Icon(
@@ -534,10 +551,7 @@ private fun LevelCard(
                                         )
                                 ) {
                                     UserAvatar(
-                                        modifier = Modifier.sizeIn(
-                                            maxHeight = 32.dp,
-                                            maxWidth = 32.dp
-                                        ),
+                                        size = 32.dp,
                                         userUid = levelOwner.uid ?: levelOwner.id,
                                         avatarSize = AvatarSize.Small,
                                         remoteAvatarUrl = levelOwner.avatar.small ?: ""
@@ -710,7 +724,14 @@ private fun ChartsRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        charts.sortedBy { it.difficultyLevel }.forEach { chart ->
+        charts.sortedBy {
+            when (it.difficultyType) {
+                "easy" -> 0
+                "hard" -> 1
+                "extreme" -> 2
+                else -> 3
+            }
+        }.forEach { chart ->
             with(sharedTransitionScope) {
                 DifficultyPillText(
                     Modifier.sharedElement(
