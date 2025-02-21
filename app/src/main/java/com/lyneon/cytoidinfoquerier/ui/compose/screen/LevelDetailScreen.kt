@@ -4,6 +4,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -43,6 +44,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -73,7 +76,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -107,7 +109,7 @@ import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 
 
@@ -122,7 +124,7 @@ fun LevelDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val currentLeaderboard by viewModel.currentLeaderboard.collectAsState()
     val levelCommentList by viewModel.levelCommentList.collectAsState()
-    val sharedViewModel = viewModel<SharedViewModel>(LocalContext.current as MainActivity)
+    val sharedViewModel = viewModel<SharedViewModel>(LocalActivity.current as MainActivity)
     val level = sharedViewModel.sharedLevelForLevelDetailScreen
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var leaderboardColumnWidths by remember {
@@ -134,6 +136,7 @@ fun LevelDetailScreen(
     val localDensity = LocalDensity.current
     val localTextStyle = LocalTextStyle.current
     val leaderboardHorizontallyScrollState = rememberScrollState()
+    var levelRating: LevelRating by remember { mutableStateOf(LevelRating()) }
 
     LaunchedEffect(level) {
         level?.let { viewModel.updateLevelCommentList(it.uid) }
@@ -147,6 +150,11 @@ fun LevelDetailScreen(
                 10
             )
             viewModel.setDisplayLeaderboardStart(1)
+        }
+        level?.let {
+            withContext(Dispatchers.IO) {
+                levelRating = CytoidLevelUtils.getLevelRating(it.uid)
+            }
         }
     }
     LaunchedEffect(currentLeaderboard) {
@@ -291,6 +299,7 @@ fun LevelDetailScreen(
                 if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     LandscapeLevelDetailScreen(
                         level,
+                        levelRating,
                         scrollBehavior.nestedScrollConnection,
                         levelCommentList,
                         currentLeaderboard,
@@ -304,6 +313,7 @@ fun LevelDetailScreen(
                 } else {
                     PortraitLevelDetailScreen(
                         level,
+                        levelRating,
                         scrollBehavior.nestedScrollConnection,
                         levelCommentList,
                         currentLeaderboard,
@@ -324,6 +334,7 @@ fun LevelDetailScreen(
 @Composable
 private fun LandscapeLevelDetailScreen(
     level: Level,
+    levelRating: LevelRating,
     nestedScrollConnection: NestedScrollConnection,
     commentList: List<LevelComment>,
     leaderboard: LevelLeaderboard?,
@@ -345,7 +356,7 @@ private fun LandscapeLevelDetailScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
-            item { LevelDetailsCard(level) }
+            item { LevelDetailsCard(level, levelRating) }
             item { LevelMetadataCard(level) }
             item { HorizontalDivider() }
             items(commentList) { comment -> CommentListItem(comment) }
@@ -364,9 +375,7 @@ private fun LandscapeLevelDetailScreen(
             var enableRefreshButton by remember { mutableStateOf(false) }
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(),
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
@@ -508,6 +517,7 @@ private fun LandscapeLevelDetailScreen(
 @Composable
 private fun PortraitLevelDetailScreen(
     level: Level,
+    levelRating: LevelRating,
     nestedScrollConnection: NestedScrollConnection,
     commentList: List<LevelComment>,
     leaderboard: LevelLeaderboard?,
@@ -535,7 +545,7 @@ private fun PortraitLevelDetailScreen(
             item {
                 Box(
                     modifier = Modifier.fillMaxWidth()
-                ) { LevelDetailsCard(level) }
+                ) { LevelDetailsCard(level, levelRating) }
             }
             item {
                 Box(
@@ -828,7 +838,7 @@ private fun LevelChartsDifficultiesFlowRow(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LevelDetailsCard(level: Level) {
+private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -839,24 +849,39 @@ private fun LevelDetailsCard(level: Level) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                var rating by remember { mutableStateOf<LevelRating?>(null) }
+                var showRatingDistribution by remember { mutableStateOf(false) }
 
-                LaunchedEffect(level.uid) {
-                    launch(Dispatchers.IO) {
-                        rating = CytoidLevelUtils.getLevelRating(level.uid)
-                    }
-                }
-
-                rating?.let {
-                    Text(text = "平均评分")
+                Text(text = "平均评分")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = if (it.total == 0) "N/A" else (it.average / 2).toString(),
+                        text = if (levelRating.total <= 0) "N/A" else (levelRating.average / 2).toString(),
                         style = MaterialTheme.typography.headlineLarge
                     )
-                    Text(
-                        text = "共${it.total}个评分"
-                    )
+                    IconButton(
+                        onClick = { showRatingDistribution = !showRatingDistribution }
+                    ) {
+                        Icon(
+                            imageVector = if (showRatingDistribution) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null
+                        )
+                    }
                 }
+                AnimatedVisibility(visible = showRatingDistribution) {
+                    Column {
+                        Text(text = "评分分布")
+                        HorizontalDivider()
+                        levelRating.distribution.forEachIndexed { index, i ->
+                            if (i != 0) Text(text = "${((index + 1) / 2f)}: $i")
+                        }
+                    }
+                }
+                Text(
+                    text = "共${levelRating.total}个评分"
+
+                )
             }
             level.owner?.let {
                 Column(
