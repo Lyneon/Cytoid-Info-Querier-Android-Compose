@@ -6,8 +6,8 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -19,7 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -34,6 +35,7 @@ import java.io.FileInputStream
 
 @Composable
 fun UserAvatar(
+    size: Dp,
     modifier: Modifier = Modifier,
     userUid: String,
     avatarSize: AvatarSize = AvatarSize.Large,
@@ -44,7 +46,7 @@ fun UserAvatar(
     var isLoading by remember { mutableStateOf(false) }
 
     Box(
-        modifier = modifier,
+        modifier = modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
         val localAvatarFile =
@@ -58,7 +60,6 @@ fun UserAvatar(
             }
             Image(
                 modifier = Modifier
-                    .heightIn(max = 96.dp)
                     .clip(CircleShape)
                     .apply {
                         if (clickToOpenProfileInBrowser) {
@@ -73,58 +74,56 @@ fun UserAvatar(
                                 )
                             }
                         }
-                    },
+                    }
+                    .fillMaxSize(),
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null
             )
             isLoading = false
         } else {
             if (showLoadingIndicator && isLoading) CircularProgressIndicator()
-            Box(
-                modifier = Modifier.sizeIn(maxWidth = 96.dp, maxHeight = 96.dp)
-            ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .heightIn(max = 96.dp)
-                        .clip(CircleShape)
-                        .apply {
-                            if (clickToOpenProfileInBrowser) {
-                                clickable {
-                                    BaseApplication.context.startActivity(
-                                        Intent(
-                                            Intent.ACTION_VIEW,
-                                            Uri.parse("https://cytoid.io/profile/${userUid}")
-                                        )
-                                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            .addCategory(Intent.CATEGORY_BROWSABLE)
+            AsyncImage(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .apply {
+                        if (clickToOpenProfileInBrowser) {
+                            clickable {
+                                BaseApplication.context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://cytoid.io/profile/${userUid}")
                                     )
-                                }
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        .addCategory(Intent.CATEGORY_BROWSABLE)
+                                )
                             }
-                        },
-                    model = getImageRequestBuilderForCytoid(remoteAvatarUrl)
-                        .build(),
-                    contentDescription = null,
-                    onSuccess = { successState ->
-                        CoroutineScope(Dispatchers.IO).launch {
-                            LocalDataSource.saveAvatarBitmap(
-                                cytoidID = userUid,
-                                bitmap = successState.result.drawable.toBitmap(),
-                                size = avatarSize
-                            )
                         }
-                        isLoading = false
-                    },
-                    onLoading = { isLoading = true },
-                    onError = { isLoading = false }
-                )
-            }
+                    }.fillMaxSize(),
+                model = getImageRequestBuilderForCytoid(remoteAvatarUrl)
+                    .build(),
+                contentDescription = null,
+                onSuccess = { successState ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        LocalDataSource.saveAvatarBitmap(
+                            cytoidID = userUid,
+                            bitmap = successState.result.drawable.toBitmap(),
+                            size = avatarSize
+                        )
+                    }
+                    isLoading = false
+                },
+                onLoading = { isLoading = true },
+                onError = { isLoading = false },
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }
 
 @Composable
-fun UserAvatar(profileDetails: ProfileDetails) {
+fun UserAvatar(size: Dp, profileDetails: ProfileDetails) {
     UserAvatar(
+        size = size,
         userUid = profileDetails.user.uid,
         remoteAvatarUrl = profileDetails.user.avatar.large
     )

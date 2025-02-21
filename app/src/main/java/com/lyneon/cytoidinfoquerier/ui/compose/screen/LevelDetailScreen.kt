@@ -870,7 +870,8 @@ private fun LevelDetailsCard(level: Level) {
                         UserAvatar(
                             userUid = level.owner.uid ?: level.owner.id,
                             avatarSize = AvatarSize.Large,
-                            remoteAvatarUrl = level.owner.avatar.large ?: ""
+                            remoteAvatarUrl = level.owner.avatar.large ?: "",
+                            size = 96.dp
                         )
                         Text(
                             text = level.owner.uid ?: level.owner.id,
@@ -990,7 +991,8 @@ private fun CommentListItem(
             modifier = Modifier.size(48.dp),
             userUid = comment.owner.uid ?: comment.owner.id,
             avatarSize = AvatarSize.Large,
-            remoteAvatarUrl = comment.owner.avatar.large ?: ""
+            remoteAvatarUrl = comment.owner.avatar.large ?: "",
+            size = 64.dp
         )
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -1045,7 +1047,8 @@ private fun LeaderboardListItem(
                 modifier = Modifier.size(48.dp),
                 userUid = owner.uid ?: owner.id,
                 avatarSize = AvatarSize.Large,
-                remoteAvatarUrl = owner.avatar.large ?: ""
+                remoteAvatarUrl = owner.avatar.large ?: "",
+                size = 48.dp
             )
             Text(
                 text = owner.let { it.uid ?: it.id },
