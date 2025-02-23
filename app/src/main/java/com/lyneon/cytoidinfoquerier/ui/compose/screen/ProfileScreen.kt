@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,6 +64,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -80,11 +83,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -97,13 +102,13 @@ import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
-import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCoverImage
+import com.lyneon.cytoidinfoquerier.ui.compose.component.DifficultyPillText
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
@@ -173,7 +178,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
-import java.util.Locale
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -1165,6 +1169,7 @@ private fun DetailsChart(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
     profileGraphQL.data.profile?.user?.let { user ->
@@ -1197,13 +1202,15 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                 }
 
                 AnimatedVisibility(visible = !folded) {
-                    // TODO: 更改为可变列数瀑布流列表，并解决嵌套滚动
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        user.collections.forEach {
-                            CollectionCard(collection = it)
-                        }
+                    HorizontalMultiBrowseCarousel(
+                        state = rememberCarouselState { user.collectionsCount },
+                        preferredItemWidth = min(
+                            384.dp,
+                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                        ),
+                        itemSpacing = 8.dp
+                    ) { itemIndex ->
+                        CollectionCard(collection = user.collections[itemIndex])
                     }
                 }
             }
@@ -1216,16 +1223,14 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
 private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.CollectionUserListing) {
     Card {
         Box {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                CollectionCoverImage(
-                    modifier = Modifier.fillMaxWidth(),
-                    collectionID = collection.uid,
-                    collectionCoverImageSize = ImageSize.Original,
-                    remoteUrl = collection.cover?.original
-                )
-            }
+            CollectionCoverImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.6f),
+                collectionID = collection.uid,
+                collectionCoverImageSize = ImageSize.Cover,
+                remoteUrl = collection.cover?.cover
+            )
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -1272,6 +1277,7 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, playbackState: Int) {
     profileGraphQL.data.profile?.user?.let { user ->
@@ -1304,17 +1310,20 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, pla
                 }
 
                 AnimatedVisibility(visible = !folded) {
-                    // TODO: 更改为可变列数瀑布流列表，并解决嵌套滚动
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        user.levels.forEach {
-                            LevelCard(
-                                level = it,
-                                exoPlayer = exoPlayer,
-                                playbackState = playbackState
-                            )
-                        }
+                    HorizontalMultiBrowseCarousel(
+                        state = rememberCarouselState { user.levelsCount },
+                        preferredItemWidth = min(
+                            384.dp,
+                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                        ),
+                        itemSpacing = 8.dp
+                    ) { itemIndex ->
+                        LevelCard(
+                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                            level = user.levels[itemIndex],
+                            exoPlayer = exoPlayer,
+                            playbackState = playbackState
+                        )
                     }
                 }
             }
@@ -1324,6 +1333,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, pla
 
 @Composable
 private fun LevelCard(
+    modifier: Modifier = Modifier,
     level: ProfileGraphQL.ProfileData.Profile.User.UserLevel,
     exoPlayer: ExoPlayer,
     playbackState: Int
@@ -1332,7 +1342,7 @@ private fun LevelCard(
     val context = LocalContext.current
 
     Card(
-        Modifier.pointerInput(Unit) {
+        modifier = modifier.pointerInput(Unit) {
             detectTapGestures(
                 onLongPress = {
                     levelDialogState = true
@@ -1341,16 +1351,14 @@ private fun LevelCard(
         }
     ) {
         Box {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                LevelBackgroundImage(
-                    modifier = Modifier.fillMaxWidth(),
-                    levelID = level.uid,
-                    backgroundImageSize = ImageSize.Original,
-                    remoteUrl = level.bundle?.backgroundImage?.original
-                )
-            }
+            LevelBackgroundImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.6f),
+                levelID = level.uid,
+                backgroundImageSize = ImageSize.Cover,
+                remoteUrl = level.bundle?.backgroundImage?.cover
+            )
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -1392,31 +1400,14 @@ private fun LevelCard(
                 }
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(8.dp)
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     level.charts.forEach { chart ->
                         item {
-                            Text(
-                                text = " ${
-                                    chart.name
-                                        ?: chart.type.replaceFirstChar {
-                                            if (it.isLowerCase()) it.titlecase(
-                                                Locale.getDefault()
-                                            ) else it.toString()
-                                        }
-                                } ${chart.difficulty} ",
-                                color = Color.White,
-                                modifier = Modifier
-                                    .background(
-                                        Brush.linearGradient(
-                                            when (chart.type) {
-                                                "easy" -> CytoidColors.easyColor
-                                                "extreme" -> CytoidColors.extremeColor
-                                                else -> CytoidColors.hardColor
-                                            }
-                                        ), CorneredShape.Pill.toComposeShape()
-                                    )
-                                    .padding(8.dp)
+                            DifficultyPillText(
+                                difficultyName = chart.name,
+                                difficultyType = chart.type,
+                                difficultyLevel = chart.difficulty
                             )
                         }
                     }
