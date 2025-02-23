@@ -109,4 +109,5 @@
     <string name="leaderboard_too_large_query_count">大于100的查询数量会被服务器当作100处理！</string>
     <string name="title_activity_import_level">ImportLevelActivity</string>
     <string name="import_to_cytoid">导入到 Cytoid</string>
+    <string name="check_update">检查更新</string>
 </resources>
