@@ -1210,7 +1210,10 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                         ),
                         itemSpacing = 8.dp
                     ) { itemIndex ->
-                        CollectionCard(collection = user.collections[itemIndex])
+                        CollectionCard(
+                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                            collection = user.collections[itemIndex]
+                        )
                     }
                 }
             }
@@ -1220,8 +1223,13 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
 }
 
 @Composable
-private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.CollectionUserListing) {
-    Card {
+private fun CollectionCard(
+    modifier: Modifier = Modifier,
+    collection: ProfileGraphQL.ProfileData.Profile.User.CollectionUserListing
+) {
+    Card(
+        modifier = modifier
+    ) {
         Box {
             CollectionCoverImage(
                 modifier = Modifier
@@ -1265,7 +1273,7 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
                     .background(
                         Color(0xFF414558),
                         CorneredShape.Pill.toComposeShape()
