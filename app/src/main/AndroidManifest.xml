@@ -22,7 +22,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CytoidInfoQuerierCompose"
-        tools:targetApi="upside_down_cake">
+        tools:targetApi="upside_down_cake"
+        android:localeConfig="@xml/locale_config">
 
         <meta-data
             android:name="io.sentry.auto-init"
@@ -132,9 +133,9 @@
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"
-            android:multiprocess="false"
             android:enabled="true"
             android:exported="true"
+            android:multiprocess="false"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
     </application>

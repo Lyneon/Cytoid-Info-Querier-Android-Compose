@@ -962,6 +962,7 @@ private fun DetailsChart(
     val accuracySeries =
         timeSeries.map { (it.accuracy * 100).apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
     val cartesianChartModelProducer by remember { mutableStateOf(CartesianChartModelProducer()) }
+    val context = LocalContext.current
 
     LaunchedEffect(tabIndex) {
         if (timeSeries.isEmpty()) return@LaunchedEffect
@@ -1086,7 +1087,11 @@ private fun DetailsChart(
                         valueFormatter = { _, targets ->
                             val xIndex = targets.first().x.toInt()
                             val date =
-                                "${timeSeries.map { it.date.replace("-", "年第") }[xIndex]}周"
+                                context.getString(
+                                    R.string.year_week,
+                                    timeSeries[xIndex].year.toString(),
+                                    timeSeries[xIndex].week.toString()
+                                )
                             return@rememberMarker "${date}：${
                                 when (tabIndex) {
                                     0 -> ratingSeries[xIndex].run {

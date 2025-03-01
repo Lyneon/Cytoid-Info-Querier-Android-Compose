@@ -1,19 +1,19 @@
 <resources>
-    <string name="app_name">Cytoid Info Querier</string>
-    <string name="cytoid_id">Cytoid ID</string>
-    <string name="copy">复制</string>
-    <string name="restart">重启</string>
-    <string name="save">保存</string>
-    <string name="query">查询</string>
-    <string name="profile">Profile</string>
+    <string name="app_name">Jajatoid Info Querier</string>
+    <string name="cytoid_id">Jajatoid ID</string>
+    <string name="copy">复读</string>
+    <string name="restart">铲车</string>
+    <string name="save">sosuihi</string>
+    <string name="query">CCB</string>
+    <string name="profile">群名片</string>
     <string name="title_activity_crash">错误报告</string>
-    <string name="test_crash">Test Crash</string>
-    <string name="invalid_cytoid_id">Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符，长度在3–16个字符之间</string>
-    <string name="empty_cytoid_id">Cytoid ID不能为空</string>
+    <string name="test_crash">测测崩</string>
+    <string name="invalid_cytoid_id">Jajatoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符，长度在3–16个字符之间</string>
+    <string name="empty_cytoid_id">Jajatoid ID不能为空</string>
     <string name="back">返回上一层级</string>
     <string name="image_error">图美丽！11</string>
     <string name="best_records">BestRecords</string>
-    <string name="home">主页</string>
+    <string name="home">家</string>
     <string name="drawer_menu">抽屉菜单</string>
     <string name="settings">设置</string>
     <string name="exit">退出</string>
@@ -21,16 +21,16 @@
     <string name="debug_declaration">本应用处于测试阶段，可能会遇到功能缺失异常或崩溃现象</string>
     <string name="open_drawer">打开抽屉菜单</string>
     <string name="query_settings">查询设置</string>
-    <string name="recent_records">RecentRecords</string>
+    <string name="recent_records" translatable="false">RecentRecords</string>
     <string name="analytics">Analytics</string>
     <string name="query_count">查询数量</string>
     <string name="empty_query_count">查询数量不能为空</string>
-    <string name="view_in_cytoid">在 Cytoid 中查看</string>
+    <string name="view_in_cytoid">在 Jajatoid 中查看</string>
     <string name="copy_content">复制内容</string>
     <string name="choose_copy_content">选择要复制的内容</string>
     <string name="ignore_cache">忽略已缓存数据</string>
     <string name="view_in_cytoid_io">在 cytoid.io 中查看</string>
-    <string name="current_installed_cytoid">已安装的Cytoid信息</string>
+    <string name="current_installed_cytoid">已安装的Jajatoid信息</string>
     <string name="sentry_declare">本应用使用Sentry进行错误信息收集，收集到的错误信息将仅用于修复漏洞。如果您不希望被收集这些数据，您可以选择在设置界面中关闭Sentry数据收集，或者退出本应用</string>
     <string name="enable_sentry">启用Sentry</string>
     <string name="changes_need_restart_to_enable">需要重启应用程序使更改生效</string>
@@ -49,7 +49,7 @@
     <string name="columns_count">列数</string>
     <string name="empty_columnsCount">列数不能为空</string>
     <string name="cancel">取消</string>
-    <string name="cytoid_is_not_installed">你好像没有安装Cytoid</string>
+    <string name="cytoid_is_not_installed">你好像没有安装Jajatoid</string>
     <string name="saved_into_gallery">已保存至图库</string>
     <string name="biography">个人简介</string>
     <string name="badge">徽章</string>
@@ -68,7 +68,7 @@
     <string name="query_options">查询选项</string>
     <string name="sentry_description">启用Sentry后，应用中未捕获的异常信息将会上传至Sentry平台，以帮助开发者定位和修复问题</string>
     <string name="shortcut">快捷操作</string>
-    <string name="tip_set_id">请先设置您的 Cytoid ID</string>
+    <string name="tip_set_id">请先设置您的 Jajatoid ID</string>
     <string name="b30">B30</string>
     <string name="r10">R10</string>
     <string name="load_preset">加载预设</string>
@@ -78,7 +78,7 @@
     <string name="delete_query_cache_description">删除查询记录缓存，但不会删除缓存的图片数据</string>
     <string name="level">关卡</string>
     <string name="tip_set_id_description">点击卡片前往设置页面进行设置</string>
-    <string name="app_user_id_cleaned">已清除保存的 Cytoid ID</string>
+    <string name="app_user_id_cleaned">已清除保存的 Jajatoid ID</string>
     <string name="tool">工具</string>
     <string name="search">搜索</string>
     <string name="leaderboard">排行榜</string>
@@ -108,8 +108,8 @@
     <string name="top_leaderboard">榜首排名</string>
     <string name="leaderboard_too_large_query_count">大于100的查询数量会被服务器当作100处理！</string>
     <string name="title_activity_import_level">ImportLevelActivity</string>
-    <string name="import_to_cytoid">导入到 Cytoid</string>
+    <string name="import_to_cytoid">导入到 Jajatoid</string>
     <string name="check_update">检查更新</string>
-    <string name="year_week">%s年第%s周</string>
+    <string name="year_week">%s年第%s鞥</string>
     <string name="locale">语言与区域</string>
 </resources>

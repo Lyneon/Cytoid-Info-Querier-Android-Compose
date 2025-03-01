@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -71,6 +72,7 @@ import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsViewModel
+import com.lyneon.cytoidinfoquerier.util.AppSettings
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
@@ -134,6 +136,7 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(start = 8.dp)
             )
+            LocaleSettingCard(snackBarHostState)
             GridColumnsCountSettingCard(navController)
             HorizontalDivider()
             Text(
@@ -544,6 +547,64 @@ private fun SettingsItemSwitchCard(
                 onCheckedChange = { onValueChange(!value) },
                 modifier = Modifier.padding(start = 8.dp)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun LocaleSettingCard(
+    snackBarHostState: SnackbarHostState
+) {
+    val scope = rememberCoroutineScope()
+
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Public,
+                contentDescription = null
+            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.locale),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("简体中文" to "zh", "English" to "en", "符语" to "fjw").forEach {
+                        Button(
+                            onClick = {
+                                AppSettings.locale = it.second
+                                scope.launch {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    when (snackBarHostState.showSnackbar(
+                                        context.getString(R.string.changes_need_restart_to_enable),
+                                        context.getString(R.string.restart),
+                                        true,
+                                        SnackbarDuration.Short
+                                    )) {
+                                        ActionPerformed -> BaseApplication.restartApp()
+                                        Dismissed -> {}
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(text = it.first)
+                        }
+                    }
+                }
+            }
         }
     }
 }
