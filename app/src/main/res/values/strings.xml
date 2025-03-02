@@ -11,7 +11,7 @@
     <string name="invalid_cytoid_id">Cytoid ID格式不正确，请检查你的输入\n只能包含小写字母，数字，下划线和连字符，长度在3–16个字符之间</string>
     <string name="empty_cytoid_id">Cytoid ID不能为空</string>
     <string name="back">返回上一层级</string>
-    <string name="image_error">图美丽！11</string>
+    <string name="image_error">图片加载失败</string>
     <string name="best_records">BestRecords</string>
     <string name="home">主页</string>
     <string name="drawer_menu">抽屉菜单</string>
