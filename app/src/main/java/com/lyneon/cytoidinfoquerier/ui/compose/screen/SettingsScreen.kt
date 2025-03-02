@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -71,6 +72,7 @@ import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.SettingsViewModel
+import com.lyneon.cytoidinfoquerier.util.AppSettings
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
@@ -134,6 +136,7 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(start = 8.dp)
             )
+            LocaleSettingCard(snackBarHostState)
             GridColumnsCountSettingCard(navController)
             HorizontalDivider()
             Text(
@@ -180,7 +183,7 @@ private fun AppUserIDSettingCard() {
                     modifier = Modifier.weight(1f),
                     value = userId ?: "",
                     onValueChange = { if (it.isValidCytoidID(checkLengthMin = false)) userId = it },
-                    label = { Text(text = "更改您的 Cytoid ID") },
+                    label = { Text(text = stringResource(R.string.change_your_cytoid_id)) },
                 )
                 Button(onClick = {
                     if (userId.isValidCytoidID()) {
@@ -320,9 +323,9 @@ private fun GridColumnsCountSettingCard(
     val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
 
     SettingsItemCard(
-        title = stringResource(id = R.string.grid_columns_count), description = "竖屏:${
+        title = stringResource(id = R.string.grid_columns_count), description = "${stringResource(R.string.portrait)}:${
             mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name, 1)
-        } 横屏:${
+        } ${stringResource(R.string.landscape)}:${
             mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1)
         }",
         icon = {
@@ -340,7 +343,7 @@ private fun TestCrashSettingCard(snackBarHostState: SnackbarHostState) {
 
     SettingsItemCard(
         title = stringResource(id = R.string.test_crash),
-        description = "(仅调试)立即崩溃",
+        description = stringResource(R.string.test_carsh_desc),
         icon = {
             Icon(
                 imageVector = Icons.Default.BugReport,
@@ -544,6 +547,64 @@ private fun SettingsItemSwitchCard(
                 onCheckedChange = { onValueChange(!value) },
                 modifier = Modifier.padding(start = 8.dp)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun LocaleSettingCard(
+    snackBarHostState: SnackbarHostState
+) {
+    val scope = rememberCoroutineScope()
+
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Public,
+                contentDescription = null
+            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.locale),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("简体中文（中国）" to "zh", "English(US)" to "en", "符语（贵阳）" to "fjw").forEach {
+                        Button(
+                            onClick = {
+                                AppSettings.locale = it.second
+                                scope.launch {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    when (snackBarHostState.showSnackbar(
+                                        context.getString(R.string.changes_need_restart_to_enable),
+                                        context.getString(R.string.restart),
+                                        true,
+                                        SnackbarDuration.Short
+                                    )) {
+                                        ActionPerformed -> BaseApplication.restartApp()
+                                        Dismissed -> {}
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(text = it.first)
+                        }
+                    }
+                }
+            }
         }
     }
 }

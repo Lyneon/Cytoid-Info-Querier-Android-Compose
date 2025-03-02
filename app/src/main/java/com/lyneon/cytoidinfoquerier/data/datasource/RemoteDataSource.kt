@@ -8,6 +8,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelOrder
 import com.lyneon.cytoidinfoquerier.data.constant.SearchLevelSortingStrategy
+import com.lyneon.cytoidinfoquerier.data.model.github.Release
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.LevelLeaderboard
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
@@ -155,6 +156,12 @@ object RemoteDataSource {
                 .build()
         )
     }
+
+    suspend fun fetchReleases(): List<Release> = fetch<List<Release>>(
+        Request.Builder()
+            .url("https://api.github.com/repos/Lyneon/Cytoid-Info-Querier-Android-Compose/releases")
+            .build()
+    )
 
     private fun Request.Builder.cytoidClientUAHeader() =
         this.header("User-Agent", CytoidConstant.clientUA)

@@ -2,6 +2,8 @@ package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.BaseApplication
+import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
@@ -39,6 +41,8 @@ class AnalyticsViewModel(
 
     private val _uiState = MutableStateFlow(AnalyticsUIState())
     val uiState: StateFlow<AnalyticsUIState> get() = _uiState.asStateFlow()
+
+    val context = BaseApplication.context
 
     fun setCytoidID(cytoidID: String) {
         updateUIState { copy(cytoidID = cytoidID) }
@@ -228,8 +232,8 @@ class AnalyticsViewModel(
                     columnsCount = uiState.value.imageGenerationColumns.toInt(),
                     keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
                 ).saveIntoMediaStore()
-                "图片已保存至媒体库".showToast()
-            } else "保存失败".showToast()
+                context.getString(R.string.image_saved_into_media).showToast()
+            } else context.getString(R.string.save_failed).showToast()
         }
     }
 }

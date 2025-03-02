@@ -7,9 +7,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,9 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -27,13 +31,16 @@ fun UserDetailsHeader(
     profileDetails: ProfileDetails,
     keep2DecimalPlaces: Boolean
 ) {
+    val currentExpProgress =
+        (profileDetails.exp.totalExp - profileDetails.exp.currentLevelExp) / (profileDetails.exp.nextLevelExp - profileDetails.exp.currentLevelExp).toFloat()
+
     Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.heightIn(max = 96.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         UserAvatar(size = 96.dp, profileDetails = profileDetails)
         Column(
-            modifier = Modifier.fillMaxHeight()
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(text = profileDetails.user.uid, style = MaterialTheme.typography.titleLarge)
             FlowRow(
@@ -78,6 +85,32 @@ fun UserDetailsHeader(
                                 )
                             )
                             .padding(horizontal = 6.dp)
+                    )
+                }
+            }
+            Column {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    progress = { currentExpProgress },
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = profileDetails.exp.currentLevelExp.toString(),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = "${(currentExpProgress * 100).roundToInt()}% " + stringResource(
+                            R.string.level_up_exp_remaining,
+                            profileDetails.exp.nextLevelExp - profileDetails.exp.totalExp
+                        ),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = profileDetails.exp.nextLevelExp.toString(),
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
             }

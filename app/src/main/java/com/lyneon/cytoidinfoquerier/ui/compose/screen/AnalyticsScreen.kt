@@ -304,13 +304,13 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
                     IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "折叠输入框"
+                            contentDescription = stringResource(R.string.fold_input_field)
                         )
                     }
                     IconButton(onClick = { viewModel.setExpandQueryOptionsDropdownMenu(true) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "查询设置"
+                            contentDescription = stringResource(R.string.query_settings)
                         )
                         QuerySettingsDropDownMenu(uiState = uiState, viewModel = viewModel)
                     }
@@ -381,7 +381,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
         AnimatedVisibility(visible = uiState.queryType == AnalyticsUIState.QueryType.RecentRecords) {
             Column {
                 Text(
-                    text = "排序依据",
+                    text = stringResource(R.string.sort_strategy),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )
@@ -392,7 +392,13 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                 ) {
                     AssistChip(
                         onClick = { viewModel.setQueryOrder(if (uiState.queryOrder == RecordQueryOrder.ASC) RecordQueryOrder.DESC else RecordQueryOrder.ASC) },
-                        label = { Text(text = if (uiState.queryOrder == RecordQueryOrder.ASC) "升序" else "降序") },
+                        label = {
+                            Text(
+                                text = if (uiState.queryOrder == RecordQueryOrder.ASC) stringResource(
+                                    R.string.asc
+                                ) else stringResource(R.string.desc)
+                            )
+                        },
                         leadingIcon = {
                             Icon(
                                 imageVector = if (uiState.queryOrder == RecordQueryOrder.ASC) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,

@@ -1,6 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.os.Build
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -82,7 +83,7 @@ fun AboutScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(imageVector = Icons.Default.Info, contentDescription = null)
-                    Text(text = "此应用处于测试阶段，可能遇到错误和异常。欢迎反馈，但不一定会及时修复，你的催更也不会加快开发")
+                    Text(text = stringResource(R.string.app_test_desc))
                 }
             }
         }
@@ -125,7 +126,7 @@ private fun AppInfoCard() {
                 text = stringResource(id = R.string.app_name)
             )
             Text(
-                text = "版本 ${packageInfo.versionName}(${
+                text = "${stringResource(R.string.version)} ${packageInfo.versionName}(${
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         packageInfo.longVersionCode
                     } else {
@@ -147,7 +148,7 @@ private fun AppInfoCard() {
                     imageVector = Icons.Default.Upgrade,
                     contentDescription = null
                 )
-                Text(text = "获取更新")
+                Text(text = stringResource(R.string.get_update))
             }
             Row(
                 modifier = Modifier
@@ -163,7 +164,7 @@ private fun AppInfoCard() {
                     painter = painterResource(id = R.drawable.ic_github),
                     contentDescription = null
                 )
-                Text(text = "Github 仓库主页")
+                Text(text = stringResource(R.string.github_homepage))
             }
             Row(
                 modifier = Modifier
@@ -179,7 +180,7 @@ private fun AppInfoCard() {
                     imageVector = Icons.Default.BugReport,
                     contentDescription = null
                 )
-                Text(text = "问题反馈 | 意见建议")
+                Text(text = stringResource(R.string.feedback_issue))
             }
         }
     }
@@ -209,7 +210,7 @@ private fun CytoidInfoCard() {
             ) {
                 Icon(imageVector = Icons.Default.Warning, contentDescription = null)
                 Column {
-                    Text(text = "未安装")
+                    Text(text = stringResource(R.string.not_installed))
                     Text(text = stringResource(id = R.string.cytoid_is_not_installed))
                 }
             }
@@ -229,8 +230,10 @@ private fun CytoidInfoCard() {
             ) {
                 Image(
                     bitmap = (cytoidPackageInfo.applicationInfo?.loadIcon(BaseApplication.context.packageManager)
-                        ?.toBitmap() ?: BaseApplication.context.getDrawable(R.drawable.sayakacry)!!
-                        .toBitmap()).asImageBitmap(), contentDescription = null,
+                        ?.toBitmap() ?: AppCompatResources.getDrawable(
+                        BaseApplication.context,
+                        R.drawable.sayakacry
+                    )!!.toBitmap()).asImageBitmap(), contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
@@ -240,7 +243,7 @@ private fun CytoidInfoCard() {
                 ) {
                     Text(text = "Cytoid")
                     Text(
-                        text = "版本 ${cytoidPackageInfo.versionName}(${
+                        text = "${stringResource(R.string.version)} ${cytoidPackageInfo.versionName}(${
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                                 cytoidPackageInfo.longVersionCode
                             } else {

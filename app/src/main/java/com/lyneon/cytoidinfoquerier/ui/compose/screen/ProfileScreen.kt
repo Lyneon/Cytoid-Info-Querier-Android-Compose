@@ -19,12 +19,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -64,6 +64,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -81,11 +83,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -98,13 +102,13 @@ import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.CytoidDeepLink
-import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.compose.component.CollectionCoverImage
+import com.lyneon.cytoidinfoquerier.ui.compose.component.DifficultyPillText
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.compose.component.LevelBackgroundImage
 import com.lyneon.cytoidinfoquerier.ui.compose.component.UserAvatar
@@ -174,7 +178,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
-import java.util.Locale
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -355,13 +358,13 @@ private fun ProfileInputField(uiState: ProfileUiState, viewModel: ProfileViewMod
                     IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "折叠输入框"
+                            contentDescription = stringResource(R.string.fold_input_field)
                         )
                     }
                     IconButton(onClick = { viewModel.setExpandQueryOptionsDropdownMenu(true) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "查询设置"
+                            contentDescription = stringResource(R.string.query_settings)
                         )
                         QuerySettingsDropDownMenu(uiState = uiState, viewModel = viewModel)
                     }
@@ -510,15 +513,14 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                             contentDescription = null
                         )
                         Text(
-                            text = "注册于${
+                            text = stringResource(
+                                R.string.registration_date,
                                 DateParser.parseISO8601Date(registrationDate)
-                                    .formatToTimeString()
-                            }，${
+                                    .formatToTimeString(),
                                 (System.currentTimeMillis() - DateParser.parseISO8601Date(
                                     registrationDate
-                                ).time)
-                                    .milliseconds.inWholeDays
-                            }天前"
+                                ).time).milliseconds.inWholeDays
+                            )
                         )
                     }
                 }
@@ -574,7 +576,7 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "${stringResource(R.string.badge)}（共${profile.badges.size}个）",
+                        text = "${stringResource(R.string.badge)}（${profile.badges.size}）",
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
@@ -677,7 +679,7 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                 Column(
                     Modifier.weight(1f)
                 ) {
-                    Text(text = "总游玩次数")
+                    Text(text = stringResource(R.string.total_plays))
                     Text(
                         text = profileDetails.activities.totalRankedPlays.toString(),
                         style = MaterialTheme.typography.titleLarge,
@@ -687,7 +689,7 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                 Column(
                     Modifier.weight(1f)
                 ) {
-                    Text(text = "总Note数")
+                    Text(text = stringResource(R.string.total_note_count))
                     Text(
                         text = profileDetails.activities.clearedNotes.toString(),
                         style = MaterialTheme.typography.titleLarge,
@@ -699,7 +701,7 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                 Column(
                     Modifier.weight(1f)
                 ) {
-                    Text(text = "最高连击数")
+                    Text(text = stringResource(R.string.max_combo))
                     Text(
                         text = profileDetails.activities.maxCombo.toString(),
                         style = MaterialTheme.typography.titleLarge,
@@ -709,7 +711,7 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                 Column(
                     Modifier.weight(1f)
                 ) {
-                    Text(text = "平均精准度")
+                    Text(text = stringResource(R.string.average_accuracy))
                     Text(
                         text = "${
                             (profileDetails.activities.averageRankedAccuracy * 100).run {
@@ -726,7 +728,7 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                 Column(
                     Modifier.weight(1f)
                 ) {
-                    Text(text = "总分数")
+                    Text(text = stringResource(R.string.total_score))
                     Text(
                         text = profileDetails.activities.totalRankedScore.toString(),
                         style = MaterialTheme.typography.titleLarge,
@@ -743,19 +745,19 @@ private fun DetailsCard(profileDetails: ProfileDetails, keep2DecimalPlace: Boole
                     val minutes = duration.inWholeMinutes - duration.inWholeHours * 60
                     val seconds = duration.inWholeSeconds - duration.inWholeMinutes * 60
 
-                    Text(text = "总游玩时间")
+                    Text(text = stringResource(R.string.total_play_time))
                     Text(
-                        text = (if (days != 0.toLong()) "${days}天" else "") +
-                                (if (hours != 0.toLong()) "${hours}时" else "") +
-                                (if (minutes != 0.toLong()) "${minutes}分" else "") +
-                                (if (seconds != 0.toLong()) "${seconds}秒" else ""),
+                        text = (if (days != 0.toLong()) "${days}${stringResource(R.string.day)}" else "") +
+                                (if (hours != 0.toLong()) "${hours}${stringResource(R.string.hour)}" else "") +
+                                (if (minutes != 0.toLong()) "${minutes}${stringResource(R.string.minute)}" else "") +
+                                (if (seconds != 0.toLong()) "${seconds}${stringResource(R.string.second)}" else ""),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
             Text(
-                text = "成绩分布",
+                text = stringResource(R.string.grade_distribution),
                 style = MaterialTheme.typography.titleLarge
             )
             FlowRow(
@@ -959,6 +961,7 @@ private fun DetailsChart(
     val accuracySeries =
         timeSeries.map { (it.accuracy * 100).apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
     val cartesianChartModelProducer by remember { mutableStateOf(CartesianChartModelProducer()) }
+    val context = LocalContext.current
 
     LaunchedEffect(tabIndex) {
         if (timeSeries.isEmpty()) return@LaunchedEffect
@@ -983,7 +986,7 @@ private fun DetailsChart(
                 onClick = { tabIndex = 0 }
             ) {
                 Text(
-                    text = "Rating",
+                    text = stringResource(R.string.rating),
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -992,7 +995,7 @@ private fun DetailsChart(
                 onClick = { tabIndex = 1 }
             ) {
                 Text(
-                    text = "游玩次数",
+                    text = stringResource(R.string.play_count),
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -1001,7 +1004,7 @@ private fun DetailsChart(
                 onClick = { tabIndex = 2 }
             ) {
                 Text(
-                    text = "平均精准度",
+                    text = stringResource(R.string.average_accuracy),
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -1083,7 +1086,11 @@ private fun DetailsChart(
                         valueFormatter = { _, targets ->
                             val xIndex = targets.first().x.toInt()
                             val date =
-                                "${timeSeries.map { it.date.replace("-", "年第") }[xIndex]}周"
+                                context.getString(
+                                    R.string.year_week,
+                                    timeSeries[xIndex].year.toString(),
+                                    timeSeries[xIndex].week.toString()
+                                )
                             return@rememberMarker "${date}：${
                                 when (tabIndex) {
                                     0 -> ratingSeries[xIndex].run {
@@ -1115,7 +1122,7 @@ private fun DetailsChart(
                                 thickness = 2.dp
                             ),
                             label = {
-                                "平均值：${
+                                "${context.getString(R.string.average)}：${
                                     when (tabIndex) {
                                         0 -> ratingSeries.average()
                                         1 -> countSeries.average()
@@ -1123,7 +1130,7 @@ private fun DetailsChart(
                                         else -> 0
                                     }.run { if (keep2DecimalPlace) setPrecision(2) else this }
                                         .run { if (tabIndex == 2) "${this}%" else this }
-                                }\n最大值：${
+                                }\n${context.getString(R.string.maximum)}：${
                                     when (tabIndex) {
                                         0 -> ratingSeries.max()
                                         1 -> countSeries.max()
@@ -1133,7 +1140,7 @@ private fun DetailsChart(
                                         if (tabIndex == 1) return@run this.toInt()
                                         if (keep2DecimalPlace) setPrecision(2) else this
                                     }.run { if (tabIndex == 2) "${this}%" else this }
-                                }\n最小值：${
+                                }\n${context.getString(R.string.minimum)}：${
                                     when (tabIndex) {
                                         0 -> ratingSeries.min()
                                         1 -> countSeries.min()
@@ -1166,6 +1173,7 @@ private fun DetailsChart(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
     profileGraphQL.data.profile?.user?.let { user ->
@@ -1181,7 +1189,7 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "上传的合集（共${user.collectionsCount}个）",
+                        text = "${stringResource(R.string.uploaded_collections)}（${user.collectionsCount}）",
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
@@ -1198,13 +1206,18 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
                 }
 
                 AnimatedVisibility(visible = !folded) {
-                    // TODO: 更改为可变列数瀑布流列表，并解决嵌套滚动
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        user.collections.forEach {
-                            CollectionCard(collection = it)
-                        }
+                    HorizontalMultiBrowseCarousel(
+                        state = rememberCarouselState { user.collectionsCount },
+                        preferredItemWidth = min(
+                            384.dp,
+                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                        ),
+                        itemSpacing = 8.dp
+                    ) { itemIndex ->
+                        CollectionCard(
+                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                            collection = user.collections[itemIndex]
+                        )
                     }
                 }
             }
@@ -1214,19 +1227,22 @@ private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
 }
 
 @Composable
-private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.CollectionUserListing) {
-    Card {
+private fun CollectionCard(
+    modifier: Modifier = Modifier,
+    collection: ProfileGraphQL.ProfileData.Profile.User.CollectionUserListing
+) {
+    Card(
+        modifier = modifier
+    ) {
         Box {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                CollectionCoverImage(
-                    modifier = Modifier.fillMaxWidth(),
-                    collectionID = collection.uid,
-                    collectionCoverImageSize = ImageSize.Original,
-                    remoteUrl = collection.cover?.original
-                )
-            }
+            CollectionCoverImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.6f),
+                collectionID = collection.uid,
+                collectionCoverImageSize = ImageSize.Cover,
+                remoteUrl = collection.cover?.cover
+            )
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -1257,11 +1273,11 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
                 )
             }
             Text(
-                text = "${collection.levelCount}个关卡",
+                text = stringResource(R.string.collection_levels_count, collection.levelCount),
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
                     .background(
                         Color(0xFF414558),
                         CorneredShape.Pill.toComposeShape()
@@ -1273,6 +1289,7 @@ private fun CollectionCard(collection: ProfileGraphQL.ProfileData.Profile.User.C
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, playbackState: Int) {
     profileGraphQL.data.profile?.user?.let { user ->
@@ -1288,7 +1305,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, pla
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "上传的关卡（共${user.levelsCount}个）",
+                        text = "${stringResource(R.string.uploaded_levels)}（${user.levelsCount}）",
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
@@ -1305,17 +1322,20 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, pla
                 }
 
                 AnimatedVisibility(visible = !folded) {
-                    // TODO: 更改为可变列数瀑布流列表，并解决嵌套滚动
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        user.levels.forEach {
-                            LevelCard(
-                                level = it,
-                                exoPlayer = exoPlayer,
-                                playbackState = playbackState
-                            )
-                        }
+                    HorizontalMultiBrowseCarousel(
+                        state = rememberCarouselState { user.levelsCount },
+                        preferredItemWidth = min(
+                            384.dp,
+                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                        ),
+                        itemSpacing = 8.dp
+                    ) { itemIndex ->
+                        LevelCard(
+                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                            level = user.levels[itemIndex],
+                            exoPlayer = exoPlayer,
+                            playbackState = playbackState
+                        )
                     }
                 }
             }
@@ -1325,6 +1345,7 @@ private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, pla
 
 @Composable
 private fun LevelCard(
+    modifier: Modifier = Modifier,
     level: ProfileGraphQL.ProfileData.Profile.User.UserLevel,
     exoPlayer: ExoPlayer,
     playbackState: Int
@@ -1333,7 +1354,7 @@ private fun LevelCard(
     val context = LocalContext.current
 
     Card(
-        Modifier.pointerInput(Unit) {
+        modifier = modifier.pointerInput(Unit) {
             detectTapGestures(
                 onLongPress = {
                     levelDialogState = true
@@ -1342,16 +1363,14 @@ private fun LevelCard(
         }
     ) {
         Box {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                LevelBackgroundImage(
-                    modifier = Modifier.fillMaxWidth(),
-                    levelID = level.uid,
-                    backgroundImageSize = ImageSize.Original,
-                    remoteUrl = level.bundle?.backgroundImage?.original
-                )
-            }
+            LevelBackgroundImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.6f),
+                levelID = level.uid,
+                backgroundImageSize = ImageSize.Cover,
+                remoteUrl = level.bundle?.backgroundImage?.cover
+            )
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -1393,31 +1412,14 @@ private fun LevelCard(
                 }
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(8.dp)
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     level.charts.forEach { chart ->
                         item {
-                            Text(
-                                text = " ${
-                                    chart.name
-                                        ?: chart.type.replaceFirstChar {
-                                            if (it.isLowerCase()) it.titlecase(
-                                                Locale.getDefault()
-                                            ) else it.toString()
-                                        }
-                                } ${chart.difficulty} ",
-                                color = Color.White,
-                                modifier = Modifier
-                                    .background(
-                                        Brush.linearGradient(
-                                            when (chart.type) {
-                                                "easy" -> CytoidColors.easyColor
-                                                "extreme" -> CytoidColors.extremeColor
-                                                else -> CytoidColors.hardColor
-                                            }
-                                        ), CorneredShape.Pill.toComposeShape()
-                                    )
-                                    .padding(8.dp)
+                            DifficultyPillText(
+                                difficultyName = chart.name,
+                                difficultyType = chart.type,
+                                difficultyLevel = chart.difficulty
                             )
                         }
                     }
@@ -1503,11 +1505,13 @@ private fun LevelCardMusicPreviewButton(
     playbackState: Int,
     musicPreviewUrl: String?
 ) {
+    val context = LocalContext.current
+
     AnimatedVisibility(visible = playbackState == ExoPlayer.STATE_IDLE || playbackState == ExoPlayer.STATE_ENDED) {
         IconButton(
             onClick = {
                 if (musicPreviewUrl == null) {
-                    "没有音乐预览！".showToast()
+                    context.getString(R.string.no_music_preview).showToast()
                 } else {
                     exoPlayer.apply {
                         setMediaSource(
@@ -1530,7 +1534,7 @@ private fun LevelCardMusicPreviewButton(
         ) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
-                contentDescription = "播放音乐预览"
+                contentDescription = stringResource(R.string.play_music_preview)
             )
         }
     }
@@ -1548,7 +1552,7 @@ private fun CommentList(commentList: List<ProfileComment>) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "留言（共${commentList.size}个）",
+                text = "${stringResource(R.string.comment)}（${commentList.size}）",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
@@ -1589,12 +1593,12 @@ private fun CommentList(commentList: List<ProfileComment>) {
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "${
+                                        text = stringResource(
+                                            R.string.days_ago,
                                             (System.currentTimeMillis() - DateParser.parseISO8601Date(
                                                 comment.date
-                                            ).time)
-                                                .milliseconds.inWholeDays
-                                        }天前"
+                                            ).time).milliseconds.inWholeDays
+                                        )
                                     )
                                 }
                                 SelectionContainer {

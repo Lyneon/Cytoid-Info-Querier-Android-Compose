@@ -64,7 +64,8 @@ data class ProfileGraphQL(
                         @Serializable
                         data class Image(
                             val original: String?,
-                            val thumbnail: String?
+                            val thumbnail: String?,
+                            val cover: String?
                         )
                     }
 
@@ -88,7 +89,8 @@ data class ProfileGraphQL(
                     @Serializable
                     data class Image(
                         val original: String?,
-                        val thumbnail: String?
+                        val thumbnail: String?,
+                        val cover: String?
                     )
                 }
             }
@@ -129,6 +131,7 @@ data class ProfileGraphQL(
                                 backgroundImage {
                                     original
                                     thumbnail
+                                    cover
                                 }
                             }
                             charts {
@@ -147,6 +150,7 @@ data class ProfileGraphQL(
                             cover {
                                 original
                                 thumbnail
+                                cover
                             }
                         }
                     }

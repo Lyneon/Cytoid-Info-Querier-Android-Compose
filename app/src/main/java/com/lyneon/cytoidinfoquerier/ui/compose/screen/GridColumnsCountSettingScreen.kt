@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -51,7 +51,7 @@ import com.tencent.mmkv.MMKV
 fun GridColumnsCountSettingScreen(
     navController: NavController
 ) {
-    val mainActivity = LocalContext.current as MainActivity
+    val mainActivity = LocalActivity.current as MainActivity
     val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
     val orientation = BaseApplication.context.resources.configuration.orientation
     var columnsCount by remember {
@@ -73,7 +73,7 @@ fun GridColumnsCountSettingScreen(
                             id = if (orientation == Configuration.ORIENTATION_PORTRAIT)
                                 R.string.grid_columns_count_portrait
                             else R.string.grid_columns_count_landscape
-                        ) + "当前：$columnsCount"
+                        ) + "${stringResource(R.string.current)}：$columnsCount"
                     )
                 },
                 navigationIcon = {

@@ -273,7 +273,7 @@ fun LevelDetailScreen(
                         )
                     }
                 },
-                title = { Text(text = "关卡详情") },
+                title = { Text(text = stringResource(R.string.level_details)) },
                 colors = TopAppBarDefaults.topAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
                 scrollBehavior = scrollBehavior
             )
@@ -410,7 +410,7 @@ private fun LandscapeLevelDetailScreen(
                                     viewModel.setDisplayLeaderboardStart(start)
                                 }
                                 enableRefreshButton = false
-                                "正在刷新排行榜".showToast()
+                                BaseApplication.context.getString(R.string.refreshing_leaderboard).showToast()
                             },
                             enabled = enableRefreshButton
                         ) {
@@ -472,11 +472,11 @@ private fun LandscapeLevelDetailScreen(
                                     enableRefreshButton = true
                                 }
                             },
-                            suffix = { Text("名") },
+                            suffix = { Text(stringResource(R.string.rank)) },
                             modifier = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
-                        Text(text = "至")
+                        Text(text = stringResource(R.string.to))
                         OutlinedTextField(
                             value = uiState.leaderboardEnd,
                             onValueChange = {
@@ -486,7 +486,7 @@ private fun LandscapeLevelDetailScreen(
                                     enableRefreshButton = true
                                 }
                             },
-                            suffix = { Text("名") },
+                            suffix = { Text(stringResource(R.string.rank)) },
                             modifier = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
@@ -583,7 +583,7 @@ private fun PortraitLevelDetailScreen(
                                 viewModel.setDisplayLeaderboardStart(start)
                             }
                             enableRefreshButton = false
-                            "正在刷新排行榜".showToast()
+                            BaseApplication.context.getString(R.string.refreshing_leaderboard).showToast()
                         },
                         enabled = enableRefreshButton
                     ) {
@@ -641,11 +641,11 @@ private fun PortraitLevelDetailScreen(
                                 enableRefreshButton = true
                             }
                         },
-                        suffix = { Text("名") },
+                        suffix = { Text(stringResource(R.string.rank)) },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
-                    Text(text = "至")
+                    Text(text = stringResource(R.string.to))
                     OutlinedTextField(
                         value = uiState.leaderboardEnd,
                         onValueChange = {
@@ -655,7 +655,7 @@ private fun PortraitLevelDetailScreen(
                                 enableRefreshButton = true
                             }
                         },
-                        suffix = { Text("名") },
+                        suffix = { Text(stringResource(R.string.rank)) },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
@@ -752,31 +752,29 @@ private fun LevelHeaderCard(
                     animatedVisibilityScope = animatedContentScope
                 )
                 Text(
-                    "创建于${
-                        DateParser.parseISO8601Date(level.creationDate)
-                            .formatToTimeString()
-                    }", modifier = Modifier.sharedElement(
+                    stringResource(R.string.create_at,DateParser.parseISO8601Date(level.creationDate)
+                        .formatToTimeString())
+                    , modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_creationDate"),
                         animatedContentScope
                     )
                 )
                 Text(
-                    "最后更新于${
-                        DateParser.parseISO8601Date(level.modificationDate)
-                            .formatToTimeString()
-                    }", modifier = Modifier.sharedElement(
+                    stringResource(R.string.update_at,  DateParser.parseISO8601Date(level.modificationDate)
+                        .formatToTimeString())
+                    , modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_modificationDate"),
                         animatedContentScope
                     )
                 )
                 Text(
-                    "下载次数：${level.downloads}", modifier = Modifier.sharedElement(
+                    "${stringResource(R.string.downloads_count)}：${level.downloads}", modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_downloads"),
                         animatedContentScope
                     )
                 )
                 Text(
-                    "游玩次数：${level.plays}", modifier = Modifier.sharedElement(
+                    "${stringResource(R.string.plays_count)}：${level.plays}", modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_plays"),
                         animatedContentScope
                     )
@@ -851,7 +849,7 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
             ) {
                 var showRatingDistribution by remember { mutableStateOf(false) }
 
-                Text(text = "平均评分")
+                Text(text = stringResource(R.string.average_rating))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -871,7 +869,7 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                 }
                 AnimatedVisibility(visible = showRatingDistribution) {
                     Column {
-                        Text(text = "评分分布")
+                        Text(text = stringResource(R.string.rating_distribution))
                         HorizontalDivider()
                         levelRating.distribution.forEachIndexed { index, i ->
                             if (i != 0) Text(text = "${((index + 1) / 2f)}: $i")
@@ -879,15 +877,14 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                     }
                 }
                 Text(
-                    text = "共${levelRating.total}个评分"
-
+                    text = stringResource(R.string.total_ratings,levelRating.total)
                 )
             }
             level.owner?.let {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = "上传者")
+                    Text(text = stringResource(R.string.uploader))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -910,7 +907,7 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = "标签")
+                    Text(text = stringResource(R.string.tag))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -920,7 +917,7 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                                 label = { Text(text = tag) },
                                 onClick = {
                                     tag.saveIntoClipboard()
-                                    "已复制到剪贴板".showToast()
+                                    BaseApplication.context.getString(R.string.copied_to_clipboard).showToast()
                                 }
                             )
                         }
@@ -931,7 +928,7 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = "类别")
+                    Text(text = stringResource(R.string.category))
                     FlowRow {
                         level.category.forEach { category ->
                             Text(
@@ -969,21 +966,21 @@ private fun LevelMetadataCard(level: Level) {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column {
-                    Text(text = "曲师")
+                    Text(text = stringResource(R.string.artist))
                     Text(
                         text = level.artist ?: "null",
                         style = MaterialTheme.typography.headlineMedium
                     )
                 }
                 Column {
-                    Text(text = "曲绘")
+                    Text(text = stringResource(R.string.illustrator))
                     Text(
                         text = level.illustrator ?: "null",
                         style = MaterialTheme.typography.headlineMedium
                     )
                 }
                 Column {
-                    Text(text = "谱师")
+                    Text(text = stringResource(R.string.charter))
                     Text(
                         text = level.charter ?: "null",
                         style = MaterialTheme.typography.headlineMedium
@@ -991,12 +988,12 @@ private fun LevelMetadataCard(level: Level) {
                 }
                 level.storyboarder?.let {
                     Column {
-                        Text(text = "故事板制作")
+                        Text(text = stringResource(R.string.storyboarder))
                         Text(text = it, style = MaterialTheme.typography.headlineMedium)
                     }
                 }
                 Column {
-                    Text(text = "关卡ID")
+                    Text(text = stringResource(R.string.level_id))
                     Text(text = level.uid, style = MaterialTheme.typography.headlineMedium)
                 }
             }
@@ -1034,9 +1031,7 @@ private fun CommentListItem(
                 )
                 Text(text = comment.content)
                 Text(
-                    text = "评论于${
-                        DateParser.parseISO8601Date(comment.date).formatToTimeString()
-                    }"
+                    text = stringResource(R.string.comment_at, DateParser.parseISO8601Date(comment.date).formatToTimeString())
                 )
             }
         }

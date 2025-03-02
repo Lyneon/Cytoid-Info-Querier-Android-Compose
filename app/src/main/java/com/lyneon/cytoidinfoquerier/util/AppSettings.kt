@@ -10,4 +10,10 @@ object AppSettings {
         set(value) {
             settingsMMKV.encode(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name, value)
         }
+
+    var locale: String?
+        get() = settingsMMKV.decodeString(AppSettingsMMKVKeys.APP_LOCALE.name, "zh")
+        set(value) {
+            settingsMMKV.encode(AppSettingsMMKVKeys.APP_LOCALE.name, value)
+        }
 }
