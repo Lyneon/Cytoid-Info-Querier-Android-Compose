@@ -2,13 +2,18 @@ package com.lyneon.cytoidinfoquerier
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.os.LocaleList
 import android.os.Looper
 import android.os.Process
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
 import com.lyneon.cytoidinfoquerier.ui.activity.CrashActivity
+import com.lyneon.cytoidinfoquerier.util.AppSettings
 import com.tencent.mmkv.MMKV
 import java.lang.Thread.UncaughtExceptionHandler
+import java.util.Locale
 
 class BaseApplication : Application() {
     companion object {
@@ -36,7 +41,14 @@ class BaseApplication : Application() {
                 cytoidIsInstalled = true
             }
         }
-        MMKV.initialize(this)
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        MMKV.initialize(newBase!!)
+        val langCode = AppSettings.locale ?: "zh"
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocales(LocaleList(Locale(langCode)))
+        super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 }
 

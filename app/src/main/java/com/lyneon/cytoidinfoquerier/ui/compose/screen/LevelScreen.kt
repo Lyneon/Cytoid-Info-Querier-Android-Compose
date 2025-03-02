@@ -157,7 +157,7 @@ fun LevelScreen(
                         IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
                             Icon(
                                 imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = "展开输入框"
+                                contentDescription = stringResource(R.string.expand_input_field)
                             )
                         }
                     }
@@ -172,7 +172,7 @@ fun LevelScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Casino,
-                                contentDescription = "随机关卡"
+                                contentDescription = stringResource(R.string.random_level)
                             )
                         }
                     }
@@ -191,7 +191,7 @@ fun LevelScreen(
                     } else {
                         Icon(
                             imageVector = Icons.Default.Stop,
-                            contentDescription = "停止播放"
+                            contentDescription = stringResource(R.string.stop_playing)
                         )
                     }
                 }
@@ -235,8 +235,8 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            label = { Text(text = "搜索关卡") },
-            placeholder = { Text(text = "曲名/曲师/谱师/标签...") },
+            label = { Text(text = stringResource(R.string.search_levels)) },
+            placeholder = { Text(text = stringResource(R.string.search_levels_placeholder)) },
             trailingIcon = {
                 Row(
                     modifier = Modifier.padding(end = 8.dp),
@@ -245,13 +245,13 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
                     IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "折叠输入框"
+                            contentDescription = stringResource(R.string.fold_input_field)
                         )
                     }
                     IconButton(onClick = { viewModel.setExpandSearchOptionsDropdownMenu(true) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "查询设置"
+                            contentDescription = stringResource(R.string.query_settings)
                         )
                         SearchSettingsDropDownMenu(uiState = uiState, viewModel = viewModel)
                     }
@@ -266,7 +266,7 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
                                 viewModel.searchLevels(resetPage = true)
                             }
                         }) {
-                            Icon(imageVector = Icons.Default.Search, contentDescription = "搜索")
+                            Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.search))
                         }
                     }
                 }
@@ -286,7 +286,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
     ) {
         Column {
             Text(
-                text = "排序依据",
+                text = stringResource(R.string.sort_strategy),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.Gray
             )
@@ -297,7 +297,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
             ) {
                 AssistChip(
                     onClick = { viewModel.setQueryOrder(if (uiState.queryOrder == SearchLevelOrder.Ascending) SearchLevelOrder.Descending else SearchLevelOrder.Ascending) },
-                    label = { Text(text = if (uiState.queryOrder == SearchLevelOrder.Ascending) "升序" else "降序") },
+                    label = { Text(text = if (uiState.queryOrder == SearchLevelOrder.Ascending) stringResource(R.string.asc) else stringResource(R.string.desc)) },
                     leadingIcon = {
                         Icon(
                             imageVector = if (uiState.queryOrder == SearchLevelOrder.Ascending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
@@ -314,7 +314,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                 }
             }
             Text(
-                text = "类别",
+                text = stringResource(R.string.category),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.Gray
             )
@@ -325,7 +325,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                 FilterChip(
                     selected = uiState.queryFeatured,
                     onClick = { viewModel.setQueryFeatured(!uiState.queryFeatured) },
-                    label = { Text(text = "Featured") },
+                    label = { Text(text = stringResource(R.string.featured)) },
                     leadingIcon = {
                         AnimatedVisibility(visible = uiState.queryFeatured) {
                             Icon(
@@ -338,7 +338,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                 FilterChip(
                     selected = uiState.queryQualified,
                     onClick = { viewModel.setQueryQualified(!uiState.queryQualified) },
-                    label = { Text(text = "Qualified") },
+                    label = { Text(text = stringResource(R.string.qualified)) },
                     leadingIcon = {
                         AnimatedVisibility(visible = uiState.queryQualified) {
                             Icon(
@@ -352,7 +352,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
         }
         TextField(
             value = uiState.queryTag,
-            label = { Text("搜索指定标签") },
+            label = { Text(stringResource(R.string.search_by_tag)) },
             onValueChange = {
                 viewModel.setQueryTag(it)
             },
@@ -362,7 +362,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
                     viewModel.setIsSearchByTag(true)
                     viewModel.searchLevelsByTag(resetPage = true)
                 }) {
-                    Text("搜索")
+                    Text(stringResource(R.string.search))
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -385,7 +385,7 @@ private fun ResultDisplayList(
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
     } else if (searchResult.isEmpty()) {
-        ErrorMessageCard(errorMessage = "无结果")
+        ErrorMessageCard(errorMessage = stringResource(R.string.no_result))
     } else {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(
@@ -440,7 +440,7 @@ private fun ResultDisplayList(
                     }, enabled = uiState.queryPage > 0) {
                         Icon(
                             imageVector = Icons.Default.ChevronLeft,
-                            contentDescription = "上一页"
+                            contentDescription = stringResource(R.string.prev_page)
                         )
                     }
                     Text(
@@ -460,7 +460,7 @@ private fun ResultDisplayList(
                     }, enabled = uiState.queryPage < uiState.totalPages - 1) {
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "下一页"
+                            contentDescription = stringResource(R.string.next_page)
                         )
                     }
                 }
@@ -631,34 +631,30 @@ private fun LevelCard(
                         animatedVisibilityScope = animatedContentScope
                     )
                     Text(
-                        "创建于${
-                            DateParser.parseISO8601Date(searchLevelResult.creationDate)
-                                .formatToTimeString()
-                        }",
+                        stringResource(R.string.create_at,DateParser.parseISO8601Date(searchLevelResult.creationDate)
+                            .formatToTimeString()),
                         modifier = Modifier.sharedElement(
                             sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_creationDate"),
                             animatedContentScope
                         )
                     )
                     Text(
-                        "最后更新于${
-                            DateParser.parseISO8601Date(searchLevelResult.modificationDate)
-                                .formatToTimeString()
-                        }",
+                        stringResource(R.string.update_at, DateParser.parseISO8601Date(searchLevelResult.modificationDate)
+                            .formatToTimeString()),
                         modifier = Modifier.sharedElement(
                             sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_modificationDate"),
                             animatedContentScope
                         )
                     )
                     Text(
-                        "下载次数：${searchLevelResult.downloads}",
+                        "${stringResource(R.string.downloads_count)}：${searchLevelResult.downloads}",
                         modifier = Modifier.sharedElement(
                             sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_downloads"),
                             animatedContentScope
                         )
                     )
                     Text(
-                        "游玩次数：${searchLevelResult.plays}",
+                        "${stringResource(R.string.plays_count)}：${searchLevelResult.plays}",
                         modifier = Modifier.sharedElement(
                             sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_plays"),
                             animatedContentScope
@@ -704,7 +700,7 @@ private fun MusicPreviewButton(
         ) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
-                contentDescription = "播放音乐预览"
+                contentDescription = stringResource(R.string.play_music_preview)
             )
         }
     }

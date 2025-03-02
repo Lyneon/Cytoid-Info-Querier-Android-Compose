@@ -100,12 +100,18 @@ fun LeaderboardScreen(
                             viewModel.loadLeaderboardAroundUser()
                         }
                     }) {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "刷新")
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.refresh)
+                        )
                     }
                     IconButton(onClick = {
                         expandSettings = true
                     }) {
-                        Icon(imageVector = Icons.Default.Settings, contentDescription = "设置")
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.settings)
+                        )
                         DropdownMenu(
                             expanded = expandSettings,
                             onDismissRequest = {
@@ -119,7 +125,7 @@ fun LeaderboardScreen(
                                         onValueChange = {
                                             uiState.cytoidId.value = it
                                         },
-                                        label = { Text("Cytoid ID") }
+                                        label = { Text(stringResource(R.string.cytoid_id)) }
                                     )
                                 },
                                 onClick = {},
@@ -135,7 +141,7 @@ fun LeaderboardScreen(
                                                     uiState.limit.value = it
                                                 }
                                             },
-                                            label = { Text("查询数量") }
+                                            label = { Text(stringResource(R.string.query_count)) }
                                         )
                                     },
                                     onClick = {},
@@ -201,7 +207,7 @@ fun LeaderboardScreen(
                             selectedTabIndex = 1
                             if (cytoidId == null) {
                                 uiState.errorMessage.value =
-                                    "请指定要查询的玩家的Cytoid ID！\n你也可以在设置中设置默认的Cytoid ID为你自己的。"
+                                    BaseApplication.context.getString(R.string.leaderboard_empty_cytoid_id)
                             } else {
                                 viewModel.loadLeaderboardAroundUser()
                             }
@@ -209,7 +215,10 @@ fun LeaderboardScreen(
                     }
                 ) {
                     Text(
-                        text = "${cytoidId ?: "我"}的排名",
+                        text = stringResource(
+                            R.string.rank_belonging,
+                            cytoidId ?: stringResource(R.string.me)
+                        ),
                         modifier = Modifier.padding(8.dp)
                     )
                 }

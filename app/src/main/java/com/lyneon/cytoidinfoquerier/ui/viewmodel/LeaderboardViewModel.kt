@@ -4,8 +4,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyneon.cytoidinfoquerier.BaseApplication
+import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.model.webapi.LeaderboardEntry
 import com.lyneon.cytoidinfoquerier.data.repository.LeaderboardRepository
 import com.lyneon.cytoidinfoquerier.util.AppSettings
@@ -21,6 +24,7 @@ class LeaderboardViewModel(
     val uiState: LeaderboardScreenUIState = LeaderboardScreenUIState()
 ) : ViewModel() {
     val leaderboard: State<List<LeaderboardEntry>> = _leaderboard
+    val context = BaseApplication.context
 
     private fun clear() {
         this._leaderboard.value = emptyList()
@@ -32,11 +36,12 @@ class LeaderboardViewModel(
     fun loadLeaderboardTop(limit: Int? = uiState.limit.value.toIntOrNull()) {
         clear()
         if (limit == null) {
-            uiState.errorMessage.value = "无效的的排名数量"
+            uiState.errorMessage.value = context.getString(R.string.invalid_rank_count)
             return
         }
         uiState.isLoading.value = true
-        uiState.loadingMessage.value = "获取榜首排行前${limit}位排名(1/1)"
+        uiState.loadingMessage.value =
+            context.getString(R.string.fetching_top_ranks, limit.toString())
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val leaderboard = leaderboardRepository.getLeaderboardTop(limit)
@@ -45,7 +50,7 @@ class LeaderboardViewModel(
                 uiState.listState.requestScrollToItem(0)
             } catch (e: Exception) {
                 uiState.isLoading.value = false
-                uiState.errorMessage.value = e.message ?: "未知错误"
+                uiState.errorMessage.value = e.message ?: context.getString(R.string.unknown_error)
             } finally {
                 uiState.loadingMessage.value = null
             }
@@ -58,28 +63,28 @@ class LeaderboardViewModel(
     ) {
         clear()
         if (!userUid.isValidCytoidID()) {
-            uiState.errorMessage.value = "无效的Cytoid ID"
+            uiState.errorMessage.value = context.getString(R.string.invalid_cytoid_id)
             return
         }
         if (limit == null) {
-            uiState.errorMessage.value = "无效的的排名数量"
+            uiState.errorMessage.value = context.getString(R.string.invalid_rank_count)
             return
         }
         uiState.isLoading.value = true
-        uiState.loadingMessage.value = "获取${userUid}的ID(1/2)"
+        uiState.loadingMessage.value = context.getString(R.string.fetching_user_id, userUid)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val userId = withContext(Dispatchers.IO) {
                     CytoidUserUtils.getUserIdByCytoidId(userUid)
                 }
-                uiState.loadingMessage.value = "获取${userUid}及附近的${limit}位排名(2/2)"
+                uiState.loadingMessage.value =  context.getString(R.string.fetching_user_ranks,userUid,limit.toString())
                 val leaderboard = leaderboardRepository.getLeaderboardAroundUser(limit, userId)
                 uiState.isLoading.value = false
                 this@LeaderboardViewModel._leaderboard.value = leaderboard
                 uiState.listState.requestScrollToItem(limit)
             } catch (e: Exception) {
                 uiState.isLoading.value = false
-                uiState.errorMessage.value = e.message ?: "未知错误"
+                uiState.errorMessage.value = e.message ?: context.getString(R.string.unknown_error)
             } finally {
                 uiState.loadingMessage.value = null
             }

@@ -183,7 +183,7 @@ private fun AppUserIDSettingCard() {
                     modifier = Modifier.weight(1f),
                     value = userId ?: "",
                     onValueChange = { if (it.isValidCytoidID(checkLengthMin = false)) userId = it },
-                    label = { Text(text = "更改您的 Cytoid ID") },
+                    label = { Text(text = stringResource(R.string.change_your_cytoid_id)) },
                 )
                 Button(onClick = {
                     if (userId.isValidCytoidID()) {
@@ -323,9 +323,9 @@ private fun GridColumnsCountSettingCard(
     val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
 
     SettingsItemCard(
-        title = stringResource(id = R.string.grid_columns_count), description = "竖屏:${
+        title = stringResource(id = R.string.grid_columns_count), description = "${stringResource(R.string.portrait)}:${
             mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name, 1)
-        } 横屏:${
+        } ${stringResource(R.string.landscape)}:${
             mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1)
         }",
         icon = {
@@ -343,7 +343,7 @@ private fun TestCrashSettingCard(snackBarHostState: SnackbarHostState) {
 
     SettingsItemCard(
         title = stringResource(id = R.string.test_crash),
-        description = "(仅调试)立即崩溃",
+        description = stringResource(R.string.test_carsh_desc),
         icon = {
             Icon(
                 imageVector = Icons.Default.BugReport,
@@ -582,7 +582,7 @@ fun LocaleSettingCard(
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("简体中文" to "zh", "English" to "en", "符语" to "fjw").forEach {
+                    listOf("简体中文（中国）" to "zh", "English(US)" to "en", "符语（贵阳）" to "fjw").forEach {
                         Button(
                             onClick = {
                                 AppSettings.locale = it.second

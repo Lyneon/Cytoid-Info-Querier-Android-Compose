@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ToolUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ToolViewModel
@@ -79,12 +80,12 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(imageVector = Icons.Default.Calculate, contentDescription = null)
-                Text(text = "Rating 计算器", style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(R.string.rating_calculator), style = MaterialTheme.typography.titleMedium)
             }
             OutlinedTextField(
                 value = uiState.ratingCalculatorAccuracy,
                 onValueChange = { viewModel.setRatingCalculatorAccuracy(it) },
-                label = { Text(text = "Accuracy") },
+                label = { Text(text = stringResource(R.string.accuracy)) },
                 modifier = Modifier.fillMaxWidth(),
                 suffix = { Text(text = "%") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -92,14 +93,14 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
             OutlinedTextField(
                 value = uiState.ratingCalculatorLevel,
                 onValueChange = { viewModel.setRatingCalculatorLevel(it) },
-                label = { Text(text = "难度级别") },
+                label = { Text(text = stringResource(R.string.difficulty_level)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             OutlinedTextField(
                 value = uiState.ratingCalculatorRating,
                 onValueChange = { viewModel.setRatingCalculatorRating(it) },
-                label = { Text(text = "Rating") },
+                label = { Text(text = stringResource(R.string.rating)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
@@ -111,13 +112,13 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
                     onClick = { viewModel.calculateAccuracy() },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "计算 Accuracy")
+                    Text(text = stringResource(R.string.calculate_accuracy))
                 }
                 Button(
                     onClick = { viewModel.calculateRating() },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "计算 Rating")
+                    Text(text = stringResource(R.string.calculate_rating))
                 }
             }
         }
@@ -144,7 +145,7 @@ private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
             ) {
                 Icon(imageVector = Icons.Default.Public, contentDescription = null)
                 Text(
-                    text = "连通性测试",
+                    text = stringResource(R.string.connectivity_test),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -153,9 +154,9 @@ private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
             ) {
                 Button(onClick = {
                     viewModel.testConnectionToCytoidIO()
-                    viewModel.setPingResult("Connecting to cytoid.io...")
+                    viewModel.setPingResult(BaseApplication.context.getString(R.string.connecting_to_cytoid_io))
                 }) {
-                    Text(text = "cytoid.io")
+                    Text(text = stringResource(R.string.cytoid_io))
                 }
             }
             if (uiState.pingResult.isNotEmpty()) {

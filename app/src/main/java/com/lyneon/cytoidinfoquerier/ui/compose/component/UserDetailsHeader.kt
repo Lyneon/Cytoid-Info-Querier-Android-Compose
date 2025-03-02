@@ -18,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import kotlin.math.roundToInt
@@ -100,7 +102,10 @@ fun UserDetailsHeader(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        text = "${(currentExpProgress * 100).roundToInt()}% 升级还需${profileDetails.exp.nextLevelExp - profileDetails.exp.totalExp}",
+                        text = "${(currentExpProgress * 100).roundToInt()}% " + stringResource(
+                            R.string.level_up_exp_remaining,
+                            profileDetails.exp.nextLevelExp - profileDetails.exp.totalExp
+                        ),
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(

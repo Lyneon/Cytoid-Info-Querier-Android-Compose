@@ -73,7 +73,7 @@ fun GridColumnsCountSettingScreen(
                             id = if (orientation == Configuration.ORIENTATION_PORTRAIT)
                                 R.string.grid_columns_count_portrait
                             else R.string.grid_columns_count_landscape
-                        ) + "当前：$columnsCount"
+                        ) + "${stringResource(R.string.current)}：$columnsCount"
                     )
                 },
                 navigationIcon = {

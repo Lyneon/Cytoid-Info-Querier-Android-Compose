@@ -97,7 +97,6 @@ class LevelViewModel(
                 updateUIState { copy(errorMessage = e.stackTraceToString()) }
                 Pair(emptyList(), 1)
             }
-            Log.d("LevelViewModel", "pages: ${searchResult.second}")
             _searchResult.update { searchResult.first }
             updateUIState { copy(totalPages = searchResult.second) }
             updateUIState { copy(isSearching = false) }

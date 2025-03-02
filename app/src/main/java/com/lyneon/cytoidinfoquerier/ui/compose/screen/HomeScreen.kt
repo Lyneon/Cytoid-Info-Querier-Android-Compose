@@ -118,7 +118,10 @@ fun WelcomeCard(cytoidID: String) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(modifier = Modifier.padding(16.dp), text = "欢迎，${cytoidID}！")
+        Text(
+            modifier = Modifier.padding(16.dp),
+            text = stringResource(R.string.home_welcome, cytoidID)
+        )
     }
 }
 
@@ -214,12 +217,13 @@ fun CheckUpdateCard() {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "当前版本 ${
+                    text = stringResource(
+                        R.string.current_version,
                         BaseApplication.context.packageManager.getPackageInfo(
                             BaseApplication.context.packageName,
                             0
-                        ).versionName
-                    }"
+                        ).versionName ?: "null"
+                    )
                 )
             }
             AnimatedVisibility(visible = releases.isNotEmpty()) {
@@ -240,11 +244,11 @@ fun CheckUpdateCard() {
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "发布于${
-                                        DateParser.parseISO8601Date(
+                                    text = stringResource(
+                                        R.string.release_on, DateParser.parseISO8601Date(
                                             it.publishDate.replace("Z", ".000Z")
                                         ).formatToTimeString()
-                                    }"
+                                    )
                                 )
                             }
                             it.body?.let { body ->
