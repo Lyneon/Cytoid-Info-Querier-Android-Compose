@@ -51,6 +51,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -64,6 +65,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
@@ -82,6 +85,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -212,15 +217,21 @@ fun ProfileScreen(
     }
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutLoaded by rememberSaveable { mutableStateOf(false) }
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val nestedScrollConnection = remember(topAppBarScrollBehavior) {
+        topAppBarScrollBehavior.nestedScrollConnection
+    }
 
     LaunchedEffect(Unit) {
         if (withInitials && !initialLoaded) {
             launch {
                 val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
-                val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+                val initialCacheTime =
+                    navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
                 if (initialCytoidID != null && initialCacheTime != null) {
                     viewModel.setCytoidID(initialCytoidID)
                     viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
+                    viewModel.setFoldTextFiled(true)
                 }
                 initialLoaded = true
             }
@@ -252,44 +263,7 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = stringResource(id = R.string.profile)) },
-                actions = {
-                    if (uiState.foldTextFiled) {
-                        IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = "展开输入框"
-                            )
-                        }
-                    }
-                    IconButton(onClick = {
-                        viewModel.setExpandAnalyticsOptionsDropdownMenu(true)
-                    }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
-                        DropdownMenu(
-                            expanded = uiState.expandAnalyticsOptionsDropdownMenu,
-                            onDismissRequest = {
-                                viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
-                            }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(text = stringResource(id = R.string.history)) },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.History,
-                                        contentDescription = null
-                                    )
-                                },
-                                onClick = {
-                                    navController.navigate(MainActivity.Screen.ProfileHistory.route)
-                                    viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
-                                }
-                            )
-                        }
-                    }
-                }
-            )
+            TopBar(uiState, viewModel, navController, topAppBarScrollBehavior)
         },
         floatingActionButton = {
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
@@ -327,12 +301,62 @@ fun ProfileScreen(
                         it.profileGraphQL,
                         it.commentList,
                         exoPlayer,
-                        playbackState
+                        playbackState,
+                        nestedScrollConnection
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TopBar(
+    uiState: ProfileUiState,
+    viewModel: ProfileViewModel,
+    navController: NavController,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior
+) {
+    CenterAlignedTopAppBar(
+        title = { Text(text = stringResource(id = R.string.profile)) },
+        actions = {
+            if (uiState.foldTextFiled) {
+                IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "展开输入框"
+                    )
+                }
+            }
+            IconButton(onClick = {
+                viewModel.setExpandAnalyticsOptionsDropdownMenu(true)
+            }) {
+                Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
+                DropdownMenu(
+                    expanded = uiState.expandAnalyticsOptionsDropdownMenu,
+                    onDismissRequest = {
+                        viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                    }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(id = R.string.history)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            navController.navigate(MainActivity.Screen.ProfileHistory.route)
+                            viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                        }
+                    )
+                }
+            }
+        },
+        scrollBehavior = topAppBarScrollBehavior
+    )
 }
 
 @Composable
@@ -451,10 +475,13 @@ private fun ResultDisplayColumn(
     profileGraphQL: ProfileGraphQL?,
     profileCommentList: List<ProfileComment>?,
     exoPlayer: ExoPlayer,
-    playbackState: Int
+    playbackState: Int,
+    topAppBarNestedScrollConnection: NestedScrollConnection
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .nestedScroll(topAppBarNestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(
             top = 8.dp,
@@ -544,16 +571,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
-                        IconButton(onClick = { folded = !folded }) {
-                            Icon(
-                                imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (folded) {
-                                    stringResource(R.string.unfold)
-                                } else {
-                                    stringResource(R.string.fold)
-                                }
-                            )
-                        }
+                        FoldExpandButton(folded) { folded = !folded }
                     }
                     AnimatedVisibility(visible = !folded) {
                         Column(
@@ -588,16 +606,7 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
+                    FoldExpandButton(folded) { folded = !folded }
                 }
                 AnimatedVisibility(visible = !folded) {
                     SelectionContainer {
@@ -614,7 +623,10 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                                             text = it.title,
                                             style = MaterialTheme.typography.titleLarge
                                         )
-                                        it.description?.let { it1 -> Text(text = it1) }
+                                        it.description?.let { it1 ->
+                                            HorizontalDivider()
+                                            Text(text = it1)
+                                        }
                                     }
                                 }
                             }
@@ -1138,52 +1150,44 @@ private fun DetailsChart(
 @Composable
 private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
     profileGraphQL.data.profile?.user?.let { user ->
-        Card {
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                var folded by rememberSaveable { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+        if (user.collectionsCount != 0) {
+            Card {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "${stringResource(R.string.uploaded_collections)}（${user.collectionsCount}）",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
-                }
+                    var folded by rememberSaveable { mutableStateOf(false) }
 
-                AnimatedVisibility(visible = !folded) {
-                    HorizontalMultiBrowseCarousel(
-                        state = rememberCarouselState { user.collectionsCount },
-                        preferredItemWidth = min(
-                            384.dp,
-                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
-                        ),
-                        itemSpacing = 8.dp
-                    ) { itemIndex ->
-                        CollectionCard(
-                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
-                            collection = user.collections[itemIndex]
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "${stringResource(R.string.uploaded_collections)}（${user.collectionsCount}）",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.align(Alignment.CenterVertically)
                         )
+                        FoldExpandButton(folded) { folded = !folded }
+                    }
+
+                    AnimatedVisibility(visible = !folded) {
+                        HorizontalMultiBrowseCarousel(
+                            state = rememberCarouselState { user.collectionsCount },
+                            preferredItemWidth = min(
+                                384.dp,
+                                LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                            ),
+                            itemSpacing = 8.dp
+                        ) { itemIndex ->
+                            CollectionCard(
+                                modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                                collection = user.collections[itemIndex]
+                            )
+                        }
                     }
                 }
             }
         }
-
     }
 }
 
@@ -1254,49 +1258,42 @@ private fun CollectionCard(
 @Composable
 private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, playbackState: Int) {
     profileGraphQL.data.profile?.user?.let { user ->
-        Card {
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                var folded by rememberSaveable { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+        if (user.levelsCount != 0) {
+            Card {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "${stringResource(R.string.uploaded_levels)}（${user.levelsCount}）",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
-                }
+                    var folded by rememberSaveable { mutableStateOf(false) }
 
-                AnimatedVisibility(visible = !folded) {
-                    HorizontalMultiBrowseCarousel(
-                        state = rememberCarouselState { user.levelsCount },
-                        preferredItemWidth = min(
-                            384.dp,
-                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
-                        ),
-                        itemSpacing = 8.dp
-                    ) { itemIndex ->
-                        LevelCard(
-                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
-                            level = user.levels[itemIndex],
-                            exoPlayer = exoPlayer,
-                            playbackState = playbackState
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "${stringResource(R.string.uploaded_levels)}（${user.levelsCount}）",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.align(Alignment.CenterVertically)
                         )
+                        FoldExpandButton(folded) { folded = !folded }
+                    }
+
+                    AnimatedVisibility(visible = !folded) {
+                        HorizontalMultiBrowseCarousel(
+                            state = rememberCarouselState { user.levelsCount },
+                            preferredItemWidth = min(
+                                384.dp,
+                                LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                            ),
+                            itemSpacing = 8.dp
+                        ) { itemIndex ->
+                            LevelCard(
+                                modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                                level = user.levels[itemIndex],
+                                exoPlayer = exoPlayer,
+                                playbackState = playbackState
+                            )
+                        }
                     }
                 }
             }
@@ -1375,7 +1372,7 @@ private fun LevelCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(8.dp)
                 ) {
-                    level.charts.forEach { chart ->
+                    level.charts.sortedBy { it.difficulty }.forEach { chart ->
                         item {
                             DifficultyPillText(
                                 difficultyName = chart.name,
@@ -1503,74 +1500,86 @@ private fun LevelCardMusicPreviewButton(
 
 @Composable
 private fun CommentList(commentList: List<ProfileComment>) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        var folded by rememberSaveable { mutableStateOf(false) }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+    if (commentList.isNotEmpty()) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "${stringResource(R.string.comment)}（${commentList.size}）",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-            IconButton(onClick = { folded = !folded }) {
-                Icon(
-                    imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (folded) {
-                        stringResource(R.string.unfold)
-                    } else {
-                        stringResource(R.string.fold)
-                    }
+            var folded by rememberSaveable { mutableStateOf(false) }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "${stringResource(R.string.comment)}（${commentList.size}）",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
+                FoldExpandButton(folded) { folded = !folded }
+            }
+
+            AnimatedVisibility(visible = !folded) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    commentList.forEach { comment ->
+                        CommentCard(comment)
+                    }
+                }
             }
         }
+    }
+}
 
-        AnimatedVisibility(visible = !folded) {
+@Composable
+private fun FoldExpandButton(folded: Boolean, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+            contentDescription = if (folded) {
+                stringResource(R.string.unfold)
+            } else {
+                stringResource(R.string.fold)
+            }
+        )
+    }
+}
+
+@Composable
+private fun CommentCard(comment: ProfileComment) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        UserAvatar(
+            size = 48.dp,
+            userUid = comment.owner.uid,
+            remoteAvatarUrl = comment.owner.avatar.large
+        )
+        Card {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                Modifier.padding(8.dp)
             ) {
-                commentList.forEach { comment ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        UserAvatar(
-                            size = 48.dp,
-                            userUid = comment.owner.uid,
-                            remoteAvatarUrl = comment.owner.avatar.large
+                Row {
+                    Text(
+                        text = comment.owner.uid,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.days_ago,
+                            (System.currentTimeMillis() - DateParser.parseISO8601Date(
+                                comment.date
+                            ).time).milliseconds.inWholeDays
                         )
-                        Card {
-                            Column(
-                                Modifier.padding(8.dp)
-                            ) {
-                                Row {
-                                    Text(
-                                        text = comment.owner.uid,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(
-                                            R.string.days_ago,
-                                            (System.currentTimeMillis() - DateParser.parseISO8601Date(
-                                                comment.date
-                                            ).time).milliseconds.inWholeDays
-                                        )
-                                    )
-                                }
-                                SelectionContainer {
-                                    Text(
-                                        text = comment.content,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    )
+                }
+                SelectionContainer {
+                    Text(
+                        text = comment.content,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }
