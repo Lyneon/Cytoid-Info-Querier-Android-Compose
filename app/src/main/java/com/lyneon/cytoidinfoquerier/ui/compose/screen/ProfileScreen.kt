@@ -625,53 +625,6 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
         }
     }
 }
-/*
-@Composable
-private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL, keep2DecimalPlace: Boolean) {
-    profileGraphQL.data.profile?.let { profile ->
-        Card {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
-            ) {
-                var folded by rememberSaveable { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "最新游玩纪录（共${profile.recentRecords.size}个）",
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.CenterVertically),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
-                }
-                AnimatedVisibility(visible = !folded) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        profile.recentRecords.forEach {
-                            RecordCard(record = it, keep2DecimalPlaces = keep2DecimalPlace)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-*/
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
