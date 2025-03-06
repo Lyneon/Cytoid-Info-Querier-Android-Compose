@@ -94,6 +94,7 @@ import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,53 +131,61 @@ fun AnalyticsScreen(
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutPresetLoaded by rememberSaveable { mutableStateOf(false) }
 
-    if (withInitials && !initialLoaded) {
-        val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
-        val initialCacheType = navBackStackEntry.arguments?.getString("initialCacheType")
-        val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
-        if (initialCytoidID != null && initialCacheType != null && initialCacheTime != null) {
-            viewModel.setCytoidID(initialCytoidID)
-            viewModel.updateProfileDetailsWithInnerScope()
-            if (initialCacheType == "BestRecords") {
-                viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords)
-                viewModel.loadSpecificCacheBestRecords(initialCacheTime)
-            } else {
-                viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords)
-                viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
+    LaunchedEffect(Unit) {
+        if (withInitials && !initialLoaded) {
+            launch {
+                val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
+                val initialCacheType = navBackStackEntry.arguments?.getString("initialCacheType")
+                val initialCacheTime =
+                    navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+                if (initialCytoidID != null && initialCacheType != null && initialCacheTime != null) {
+                    viewModel.setCytoidID(initialCytoidID)
+                    viewModel.updateProfileDetailsWithInnerScope()
+                    if (initialCacheType == "BestRecords") {
+                        viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                        viewModel.loadSpecificCacheBestRecords(initialCacheTime)
+                    } else {
+                        viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                        viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
+                    }
+                }
+                initialLoaded = true
             }
         }
-        initialLoaded = true
-    }
-    if (withShortcutPreset && !shortcutPresetLoaded) {
-        val shortcutPreset = navBackStackEntry.arguments?.getString("shortcutPreset")
-        val appUserID =
-            MMKV.mmkvWithID(MMKVId.AppSettings.id)
-                .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
-        when (shortcutPreset) {
-            AnalyticsPreset.B30.name -> {
-                viewModel.run {
-                    setQueryType(AnalyticsUIState.QueryType.BestRecords)
-                    setQueryCount("30")
-                    setQueryOrder(RecordQueryOrder.DESC)
-                }
-            }
+        if (withShortcutPreset && !shortcutPresetLoaded) {
+            launch {
+                val shortcutPreset = navBackStackEntry.arguments?.getString("shortcutPreset")
+                val appUserID =
+                    MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                        .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+                when (shortcutPreset) {
+                    AnalyticsPreset.B30.name -> {
+                        viewModel.run {
+                            setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                            setQueryCount("30")
+                            setQueryOrder(RecordQueryOrder.DESC)
+                        }
+                    }
 
-            AnalyticsPreset.R10.name -> {
-                viewModel.run {
-                    setQueryType(AnalyticsUIState.QueryType.RecentRecords)
-                    setQueryCount("10")
-                    setQuerySort(RecordQuerySort.RecentRating)
-                    setQueryOrder(RecordQueryOrder.DESC)
+                    AnalyticsPreset.R10.name -> {
+                        viewModel.run {
+                            setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                            setQueryCount("10")
+                            setQuerySort(RecordQuerySort.RecentRating)
+                            setQueryOrder(RecordQueryOrder.DESC)
+                        }
+                    }
                 }
+                if (appUserID != null) {
+                    viewModel.setCytoidID(appUserID)
+                }
+                awaitFrame()
+                if (uiState.canQuery()) {
+                    viewModel.enqueueQuery()
+                }
+                shortcutPresetLoaded = true
             }
         }
-        if (appUserID != null) {
-            viewModel.setCytoidID(appUserID)
-        }
-        if (uiState.canQuery()) {
-            viewModel.enqueueQuery()
-        }
-        shortcutPresetLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {

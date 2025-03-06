@@ -175,6 +175,7 @@ import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -212,26 +213,33 @@ fun ProfileScreen(
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutLoaded by rememberSaveable { mutableStateOf(false) }
 
-    if (withInitials && !initialLoaded) {
-        val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
-        val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
-        if (initialCytoidID != null && initialCacheTime != null) {
-            viewModel.setCytoidID(initialCytoidID)
-            viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
+    LaunchedEffect(Unit) {
+        if (withInitials && !initialLoaded) {
+            launch {
+                val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
+                val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+                if (initialCytoidID != null && initialCacheTime != null) {
+                    viewModel.setCytoidID(initialCytoidID)
+                    viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
+                }
+                initialLoaded = true
+            }
         }
-        initialLoaded = true
-    }
-    if (withShortcut && !shortcutLoaded) {
-        val appUserID =
-            MMKV.mmkvWithID(MMKVId.AppSettings.id)
-                .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
-        if (appUserID != null) {
-            viewModel.setCytoidID(appUserID)
+        if (withShortcut && !shortcutLoaded) {
+            launch {
+                val appUserID =
+                    MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                        .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+                if (appUserID != null) {
+                    viewModel.setCytoidID(appUserID)
+                }
+                awaitFrame()
+                if (uiState.canQuery()) {
+                    viewModel.enqueueQuery()
+                }
+                shortcutLoaded = true
+            }
         }
-        if (uiState.canQuery()) {
-            viewModel.enqueueQuery()
-        }
-        shortcutLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {
