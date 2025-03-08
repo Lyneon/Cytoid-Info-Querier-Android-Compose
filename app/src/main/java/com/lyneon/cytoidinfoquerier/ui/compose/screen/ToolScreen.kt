@@ -24,11 +24,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -44,10 +46,14 @@ fun ToolScreen(
     viewModel: ToolViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text(text = stringResource(id = R.string.tool)) })
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(id = R.string.tool)) },
+                scrollBehavior = topAppBarScrollBehavior
+            )
         }
     ) { paddingValues ->
         Column(
@@ -55,6 +61,7 @@ fun ToolScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 12.dp)
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -80,7 +87,10 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(imageVector = Icons.Default.Calculate, contentDescription = null)
-                Text(text = stringResource(R.string.rating_calculator), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(R.string.rating_calculator),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
             OutlinedTextField(
                 value = uiState.ratingCalculatorAccuracy,

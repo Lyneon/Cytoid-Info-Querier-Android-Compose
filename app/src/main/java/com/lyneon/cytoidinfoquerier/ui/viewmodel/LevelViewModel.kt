@@ -100,6 +100,7 @@ class LevelViewModel(
             _searchResult.update { searchResult.first }
             updateUIState { copy(totalPages = searchResult.second) }
             updateUIState { copy(isSearching = false) }
+            updateUIState { copy(foldTextFiled = true) }
         }
     }
 

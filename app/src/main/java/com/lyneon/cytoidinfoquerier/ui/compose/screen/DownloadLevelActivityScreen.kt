@@ -1,7 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.Intent
-import android.net.Uri
+import androidx.activity.compose.LocalActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,9 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lyneon.cytoidinfoquerier.R
@@ -43,9 +45,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.OkHttpSingleton
 import com.lyneon.cytoidinfoquerier.ui.activity.DownloadLevelActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.DownloadLevelViewModel
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
-import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
-import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Request
 import okhttp3.Response
@@ -66,17 +66,18 @@ fun DownloadLevelActivityScreen(
     val downloadExpire = downloadUrl?.substringAfter("expire%3D")?.substringBefore("%26")
     val directDownloadUrl =
         URLDecoder.decode(downloadUrl?.substringAfter("direct=")?.substringBefore("&"), "UTF-8")
-    val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
     val saveUri = viewModel.saveUriString.collectAsState()
     var saveFileName by remember { mutableStateOf("${downloadLevelId}.cytoidlevel") }
-    val context = LocalContext.current as DownloadLevelActivity
+    val context = LocalActivity.current as DownloadLevelActivity
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(text = stringResource(R.string.download_level))
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         }
     ) { paddingValues ->
@@ -85,6 +86,7 @@ fun DownloadLevelActivityScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 12.dp)
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
         ) {
             Card {
@@ -120,7 +122,7 @@ fun DownloadLevelActivityScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             OutlinedTextField(
-                                value = Uri.parse(saveUri.value).path ?: "",
+                                value = saveUri.value.toUri().path ?: "",
                                 enabled = false,
                                 onValueChange = { },
                                 label = { Text(text = "下载至") },
@@ -151,7 +153,7 @@ fun DownloadLevelActivityScreen(
                             onClick = {
                                 DocumentFile.fromTreeUri(
                                     context,
-                                    Uri.parse(saveUri.value)
+                                    saveUri.value.toUri()
                                 )?.let { downloadDirDocumentFile ->
                                     if (downloadDirDocumentFile.canWrite()) {
                                         val documentFile = downloadDirDocumentFile.createFile(

@@ -48,6 +48,7 @@ import androidx.compose.material3.SnackbarResult.Dismissed
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -60,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -88,6 +90,7 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -105,7 +108,8 @@ fun SettingsScreen(
                             contentDescription = stringResource(id = R.string.about)
                         )
                     }
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         },
         snackbarHost = {
@@ -117,6 +121,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 12.dp)
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -258,7 +263,7 @@ private fun DeleteImageCacheCard(
             scope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
                 when (snackBarHostState.showSnackbar(
-                    context.getString(R.string.delete_confirm),
+                    context.getString(R.string.delete_image_cache_confirm),
                     context.getString(R.string.confirm),
                     true,
                     SnackbarDuration.Short
@@ -293,7 +298,7 @@ fun DeleteQueryCacheCard(
             scope.launch {
                 snackBarHostState.currentSnackbarData?.dismiss()
                 when (snackBarHostState.showSnackbar(
-                    "确定要删除所有查询缓存吗？",
+                    context.getString(R.string.delete_query_cache_confirm),
                     context.getString(R.string.confirm),
                     true,
                     SnackbarDuration.Short
@@ -323,7 +328,8 @@ private fun GridColumnsCountSettingCard(
     val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
 
     SettingsItemCard(
-        title = stringResource(id = R.string.grid_columns_count), description = "${stringResource(R.string.portrait)}:${
+        title = stringResource(id = R.string.grid_columns_count),
+        description = "${stringResource(R.string.portrait)}:${
             mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name, 1)
         } ${stringResource(R.string.landscape)}:${
             mmkv.decodeInt(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1)
@@ -582,7 +588,11 @@ fun LocaleSettingCard(
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("简体中文（中国）" to "zh", "English(US)" to "en", "符语（贵阳）" to "fjw").forEach {
+                    listOf(
+                        "简体中文（中国）" to "zh",
+                        "English(US)" to "en",
+                        "符语（贵阳）" to "fjw"
+                    ).forEach {
                         Button(
                             onClick = {
                                 AppSettings.locale = it.second

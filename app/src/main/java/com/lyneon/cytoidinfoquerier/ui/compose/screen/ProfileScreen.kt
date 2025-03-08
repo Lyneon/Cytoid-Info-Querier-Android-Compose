@@ -1,7 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.Intent
-import android.net.Uri
 import android.text.Layout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
@@ -95,6 +94,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -218,9 +218,7 @@ fun ProfileScreen(
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutLoaded by rememberSaveable { mutableStateOf(false) }
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val nestedScrollConnection = remember(topAppBarScrollBehavior) {
-        topAppBarScrollBehavior.nestedScrollConnection
-    }
+    val nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection
 
     LaunchedEffect(Unit) {
         if (withInitials && !initialLoaded) {
@@ -859,11 +857,11 @@ private fun DetailsChart(
                 rememberLayeredComponent(
                     rear = mIndicatorRearComponent,
                     front =
-                    rememberLayeredComponent(
-                        rear = mIndicatorCenterComponent,
-                        front = mIndicatorFrontComponent,
-                        padding = dimensions(5.dp),
-                    ),
+                        rememberLayeredComponent(
+                            rear = mIndicatorCenterComponent,
+                            front = mIndicatorFrontComponent,
+                            padding = dimensions(5.dp),
+                        ),
                     padding = dimensions(10.dp),
                 )
             val mGuideline = rememberAxisGuidelineComponent()
@@ -873,27 +871,27 @@ private fun DetailsChart(
                         label = mLabel,
                         labelPosition = labelPosition,
                         indicator =
-                        if (showIndicator) {
-                            { color ->
-                                LayeredComponent(
-                                    rear = ShapeComponent(
-                                        Color(color).copy(alpha = 0.15f).toArgb(),
-                                        CorneredShape.Pill
-                                    ),
-                                    front =
+                            if (showIndicator) {
+                                { color ->
                                     LayeredComponent(
                                         rear = ShapeComponent(
-                                            color = color,
-                                            shape = CorneredShape.Pill,
-                                            shadow = Shadow(radiusDp = 12f, color = color),
+                                            Color(color).copy(alpha = 0.15f).toArgb(),
+                                            CorneredShape.Pill
                                         ),
-                                        front = mIndicatorFrontComponent,
-                                        padding = dimensions(5.dp),
-                                    ),
-                                    padding = dimensions(10.dp),
-                                )
-                            }
-                        } else null,
+                                        front =
+                                            LayeredComponent(
+                                                rear = ShapeComponent(
+                                                    color = color,
+                                                    shape = CorneredShape.Pill,
+                                                    shadow = Shadow(radiusDp = 12f, color = color),
+                                                ),
+                                                front = mIndicatorFrontComponent,
+                                                padding = dimensions(5.dp),
+                                            ),
+                                        padding = dimensions(10.dp),
+                                    )
+                                }
+                            } else null,
                         indicatorSizeDp = 36f,
                         guideline = mGuideline,
                         valueFormatter = valueFormatter
@@ -1411,7 +1409,7 @@ private fun LevelCard(
                             BaseApplication.context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(level.uid))
+                                    CytoidDeepLink.getCytoidLevelDeepLink(level.uid).toUri()
                                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             )
                         } else context
@@ -1424,7 +1422,7 @@ private fun LevelCard(
                     modifier = Modifier.clickable {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://cytoid.io/levels/${level.uid}")
+                            "https://cytoid.io/levels/${level.uid}".toUri()
                         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         BaseApplication.context.startActivity(intent)
                     }
@@ -1478,7 +1476,7 @@ private fun LevelCardMusicPreviewButton(
                                     .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
                             ).createMediaSource(
                                 MediaItem.Builder()
-                                    .setUri(Uri.parse(musicPreviewUrl)).build()
+                                    .setUri(musicPreviewUrl.toUri()).build()
                             )
                         )
                         prepare()

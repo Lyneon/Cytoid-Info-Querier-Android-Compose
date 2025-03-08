@@ -28,6 +28,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -61,6 +63,7 @@ fun HistoryScreen(
     navBackStackEntry: NavBackStackEntry
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     navBackStackEntry.arguments?.getString("type").let {
         when (it) {
@@ -73,7 +76,8 @@ fun HistoryScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { TopAppBarTitle(uiState) },
-                navigationIcon = { TopAppBarBackNavigationIcon(navController) }
+                navigationIcon = { TopAppBarBackNavigationIcon(navController) },
+                scrollBehavior = topAppBarScrollBehavior
             )
         }
     ) { paddingValues ->
@@ -112,7 +116,9 @@ fun HistoryScreen(
 
                     HistoryUIState.HistoryType.Profile -> {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                             contentPadding = PaddingValues(
                                 start = 12.dp,
                                 top = 16.dp,

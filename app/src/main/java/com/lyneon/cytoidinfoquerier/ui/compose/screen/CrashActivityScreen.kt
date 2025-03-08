@@ -3,6 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 import android.content.Intent
 import android.os.Process
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -18,9 +19,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lyneon.cytoidinfoquerier.R
@@ -30,7 +32,8 @@ import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrashActivityScreen(crashMessage: String) {
-    val context = LocalContext.current as CrashActivity
+    val context = LocalActivity.current as CrashActivity
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Column {
         CenterAlignedTopAppBar(
@@ -67,13 +70,15 @@ fun CrashActivityScreen(crashMessage: String) {
                         contentDescription = "复制"
                     )
                 }
-            }
+            },
+            scrollBehavior = topAppBarScrollBehavior
         )
         SelectionContainer {
             Text(
                 text = crashMessage,
                 Modifier
                     .verticalScroll(rememberScrollState())
+                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                     .padding(horizontal = 12.dp)
             )
         }

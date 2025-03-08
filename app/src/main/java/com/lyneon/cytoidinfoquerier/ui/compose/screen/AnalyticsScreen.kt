@@ -50,6 +50,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -130,6 +133,7 @@ fun AnalyticsScreen(
     }
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutPresetLoaded by rememberSaveable { mutableStateOf(false) }
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     LaunchedEffect(Unit) {
         if (withInitials && !initialLoaded) {
@@ -239,7 +243,8 @@ fun AnalyticsScreen(
                             )
                         }
                     }
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         },
         floatingActionButton = {
@@ -274,7 +279,8 @@ fun AnalyticsScreen(
                 recentRecords,
                 profileDetails,
                 exoPlayer,
-                playbackState
+                playbackState,
+                topAppBarScrollBehavior
             )
         }
     }
@@ -518,6 +524,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResultDisplayList(
     uiState: AnalyticsUIState,
@@ -525,7 +532,8 @@ private fun ResultDisplayList(
     recentRecords: RecentRecords?,
     profileDetails: ProfileDetails?,
     exoPlayer: ExoPlayer,
-    playbackState: Int
+    playbackState: Int,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior
 ) {
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
@@ -542,7 +550,8 @@ private fun ResultDisplayList(
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             ),
             verticalItemSpacing = 8.dp,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
         ) {
             profileDetails?.let {
                 item(span = StaggeredGridItemSpan.FullLine) {

@@ -37,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -52,7 +54,9 @@ import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.datasource.RemoteDataSource
 import com.lyneon.cytoidinfoquerier.data.model.github.Release
+import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
+import com.lyneon.cytoidinfoquerier.ui.compose.component.UserDetailsHeader
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.DateParser
@@ -60,6 +64,8 @@ import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.OrientationUtils
 import com.lyneon.cytoidinfoquerier.util.extension.openInBrowser
+import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +80,8 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
     val appUserCytoidID =
         MMKV.mmkvWithID(MMKVId.AppSettings.id)
             .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -88,7 +96,8 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
                             )
                         }
                     }
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         }
     ) { paddingValues ->
@@ -97,11 +106,16 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 12.dp)
+                .nestedScroll(
+                    topAppBarScrollBehavior.nestedScrollConnection
+                )
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            appUserCytoidID?.let { WelcomeCard(cytoidID = it) }
+            appUserCytoidID?.let { cytoidID ->
+                WelcomeCard(cytoidID)
+            }
             ShortcutCard(navController = navController)
             CheckUpdateCard()
             Spacer(
@@ -115,13 +129,31 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
 
 @Composable
 fun WelcomeCard(cytoidID: String) {
+    var profileDetails by remember { mutableStateOf<ProfileDetails?>(null) }
+
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            modifier = Modifier.padding(16.dp),
-            text = stringResource(R.string.home_welcome, cytoidID)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            val scope = rememberCoroutineScope()
+
+            Text(text = stringResource(R.string.home_welcome, cytoidID))
+            scope.launch(Dispatchers.IO) {
+                profileDetails = RemoteDataSource.fetchProfileDetails(cytoidID)
+            }
+            AnimatedVisibility(profileDetails != null) {
+                profileDetails?.let { details ->
+                    Column {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        UserDetailsHeader(details, false)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -204,7 +236,10 @@ fun CheckUpdateCard() {
                 Button(onClick = {
                     scope.launch(Dispatchers.IO) {
                         isChecking = true
-                        releases = RemoteDataSource.fetchReleases()
+                        val result = RemoteDataSource.fetchReleases()
+                        if (result.isSuccess) releases = result.getOrDefault(emptyList())
+                        else BaseApplication.context.getString(R.string.check_update_failed)
+                            .showToast()
                         isChecking = false
                     }
                 }, enabled = !isChecking) {
@@ -266,7 +301,13 @@ fun CheckUpdateCard() {
                                             contentDescription = null
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text(text = asset.name)
+                                        Text(
+                                            text = "${asset.name}(${
+                                                (asset.size / 1024f / 1024f).setPrecision(
+                                                    2
+                                                )
+                                            }MB)"
+                                        )
                                     }
                                 }
                             }

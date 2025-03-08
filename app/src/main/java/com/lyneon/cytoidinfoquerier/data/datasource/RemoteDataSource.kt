@@ -157,11 +157,19 @@ object RemoteDataSource {
         )
     }
 
-    suspend fun fetchReleases(): List<Release> = fetch<List<Release>>(
-        Request.Builder()
-            .url("https://api.github.com/repos/Lyneon/Cytoid-Info-Querier-Android-Compose/releases")
-            .build()
-    )
+    suspend fun fetchReleases(): Result<List<Release>> {
+        return try {
+            Result.success(
+                fetch<List<Release>>(
+                    Request.Builder()
+                        .url("https://api.github.com/repos/Lyneon/Cytoid-Info-Querier-Android-Compose/releases")
+                        .build()
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     private fun Request.Builder.cytoidClientUAHeader() =
         this.header("User-Agent", CytoidConstant.clientUA)
