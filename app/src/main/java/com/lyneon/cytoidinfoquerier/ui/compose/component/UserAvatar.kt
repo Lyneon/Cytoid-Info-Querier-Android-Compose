@@ -2,7 +2,6 @@ package com.lyneon.cytoidinfoquerier.ui.compose.component
 
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -22,6 +21,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
@@ -67,7 +67,7 @@ fun UserAvatar(
                                 BaseApplication.context.startActivity(
                                     Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse("https://cytoid.io/profile/${userUid}")
+                                        "https://cytoid.io/profile/${userUid}".toUri()
                                     )
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         .addCategory(Intent.CATEGORY_BROWSABLE)
@@ -91,14 +91,15 @@ fun UserAvatar(
                                 BaseApplication.context.startActivity(
                                     Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse("https://cytoid.io/profile/${userUid}")
+                                        "https://cytoid.io/profile/${userUid}".toUri()
                                     )
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         .addCategory(Intent.CATEGORY_BROWSABLE)
                                 )
                             }
                         }
-                    }.fillMaxSize(),
+                    }
+                    .fillMaxSize(),
                 model = getImageRequestBuilderForCytoid(remoteAvatarUrl)
                     .build(),
                 contentDescription = null,

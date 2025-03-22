@@ -99,6 +99,12 @@ object RemoteDataSource {
         )
     }
 
+    suspend fun fetchProfileDetailsResult(cytoidID: String): Result<ProfileDetails> = try {
+        Result.success(fetchProfileDetails(cytoidID))
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     suspend fun searchLevels(
         search: String,
         sortStrategy: SearchLevelSortingStrategy,

@@ -11,6 +11,7 @@ import android.graphics.Rect
 import android.graphics.Shader
 import android.os.Build
 import android.text.TextPaint
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -18,8 +19,10 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
+import androidx.core.graphics.toColorInt
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidColors
@@ -132,17 +135,18 @@ object AnalyticsImageHandler {
                 addText(profileDetails.user.uid, getDefaultPaint(colorScheme).apply {
                     textSize = userUIDFontSize
                 })
-                addText("Lv.${profileDetails.exp.currentLevel}  Rating ${
-                    profileDetails.rating.run { if (keep2DecimalPlaces) this.setPrecision(2) else this }
-                }", getDefaultPaint(colorScheme).apply {
-                    textSize = userLevelAndRatingFontSize
-                })
+                addText(
+                    "Lv.${profileDetails.exp.currentLevel}  Rating ${
+                        profileDetails.rating.run { if (keep2DecimalPlaces) this.setPrecision(2) else this }
+                    }", getDefaultPaint(colorScheme).apply {
+                        textSize = userLevelAndRatingFontSize
+                    })
                 addText(
                     "${records.size} ${recordsType.displayName}",
                     getDefaultPaint(colorScheme).apply { textSize = recordsCountFontSize })
             }.getBitmap()
         )
-    }.getBitmap()
+     }.getBitmap()
 
     private fun getRecordsGridImage(
         rowsCount: Int,
@@ -150,10 +154,9 @@ object AnalyticsImageHandler {
         records: List<com.lyneon.cytoidinfoquerier.data.model.graphql.type.UserRecord>,
         keep2DecimalPlaces: Boolean
     ): Bitmap {
-        val bitmap = Bitmap.createBitmap(
+        val bitmap = createBitmap(
             columnsCount * recordWidth + (columnsCount - 1) * recordSpacing,
-            rowsCount * recordHeight + (rowsCount - 1) * recordSpacing,
-            Bitmap.Config.ARGB_8888
+            rowsCount * recordHeight + (rowsCount - 1) * recordSpacing
         )
         val canvas = Canvas(bitmap).apply { enableAntiAlias() }
         val recordImages = getRecordImagesListFromRecordsList(records, keep2DecimalPlaces)
@@ -181,7 +184,7 @@ object AnalyticsImageHandler {
         val recordImages = ArrayList<Bitmap>(records.size)
         for (i in records.indices) {
 //          初始化记录图像列表
-            recordImages.add(Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565))
+            recordImages.add(createBitmap(1, 1, Bitmap.Config.RGB_565))
         }
         val countDownLatch = CountDownLatch(records.size)
         val dispatcher = Executors.newFixedThreadPool(32).asCoroutineDispatcher()
@@ -210,8 +213,9 @@ object AnalyticsImageHandler {
         record: com.lyneon.cytoidinfoquerier.data.model.graphql.type.UserRecord,
         keep2DecimalPlaces: Boolean
     ): Bitmap {
-        val bitmap = Bitmap.createBitmap(576, 360, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(576, 360)
         val canvas = Canvas(bitmap).apply { this.enableAntiAlias() }
+        val context = BaseApplication.context
 
         val contentPadding = 8
         val difficultySize = 24f
@@ -242,10 +246,10 @@ object AnalyticsImageHandler {
                                         _bitmap
                                     )
                                 }
-                        } else BaseApplication.context.getDrawable(R.drawable.sayakacry)!!
+                        } else AppCompatResources.getDrawable(context, R.drawable.sayakacry)!!
                             .toBitmap()
                     } catch (e: Exception) {
-                        BaseApplication.context.getDrawable(R.drawable.sayakacry)!!.toBitmap()
+                        AppCompatResources.getDrawable(context, R.drawable.sayakacry)!!.toBitmap()
                     }
                 }
             canvas.drawBitmap(
@@ -256,7 +260,7 @@ object AnalyticsImageHandler {
             )
 //        绘制半透明灰色遮罩层
             canvas.drawRect(0f, 0f, 576f, 360f, Paint().apply {
-                color = Color.parseColor("#80000000")
+                color = "#80000000".toColorInt()
                 style = Paint.Style.FILL
             })
 
@@ -385,11 +389,7 @@ object AnalyticsImageHandler {
         val paint = getDefaultPaint().apply { textSize = difficultySize }
         val difficultyWidth = paint.measureText(difficultyText)
         val difficultyHeight = paint.textHeight
-        val bitmap = Bitmap.createBitmap(
-            difficultyWidth.ceil.toInt() + 10,
-            difficultyHeight.ceil.toInt(),
-            Bitmap.Config.ARGB_8888
-        )
+        val bitmap = createBitmap(difficultyWidth.ceil.toInt() + 10, difficultyHeight.ceil.toInt())
         val canvas = Canvas(bitmap).apply { enableAntiAlias() }
 
         canvas.drawRoundRect(

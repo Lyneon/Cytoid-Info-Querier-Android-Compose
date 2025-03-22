@@ -20,10 +20,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -69,8 +69,8 @@ fun UserDetailsHeader(
                     val backgroundColorList =
                         it.colorPalette.background.split(",").run {
                             listOf(
-                                Color(android.graphics.Color.parseColor(this[0])),
-                                Color(android.graphics.Color.parseColor(this[1]))
+                                Color(this[0].toColorInt()),
+                                Color(this[1].toColorInt())
                             )
                         }
                     Text(

@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.lyneon.cytoidinfoquerier.util.extension.ceil
@@ -129,7 +130,7 @@ class TextComponent(val text: String, val paint: Paint) :
         get() = paint.textHeight.ceil.toInt()
 }
 
-class ImageComponent(val bitmap: Bitmap,val paint: Paint) : LayoutBitmapComponent {
+class ImageComponent(val bitmap: Bitmap, val paint: Paint) : LayoutBitmapComponent {
     override val width: Int get() = bitmap.width
     override val height: Int get() = bitmap.height
 }
@@ -167,7 +168,7 @@ class RowBitmap(
                 (contentSpacing?.times((componentsList.size - 1)) ?: 0)
         val height = componentsList.maxOf { it.height } + 2 * (padding ?: 0)
 
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap).apply { enableAntiAlias() }
         var x = 0f
         padding?.let { x += it }
@@ -191,7 +192,7 @@ class ColumnBitmap(
         val width = componentsList.maxOf { it.width } + 2 * (padding ?: 0)
         val height = componentsList.sumOf { it.height } + 2 * (padding ?: 0) +
                 (contentSpacing?.times((componentsList.size - 1)) ?: 0)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap).apply { enableAntiAlias() }
         var y = 0f
         padding?.let { y += it }

@@ -1,8 +1,8 @@
 package com.lyneon.cytoidinfoquerier.ui.activity
 
+import android.os.Build
 import android.os.Bundle
-import android.os.Process
-import android.view.KeyEvent
+import android.window.OnBackInvokedDispatcher
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +22,14 @@ class CrashActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        if (Build.VERSION.SDK_INT >= 33) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT
+            ) {
+                finish()
+            }
+        }
+
         val crashMessage = intent.getStringExtra(KEY_EXTRA_CRASH_MESSAGE) ?: "No Message"
         setContent {
             CytoidInfoQuerierComposeTheme {
@@ -33,14 +41,5 @@ class CrashActivity : BaseActivity() {
                 }
             }
         }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            finish()
-            Process.killProcess(Process.myPid())
-            return true
-        }
-        return super.onKeyDown(keyCode, event)
     }
 }

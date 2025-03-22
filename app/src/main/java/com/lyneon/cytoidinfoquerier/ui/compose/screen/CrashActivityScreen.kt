@@ -1,7 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.Intent
-import android.os.Process
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Column
@@ -43,10 +42,9 @@ fun CrashActivityScreen(crashMessage: String) {
                     val intent =
                         context.packageManager.getLaunchIntentForPackage(context.packageName)
                     if (intent != null) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
                         context.startActivity(intent)
                     }
-                    Process.killProcess(Process.myPid())
                 }) {
                     Icon(
                         imageVector = Icons.Default.Refresh,

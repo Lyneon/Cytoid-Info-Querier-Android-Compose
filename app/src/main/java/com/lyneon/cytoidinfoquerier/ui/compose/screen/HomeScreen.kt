@@ -133,7 +133,8 @@ fun WelcomeCard(cytoidID: String) {
     var profileDetails by remember { mutableStateOf<ProfileDetails?>(null) }
 
     LaunchedEffect(cytoidID) {
-        profileDetails = RemoteDataSource.fetchProfileDetails(cytoidID)
+        RemoteDataSource.fetchProfileDetailsResult(cytoidID)
+            .onSuccess { details -> profileDetails = details }
     }
 
     Card(
