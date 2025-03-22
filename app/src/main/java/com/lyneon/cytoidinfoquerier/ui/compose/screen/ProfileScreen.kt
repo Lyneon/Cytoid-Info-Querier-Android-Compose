@@ -136,23 +136,23 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.fixed
-import com.patrykandpatrick.vico.compose.common.component.rememberLayeredComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.component.shadow
-import com.patrykandpatrick.vico.compose.common.dimensions
+import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.insets
 import com.patrykandpatrick.vico.compose.common.shape.markerCorneredShape
 import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
 import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
-import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
@@ -162,20 +162,20 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalLine
+import com.patrykandpatrick.vico.core.cartesian.layer.CartesianLayerDimensions
+import com.patrykandpatrick.vico.core.cartesian.layer.CartesianLayerMargins
+import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
-import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
-import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarkerValueFormatter
-import com.patrykandpatrick.vico.core.common.Dimensions
-import com.patrykandpatrick.vico.core.common.HorizontalPosition
 import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.LayeredComponent
-import com.patrykandpatrick.vico.core.common.VerticalPosition
+import com.patrykandpatrick.vico.core.common.Position
 import com.patrykandpatrick.vico.core.common.component.Shadow
 import com.patrykandpatrick.vico.core.common.component.ShapeComponent
 import com.patrykandpatrick.vico.core.common.component.TextComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
-import com.patrykandpatrick.vico.core.common.shape.Corner
+import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
 import dev.jeziellago.compose.markdowntext.MarkdownText
@@ -820,6 +820,7 @@ private fun DetailsChart(
     dataTimeSeries: List<ProfileDetails.TimeSeriesItem>,
     keep2DecimalPlace: Boolean = true
 ) {
+    // vico示例项目中的点标志
     class ChartMarker {
         private val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
         private val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
@@ -829,40 +830,40 @@ private fun DetailsChart(
         fun rememberMarker(
             labelPosition: DefaultCartesianMarker.LabelPosition = DefaultCartesianMarker.LabelPosition.Top,
             showIndicator: Boolean = true,
-            valueFormatter: CartesianMarkerValueFormatter = DefaultCartesianMarkerValueFormatter()
+            valueFormatter: DefaultCartesianMarker.ValueFormatter = DefaultCartesianMarker.ValueFormatter.default()
         ): CartesianMarker {
-            val mLabelBackgroundShape = markerCorneredShape(Corner.FullyRounded)
+            val mLabelBackgroundShape = markerCorneredShape(CorneredShape.Pill)
             val mLabelBackground =
                 rememberShapeComponent(
-                    color = MaterialTheme.colorScheme.surfaceBright,
+                    fill = fill(MaterialTheme.colorScheme.surfaceBright),
                     shape = mLabelBackgroundShape,
                     shadow = shadow(
                         radius = LABEL_BACKGROUND_SHADOW_RADIUS_DP.dp,
-                        dy = LABEL_BACKGROUND_SHADOW_DY_DP.dp,
+                        y = LABEL_BACKGROUND_SHADOW_DY_DP.dp,
                     ),
                 )
             val mLabel =
                 rememberTextComponent(
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlignment = Layout.Alignment.ALIGN_CENTER,
-                    padding = dimensions(8.dp, 4.dp),
+                    padding = insets(8.dp, 4.dp),
                     background = mLabelBackground,
                     minWidth = TextComponent.MinWidth.fixed(40.dp),
                 )
             val mIndicatorFrontComponent =
-                rememberShapeComponent(MaterialTheme.colorScheme.surface, CorneredShape.Pill)
+                rememberShapeComponent(fill(MaterialTheme.colorScheme.surface), CorneredShape.Pill)
             val mIndicatorCenterComponent = rememberShapeComponent(shape = CorneredShape.Pill)
             val mIndicatorRearComponent = rememberShapeComponent(shape = CorneredShape.Pill)
             val mIndicator =
-                rememberLayeredComponent(
-                    rear = mIndicatorRearComponent,
+                LayeredComponent(
+                    back = mIndicatorRearComponent,
                     front =
-                        rememberLayeredComponent(
-                            rear = mIndicatorCenterComponent,
+                        LayeredComponent(
+                            back = mIndicatorCenterComponent,
                             front = mIndicatorFrontComponent,
-                            padding = dimensions(5.dp),
+                            padding = insets(5.dp),
                         ),
-                    padding = dimensions(10.dp),
+                    padding = insets(10.dp),
                 )
             val mGuideline = rememberAxisGuidelineComponent()
             return remember(mLabel, labelPosition, mIndicator, showIndicator, mGuideline) {
@@ -874,21 +875,21 @@ private fun DetailsChart(
                             if (showIndicator) {
                                 { color ->
                                     LayeredComponent(
-                                        rear = ShapeComponent(
-                                            Color(color).copy(alpha = 0.15f).toArgb(),
+                                        back = ShapeComponent(
+                                            fill(Color(color).copy(alpha = 0.15f)),
                                             CorneredShape.Pill
                                         ),
                                         front =
                                             LayeredComponent(
-                                                rear = ShapeComponent(
-                                                    color = color,
+                                                back = ShapeComponent(
+                                                    fill = fill(Color(color)),
                                                     shape = CorneredShape.Pill,
                                                     shadow = Shadow(radiusDp = 12f, color = color),
                                                 ),
                                                 front = mIndicatorFrontComponent,
-                                                padding = dimensions(5.dp),
+                                                padding = insets(5.dp),
                                             ),
-                                        padding = dimensions(10.dp),
+                                        padding = insets(10.dp),
                                     )
                                 }
                             } else null,
@@ -896,11 +897,11 @@ private fun DetailsChart(
                         guideline = mGuideline,
                         valueFormatter = valueFormatter
                     ) {
-                    override fun updateInsets(
+                    override fun updateLayerMargins(
                         context: CartesianMeasuringContext,
-                        horizontalDimensions: HorizontalDimensions,
-                        model: CartesianChartModel,
-                        insets: Insets,
+                        layerMargins: CartesianLayerMargins,
+                        layerDimensions: CartesianLayerDimensions,
+                        model: CartesianChartModel
                     ) {
                         with(context) {
                             val baseShadowInsetDp =
@@ -915,8 +916,9 @@ private fun DetailsChart(
 
                                 LabelPosition.Bottom -> bottomInset += mLabel.getHeight(context) + tickSizeDp.pixels
                                 LabelPosition.AroundPoint -> {}
+                                LabelPosition.BelowPoint -> {}
                             }
-                            insets.ensureValuesAtLeast(top = topInset, bottom = bottomInset)
+                            layerMargins.ensureValuesAtLeast(top = topInset, bottom = bottomInset)
                         }
                     }
                 }
@@ -924,16 +926,20 @@ private fun DetailsChart(
         }
     }
 
+    // 当前查看的数据集
     var tabIndex by rememberSaveable { mutableIntStateOf(0) }
+    // 数据集映射
     val timeSeries = dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } }
     val ratingSeries =
         timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
     val countSeries = timeSeries.map { it.count }
     val accuracySeries =
         timeSeries.map { (it.accuracy * 100).apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
+
     val cartesianChartModelProducer by remember { mutableStateOf(CartesianChartModelProducer()) }
     val context = LocalContext.current
 
+    // 更新展示的数据集
     LaunchedEffect(tabIndex) {
         if (timeSeries.isEmpty()) return@LaunchedEffect
         withContext(Dispatchers.Default) {
@@ -981,46 +987,63 @@ private fun DetailsChart(
             }
         }
         ProvideVicoTheme(rememberM3VicoTheme()) {
+            val lineProvider =
+                LineCartesianLayer.LineProvider.series(vicoTheme.lineCartesianLayerColors.map { color ->
+                    LineCartesianLayer.rememberLine(
+                        // 折线下方的渐变颜色区域填充效果
+                        areaFill = LineCartesianLayer.AreaFill.single(
+                            fill(
+                                ShaderProvider.verticalGradient(
+                                    color.copy(alpha = 0.7f).toArgb(),
+                                    color.copy(alpha = 0f).toArgb()
+                                )
+                            )
+                        ),
+                        // 折现类型改为曲线
+                        pointConnector = LineCartesianLayer.PointConnector.cubic()
+                    )
+                })
+            val columnProvider =
+                ColumnCartesianLayer.ColumnProvider.series(vicoTheme.columnCartesianLayerColors.map { color ->
+                    rememberLineComponent(
+                        // 数据柱颜色改为主题色
+                        fill = fill(color),
+                        // 数据柱形状改为顶部圆角的矩形
+                        shape = CorneredShape.rounded(topLeftPercent = 50, topRightPercent = 50),
+                        // 数据柱宽度
+                        thickness = 16.dp
+                    )
+                })
+            // 让图表y轴底部从数据集的最小值开始而不是从0开始，避免数据都离0过远而挤在一起
+            val rangeProvider = object : CartesianLayerRangeProvider {
+                override fun getMinY(
+                    minY: Double,
+                    maxY: Double,
+                    extraStore: ExtraStore
+                ): Double {
+                    return minY
+                }
+            }
+
             CartesianChartHost(
                 modelProducer = cartesianChartModelProducer,
                 chart = rememberCartesianChart(
+                    // 针对不同的数据集，分别展示折线图和柱状图
                     layers = arrayOf(
                         rememberLineCartesianLayer(
-                            rangeProvider = object : CartesianLayerRangeProvider {
-                                override fun getMinY(
-                                    minY: Double,
-                                    maxY: Double,
-                                    extraStore: ExtraStore
-                                ): Double {
-                                    return minY
-                                }
-                            }
+                            lineProvider = lineProvider,
+                            rangeProvider = rangeProvider
                         ),
                         rememberColumnCartesianLayer(
-                            rangeProvider = object :
-                                CartesianLayerRangeProvider {
-                                override fun getMinY(
-                                    minY: Double,
-                                    maxY: Double,
-                                    extraStore: ExtraStore
-                                ): Double {
-                                    return minY
-                                }
-                            }
+                            columnProvider = columnProvider,
+                            rangeProvider = rangeProvider
                         ),
                         rememberLineCartesianLayer(
-                            rangeProvider = object :
-                                CartesianLayerRangeProvider {
-                                override fun getMinY(
-                                    minY: Double,
-                                    maxY: Double,
-                                    extraStore: ExtraStore
-                                ): Double {
-                                    return minY
-                                }
-                            }
+                            lineProvider = lineProvider,
+                            rangeProvider = rangeProvider
                         )
                     ),
+                    // 图表左边框
                     startAxis = VerticalAxis.rememberStart(
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
                         valueFormatter = { _, value, _ ->
@@ -1040,10 +1063,12 @@ private fun DetailsChart(
                             }
                         }
                     ),
+                    // 图表右边框
                     endAxis = VerticalAxis.rememberEnd(
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
                         itemPlacer = VerticalAxis.ItemPlacer.count({ 0 })
                     ),
+                    // 图表底边框
                     bottomAxis = HorizontalAxis.rememberBottom(
                         valueFormatter = { _, value, _ ->
                             if (value.toInt() < timeSeries.size) {
@@ -1053,6 +1078,7 @@ private fun DetailsChart(
                         labelRotationDegrees = 90f,
                         label = rememberAxisLabelComponent(minWidth = TextComponent.MinWidth.text("YYYYwWW"))
                     ),
+                    // 选中数据点时展示的标志
                     marker = ChartMarker().rememberMarker(
                         valueFormatter = { _, targets ->
                             val xIndex = targets.first().x.toInt()
@@ -1078,6 +1104,7 @@ private fun DetailsChart(
                             }"
                         }
                     ),
+                    // 装饰线，这里展示的是平均值线
                     decorations = listOf(
                         HorizontalLine(
                             y = {
@@ -1089,7 +1116,7 @@ private fun DetailsChart(
                                 }
                             },
                             line = rememberLineComponent(
-                                color = MaterialTheme.colorScheme.primary,
+                                fill = fill(MaterialTheme.colorScheme.primary),
                                 thickness = 2.dp
                             ),
                             label = {
@@ -1123,13 +1150,13 @@ private fun DetailsChart(
                                     }.run { if (tabIndex == 2) "${this}%" else this }
                                 }"
                             },
-                            horizontalLabelPosition = HorizontalPosition.End,
-                            verticalLabelPosition = VerticalPosition.Bottom,
+                            horizontalLabelPosition = Position.Horizontal.End,
+                            verticalLabelPosition = Position.Vertical.Bottom,
                             labelComponent = TextComponent(
-                                margins = Dimensions(4f),
-                                padding = Dimensions(8f, 8f),
+                                margins = Insets(4f),
+                                padding = Insets(8f, 8f),
                                 background = ShapeComponent(
-                                    MaterialTheme.colorScheme.surfaceContainer.toArgb(),
+                                    fill(MaterialTheme.colorScheme.surfaceContainer),
                                     CorneredShape.rounded(8f)
                                 ),
                                 lineCount = 3,
@@ -1138,6 +1165,7 @@ private fun DetailsChart(
                         )
                     )
                 ),
+                // 滚动状态，初始滚动到最后一个点（时间上最新的数据）
                 scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End)
             )
         }
