@@ -102,7 +102,7 @@ fun UserDetailsHeader(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        text = "${(currentExpProgress * 100).roundToInt()}% " + stringResource(
+                        text = "${(currentExpProgress * 100).toInt()}% " + stringResource(
                             R.string.level_up_exp_remaining,
                             profileDetails.exp.nextLevelExp - profileDetails.exp.totalExp
                         ),
