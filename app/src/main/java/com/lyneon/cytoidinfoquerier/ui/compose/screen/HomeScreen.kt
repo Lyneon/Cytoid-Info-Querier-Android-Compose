@@ -39,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -131,6 +132,10 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
 fun WelcomeCard(cytoidID: String) {
     var profileDetails by remember { mutableStateOf<ProfileDetails?>(null) }
 
+    LaunchedEffect(cytoidID) {
+        profileDetails = RemoteDataSource.fetchProfileDetails(cytoidID)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -139,12 +144,7 @@ fun WelcomeCard(cytoidID: String) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            val scope = rememberCoroutineScope()
-
             Text(text = stringResource(R.string.home_welcome, cytoidID))
-            scope.launch(Dispatchers.IO) {
-                profileDetails = RemoteDataSource.fetchProfileDetails(cytoidID)
-            }
             AnimatedVisibility(profileDetails != null) {
                 profileDetails?.let { details ->
                     Column {
