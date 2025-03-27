@@ -204,4 +204,6 @@
     <string name="save_failed">sosuihi失败</string>
     <string name="check_update_failed">Sorry, you have been blocked\nYou are unable to access api.github.com</string>
     <string name="delete_query_cache_confirm">确定要删除所有查询缓存吗？</string>
+    <string name="shizuku_not_available">Shizuku服务不可用！</string>
+    <string name="shizuku_needed">使用此功能需要Shizuku权限！</string>
 </resources>

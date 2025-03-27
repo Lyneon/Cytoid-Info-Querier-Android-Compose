@@ -204,4 +204,6 @@
     <string name="save_failed">Save failed</string>
     <string name="check_update_failed">检查更新失败</string>
     <string name="delete_query_cache_confirm">确定要删除所有查询缓存吗？</string>
+    <string name="shizuku_not_available">Shizuku服务不可用！</string>
+    <string name="shizuku_needed">使用此功能需要Shizuku权限！</string>
 </resources>
