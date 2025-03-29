@@ -15,8 +15,8 @@ Android 7.0+
 
 - [x] 关卡查询
 - [x] Rating计算器
-- [ ] 排行榜查询
-- [ ] ~~符语~~ 多语言支持
+- [x] 排行榜查询
+- [x] ~~符语~~ 多语言支持
 - 你告诉我
 
 ## 使用的开源库
@@ -31,3 +31,4 @@ Android 7.0+
 - [Vico](https://github.com/patrykandpatrick/vico)
 - [android-browser-helper](https://github.com/GoogleChrome/android-browser-helper)
 - [compose-markdown](https://github.com/jeziellago/compose-markdown)
+- [Shizuku](https://github.com/RikkaApps/Shizuku-API)
