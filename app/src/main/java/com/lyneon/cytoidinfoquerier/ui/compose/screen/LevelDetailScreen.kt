@@ -62,6 +62,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -73,7 +74,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -126,7 +126,7 @@ fun LevelDetailScreen(
     val levelCommentList by viewModel.levelCommentList.collectAsState()
     val sharedViewModel = viewModel<SharedViewModel>(LocalActivity.current as MainActivity)
     val level = sharedViewModel.sharedLevelForLevelDetailScreen
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     var leaderboardColumnWidths by remember {
         mutableStateOf(
             LeaderboardColumnWidths(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)
@@ -274,33 +274,37 @@ fun LevelDetailScreen(
                     }
                 },
                 title = { Text(text = stringResource(R.string.level_details)) },
-                colors = TopAppBarDefaults.topAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.surface),
                 scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(top = paddingValues.calculateTopPadding())
-                .padding(horizontal = 12.dp)
-                .fillMaxSize()
-        ) {
-            if (level == null) {
-                Card {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.Error, contentDescription = null)
-                        Text(text = "Error: Level is null")
-                    }
+        if (level == null) {
+            Card(
+                modifier = Modifier
+                    .padding(top = paddingValues.calculateTopPadding())
+                    .padding(horizontal = 12.dp)
+                    .fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Error, contentDescription = null)
+                    Text(text = "Error: Level is null")
                 }
-            } else {
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .padding(top = paddingValues.calculateTopPadding())
+                    .padding(horizontal = 12.dp)
+                    .fillMaxSize()
+            ) {
                 if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     LandscapeLevelDetailScreen(
                         level,
                         levelRating,
-                        scrollBehavior.nestedScrollConnection,
+                        scrollBehavior,
                         levelCommentList,
                         currentLeaderboard,
                         leaderboardColumnWidths,
@@ -314,7 +318,7 @@ fun LevelDetailScreen(
                     PortraitLevelDetailScreen(
                         level,
                         levelRating,
-                        scrollBehavior.nestedScrollConnection,
+                        scrollBehavior,
                         levelCommentList,
                         currentLeaderboard,
                         leaderboardColumnWidths,
@@ -330,12 +334,12 @@ fun LevelDetailScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun LandscapeLevelDetailScreen(
     level: Level,
     levelRating: LevelRating,
-    nestedScrollConnection: NestedScrollConnection,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior,
     commentList: List<LevelComment>,
     leaderboard: LevelLeaderboard?,
     leaderboardColumnWidths: LeaderboardColumnWidths,
@@ -351,8 +355,8 @@ private fun LandscapeLevelDetailScreen(
     ) {
         LazyColumn(
             modifier = Modifier
-                .weight(6f)
-                .nestedScroll(nestedScrollConnection),
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+                .weight(6f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
@@ -362,6 +366,7 @@ private fun LandscapeLevelDetailScreen(
             items(commentList) { comment -> CommentListItem(comment) }
             item { BottomNavigationPaddingSpacer() }
         }
+
         Card(
             modifier = Modifier
                 .weight(4f)
@@ -410,7 +415,8 @@ private fun LandscapeLevelDetailScreen(
                                     viewModel.setDisplayLeaderboardStart(start)
                                 }
                                 enableRefreshButton = false
-                                BaseApplication.context.getString(R.string.refreshing_leaderboard).showToast()
+                                BaseApplication.context.getString(R.string.refreshing_leaderboard)
+                                    .showToast()
                             },
                             enabled = enableRefreshButton
                         ) {
@@ -437,10 +443,11 @@ private fun LandscapeLevelDetailScreen(
                                     enableRefreshButton = true
                                 },
                                 label = {
-                                    Text(text = chart.difficultyName
-                                        ?: chart.difficultyType.replaceFirstChar {
-                                            if (it.isLowerCase()) it.uppercase() else it.toString()
-                                        }
+                                    Text(
+                                        text = chart.difficultyName
+                                            ?: chart.difficultyType.replaceFirstChar {
+                                                if (it.isLowerCase()) it.uppercase() else it.toString()
+                                            }
                                     )
                                 },
                                 leadingIcon = {
@@ -513,12 +520,15 @@ private fun LandscapeLevelDetailScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(
+    ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 private fun PortraitLevelDetailScreen(
     level: Level,
     levelRating: LevelRating,
-    nestedScrollConnection: NestedScrollConnection,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior,
     commentList: List<LevelComment>,
     leaderboard: LevelLeaderboard?,
     leaderboardColumnWidths: LeaderboardColumnWidths,
@@ -528,167 +538,166 @@ private fun PortraitLevelDetailScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        var enableRefreshButton by remember { mutableStateOf(false) }
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .nestedScroll(nestedScrollConnection),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
-            }
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) { LevelDetailsCard(level, levelRating) }
-            }
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) { LevelMetadataCard(level) }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+    var enableRefreshButton by remember { mutableStateOf(false) }
+    LazyColumn(
+        modifier = Modifier
+            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) { LevelHeaderCard(level, sharedTransitionScope, animatedContentScope) }
+        }
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) { LevelDetailsCard(level, levelRating) }
+        }
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) { LevelMetadataCard(level) }
+        }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.leaderboard),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                IconButton(
+                    onClick = {
+                        val start = uiState.leaderboardStart.toIntOrNull()
+                        val end = uiState.leaderboardEnd.toIntOrNull()
+                        if (
+                            start != null && end != null &&
+                            start > 0 && end > 0 &&
+                            listOf(
+                                "easy",
+                                "hard",
+                                "extreme"
+                            ).contains(uiState.selectedLevelLeaderboardDifficultyType) && end >= start
+                        ) {
+                            viewModel.updateCurrentLeaderboard(
+                                level.uid,
+                                uiState.selectedLevelLeaderboardDifficultyType!!,
+                                start - 1,
+                                end - start + 1
+                            )
+                            viewModel.setDisplayLeaderboardStart(start)
+                        }
+                        enableRefreshButton = false
+                        BaseApplication.context.getString(R.string.refreshing_leaderboard)
+                            .showToast()
+                    },
+                    enabled = enableRefreshButton
                 ) {
-                    Text(
-                        text = stringResource(R.string.leaderboard),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    IconButton(
-                        onClick = {
-                            val start = uiState.leaderboardStart.toIntOrNull()
-                            val end = uiState.leaderboardEnd.toIntOrNull()
-                            if (
-                                start != null && end != null &&
-                                start > 0 && end > 0 &&
-                                listOf(
-                                    "easy",
-                                    "hard",
-                                    "extreme"
-                                ).contains(uiState.selectedLevelLeaderboardDifficultyType) && end >= start
-                            ) {
-                                viewModel.updateCurrentLeaderboard(
-                                    level.uid,
-                                    uiState.selectedLevelLeaderboardDifficultyType!!,
-                                    start - 1,
-                                    end - start + 1
-                                )
-                                viewModel.setDisplayLeaderboardStart(start)
-                            }
-                            enableRefreshButton = false
-                            BaseApplication.context.getString(R.string.refreshing_leaderboard).showToast()
-                        },
-                        enabled = enableRefreshButton
-                    ) {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-                    }
+                    Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
                 }
             }
-            item {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    level.charts.forEach { chart ->
-                        FilterChip(
-                            selected = chart.difficultyType == (uiState.selectedLevelLeaderboardDifficultyType
-                                ?: ""),
-                            onClick = {
-                                viewModel.setSelectedLevelLeaderboardDifficultyType(
-                                    chart.difficultyType
-                                )
-                                enableRefreshButton = true
-                            },
-                            label = {
-                                Text(text = chart.difficultyName
+        }
+        item {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                level.charts.forEach { chart ->
+                    FilterChip(
+                        selected = chart.difficultyType == (uiState.selectedLevelLeaderboardDifficultyType
+                            ?: ""),
+                        onClick = {
+                            viewModel.setSelectedLevelLeaderboardDifficultyType(
+                                chart.difficultyType
+                            )
+                            enableRefreshButton = true
+                        },
+                        label = {
+                            Text(
+                                text = chart.difficultyName
                                     ?: chart.difficultyType.replaceFirstChar {
                                         if (it.isLowerCase()) it.uppercase() else it.toString()
                                     }
+                            )
+                        },
+                        leadingIcon = {
+                            AnimatedVisibility(chart.difficultyType == uiState.selectedLevelLeaderboardDifficultyType) {
+                                Icon(
+                                    imageVector = Icons.Default.Done,
+                                    contentDescription = null
                                 )
-                            },
-                            leadingIcon = {
-                                AnimatedVisibility(chart.difficultyType == uiState.selectedLevelLeaderboardDifficultyType) {
-                                    Icon(
-                                        imageVector = Icons.Default.Done,
-                                        contentDescription = null
-                                    )
-                                }
                             }
-                        )
-                    }
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    OutlinedTextField(
-                        value = uiState.leaderboardStart,
-                        onValueChange = {
-                            if (it.any { char -> !char.isDigit() }) return@OutlinedTextField
-                            else {
-                                viewModel.setLeaderboardStart(it)
-                                enableRefreshButton = true
-                            }
-                        },
-                        suffix = { Text(stringResource(R.string.rank)) },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-                    Text(text = stringResource(R.string.to))
-                    OutlinedTextField(
-                        value = uiState.leaderboardEnd,
-                        onValueChange = {
-                            if (it.any { char -> !char.isDigit() }) return@OutlinedTextField
-                            else {
-                                viewModel.setLeaderboardEnd(it)
-                                enableRefreshButton = true
-                            }
-                        },
-                        suffix = { Text(stringResource(R.string.rank)) },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        }
                     )
                 }
             }
-            itemsIndexed(
-                leaderboard?.data?.chart?.leaderboard ?: emptyList()
-            ) { index, leaderboardRecord ->
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    LeaderboardListItem(
-                        uiState.displayLeaderboardStart + index,
-                        leaderboardHorizontalScrollState,
-                        leaderboardRecord,
-                        leaderboardColumnWidths.ownerUIDColumnWidth,
-                        leaderboardColumnWidths.scoreColumnWidth,
-                        leaderboardColumnWidths.accuracyColumnWidth,
-                        leaderboardColumnWidths.maxComboColumnWidth,
-                        leaderboardColumnWidths.detailsColumnWidth,
-                        leaderboardColumnWidths.dateColumnWidth
-                    )
-                }
-            }
-            items(commentList) { comment ->
-                Box(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    CommentListItem(comment)
-                }
-            }
-            item { BottomNavigationPaddingSpacer() }
         }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                OutlinedTextField(
+                    value = uiState.leaderboardStart,
+                    onValueChange = {
+                        if (it.any { char -> !char.isDigit() }) return@OutlinedTextField
+                        else {
+                            viewModel.setLeaderboardStart(it)
+                            enableRefreshButton = true
+                        }
+                    },
+                    suffix = { Text(stringResource(R.string.rank)) },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Text(text = stringResource(R.string.to))
+                OutlinedTextField(
+                    value = uiState.leaderboardEnd,
+                    onValueChange = {
+                        if (it.any { char -> !char.isDigit() }) return@OutlinedTextField
+                        else {
+                            viewModel.setLeaderboardEnd(it)
+                            enableRefreshButton = true
+                        }
+                    },
+                    suffix = { Text(stringResource(R.string.rank)) },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+        }
+        itemsIndexed(
+            leaderboard?.data?.chart?.leaderboard ?: emptyList()
+        ) { index, leaderboardRecord ->
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                LeaderboardListItem(
+                    uiState.displayLeaderboardStart + index,
+                    leaderboardHorizontalScrollState,
+                    leaderboardRecord,
+                    leaderboardColumnWidths.ownerUIDColumnWidth,
+                    leaderboardColumnWidths.scoreColumnWidth,
+                    leaderboardColumnWidths.accuracyColumnWidth,
+                    leaderboardColumnWidths.maxComboColumnWidth,
+                    leaderboardColumnWidths.detailsColumnWidth,
+                    leaderboardColumnWidths.dateColumnWidth
+                )
+            }
+        }
+        items(commentList) { comment ->
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CommentListItem(comment)
+            }
+        }
+        item { BottomNavigationPaddingSpacer() }
     }
 }
 
@@ -752,29 +761,33 @@ private fun LevelHeaderCard(
                     animatedVisibilityScope = animatedContentScope
                 )
                 Text(
-                    stringResource(R.string.create_at,DateParser.parseISO8601Date(level.creationDate)
-                        .formatToTimeString())
-                    , modifier = Modifier.sharedElement(
+                    stringResource(
+                        R.string.create_at, DateParser.parseISO8601Date(level.creationDate)
+                            .formatToTimeString()
+                    ), modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_creationDate"),
                         animatedContentScope
                     )
                 )
                 Text(
-                    stringResource(R.string.update_at,  DateParser.parseISO8601Date(level.modificationDate)
-                        .formatToTimeString())
-                    , modifier = Modifier.sharedElement(
+                    stringResource(
+                        R.string.update_at, DateParser.parseISO8601Date(level.modificationDate)
+                            .formatToTimeString()
+                    ), modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_modificationDate"),
                         animatedContentScope
                     )
                 )
                 Text(
-                    "${stringResource(R.string.downloads_count)}：${level.downloads}", modifier = Modifier.sharedElement(
+                    "${stringResource(R.string.downloads_count)}：${level.downloads}",
+                    modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_downloads"),
                         animatedContentScope
                     )
                 )
                 Text(
-                    "${stringResource(R.string.plays_count)}：${level.plays}", modifier = Modifier.sharedElement(
+                    "${stringResource(R.string.plays_count)}：${level.plays}",
+                    modifier = Modifier.sharedElement(
                         sharedTransitionScope.rememberSharedContentState("${level.id}_plays"),
                         animatedContentScope
                     )
@@ -877,7 +890,7 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                     }
                 }
                 Text(
-                    text = stringResource(R.string.total_ratings,levelRating.total)
+                    text = stringResource(R.string.total_ratings, levelRating.total)
                 )
             }
             level.owner?.let {
@@ -917,7 +930,8 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                                 label = { Text(text = tag) },
                                 onClick = {
                                     tag.saveIntoClipboard()
-                                    BaseApplication.context.getString(R.string.copied_to_clipboard).showToast()
+                                    BaseApplication.context.getString(R.string.copied_to_clipboard)
+                                        .showToast()
                                 }
                             )
                         }
@@ -1009,13 +1023,21 @@ private fun CommentListItem(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        UserAvatar(
-            modifier = Modifier.size(48.dp),
-            userUid = comment.owner.uid ?: comment.owner.id,
-            avatarSize = AvatarSize.Large,
-            remoteAvatarUrl = comment.owner.avatar.large ?: "",
-            size = 64.dp
-        )
+        comment.owner?.let {
+            UserAvatar(
+                modifier = Modifier.size(48.dp),
+                userUid = it.uid ?: it.id,
+                avatarSize = AvatarSize.Large,
+                remoteAvatarUrl = it.avatar.large ?: "",
+                size = 64.dp
+            )
+        } ?: Unit.also {
+            Image(
+                painter = painterResource(id = R.drawable.sayakacry),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+        }
         Card(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -1026,12 +1048,16 @@ private fun CommentListItem(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = comment.owner.uid ?: comment.owner.id,
+                    text = comment.owner?.let { it.uid ?: it.id }
+                        ?: stringResource(R.string.no_username),
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(text = comment.content)
                 Text(
-                    text = stringResource(R.string.comment_at, DateParser.parseISO8601Date(comment.date).formatToTimeString())
+                    text = stringResource(
+                        R.string.comment_at,
+                        DateParser.parseISO8601Date(comment.date).formatToTimeString()
+                    )
                 )
             }
         }

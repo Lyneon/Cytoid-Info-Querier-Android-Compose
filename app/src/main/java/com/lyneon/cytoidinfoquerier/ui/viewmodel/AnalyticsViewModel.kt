@@ -115,7 +115,10 @@ class AnalyticsViewModel(
             launch {
                 updateProfileDetails()
             }
-        }.invokeOnCompletion { setIsQuerying(false) }
+        }.invokeOnCompletion {
+            setIsQuerying(false)
+            setFoldTextFiled(true)
+        }
     }
 
     fun loadSpecificCacheBestRecords(timeStamp: Long) {

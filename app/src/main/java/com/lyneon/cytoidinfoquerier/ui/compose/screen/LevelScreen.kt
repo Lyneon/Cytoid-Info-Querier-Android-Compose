@@ -1,7 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.res.Configuration
-import android.net.Uri
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
@@ -67,6 +66,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -81,9 +82,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -147,6 +150,7 @@ fun LevelScreen(
         })
     }
     val sharedViewModel = viewModel<SharedViewModel>(LocalActivity.current as MainActivity)
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -176,7 +180,8 @@ fun LevelScreen(
                             )
                         }
                     }
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         },
         floatingActionButton = {
@@ -211,7 +216,10 @@ fun LevelScreen(
                     exoPlayer,
                     playbackState,
                     sharedViewModel,
-                    navController, sharedTransitionScope, animatedContentScope
+                    navController,
+                    sharedTransitionScope,
+                    animatedContentScope,
+                    topAppBarScrollBehavior
                 )
             }
         }
@@ -266,7 +274,10 @@ private fun LevelInputField(uiState: LevelUIState, viewModel: LevelViewModel) {
                                 viewModel.searchLevels(resetPage = true)
                             }
                         }) {
-                            Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.search))
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.search)
+                            )
                         }
                     }
                 }
@@ -297,7 +308,13 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
             ) {
                 AssistChip(
                     onClick = { viewModel.setQueryOrder(if (uiState.queryOrder == SearchLevelOrder.Ascending) SearchLevelOrder.Descending else SearchLevelOrder.Ascending) },
-                    label = { Text(text = if (uiState.queryOrder == SearchLevelOrder.Ascending) stringResource(R.string.asc) else stringResource(R.string.desc)) },
+                    label = {
+                        Text(
+                            text = if (uiState.queryOrder == SearchLevelOrder.Ascending) stringResource(
+                                R.string.asc
+                            ) else stringResource(R.string.desc)
+                        )
+                    },
                     leadingIcon = {
                         Icon(
                             imageVector = if (uiState.queryOrder == SearchLevelOrder.Ascending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
@@ -370,7 +387,7 @@ private fun SearchSettingsDropDownMenu(uiState: LevelUIState, viewModel: LevelVi
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun ResultDisplayList(
     uiState: LevelUIState,
@@ -380,27 +397,33 @@ private fun ResultDisplayList(
     sharedViewModel: SharedViewModel,
     navController: NavController,
     sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope
+    animatedContentScope: AnimatedContentScope,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior
 ) {
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
     } else if (searchResult.isEmpty()) {
         ErrorMessageCard(errorMessage = stringResource(R.string.no_result))
     } else {
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(
+        val columnsCount by remember {
+            mutableIntStateOf(
                 MMKV.mmkvWithID(MMKVId.AppSettings.id).decodeInt(
                     if (BaseApplication.context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
                     else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
                 )
-            ),
+            )
+        }
+
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(columnsCount),
             contentPadding = PaddingValues(
                 top = 8.dp,
                 bottom = WindowInsets.navigationBars.asPaddingValues()
                     .calculateBottomPadding() + 8.dp
             ),
             verticalItemSpacing = 8.dp,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
         ) {
             searchResult.forEach { searchLevelResult ->
                 item(key = searchLevelResult.id) {
@@ -631,16 +654,22 @@ private fun LevelCard(
                         animatedVisibilityScope = animatedContentScope
                     )
                     Text(
-                        stringResource(R.string.create_at,DateParser.parseISO8601Date(searchLevelResult.creationDate)
-                            .formatToTimeString()),
+                        stringResource(
+                            R.string.create_at,
+                            DateParser.parseISO8601Date(searchLevelResult.creationDate)
+                                .formatToTimeString()
+                        ),
                         modifier = Modifier.sharedElement(
                             sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_creationDate"),
                             animatedContentScope
                         )
                     )
                     Text(
-                        stringResource(R.string.update_at, DateParser.parseISO8601Date(searchLevelResult.modificationDate)
-                            .formatToTimeString()),
+                        stringResource(
+                            R.string.update_at,
+                            DateParser.parseISO8601Date(searchLevelResult.modificationDate)
+                                .formatToTimeString()
+                        ),
                         modifier = Modifier.sharedElement(
                             sharedTransitionScope.rememberSharedContentState("${searchLevelResult.id}_modificationDate"),
                             animatedContentScope
@@ -689,7 +718,7 @@ private fun MusicPreviewButton(
                             DefaultHttpDataSource.Factory()
                                 .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
                         ).createMediaSource(
-                            MediaItem.Builder().setUri(Uri.parse(musicPreviewUrl)).build()
+                            MediaItem.Builder().setUri(musicPreviewUrl!!.toUri()).build()
                         )
                     )
                     prepare()

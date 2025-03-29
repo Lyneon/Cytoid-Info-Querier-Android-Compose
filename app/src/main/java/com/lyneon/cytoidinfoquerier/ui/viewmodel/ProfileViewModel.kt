@@ -90,7 +90,10 @@ class ProfileViewModel(
                     )
                 )
             }
-        }.invokeOnCompletion { setIsQuerying(false) }
+        }.invokeOnCompletion {
+            setIsQuerying(false)
+            updateUIState { copy(foldTextFiled = true) }
+        }
     }
 
     private fun updateUIState(update: ProfileUiState.() -> ProfileUiState) {

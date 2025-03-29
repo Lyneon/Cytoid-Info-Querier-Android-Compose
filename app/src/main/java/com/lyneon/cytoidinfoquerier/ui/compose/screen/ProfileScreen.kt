@@ -1,7 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.Intent
-import android.net.Uri
 import android.text.Layout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
@@ -51,6 +50,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -64,6 +64,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
@@ -82,6 +84,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -90,6 +94,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -131,23 +136,23 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.fixed
-import com.patrykandpatrick.vico.compose.common.component.rememberLayeredComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.component.shadow
-import com.patrykandpatrick.vico.compose.common.dimensions
+import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.insets
 import com.patrykandpatrick.vico.compose.common.shape.markerCorneredShape
 import com.patrykandpatrick.vico.compose.common.shape.toComposeShape
 import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
-import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
@@ -157,24 +162,25 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalLine
+import com.patrykandpatrick.vico.core.cartesian.layer.CartesianLayerDimensions
+import com.patrykandpatrick.vico.core.cartesian.layer.CartesianLayerMargins
+import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
-import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
-import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarkerValueFormatter
-import com.patrykandpatrick.vico.core.common.Dimensions
-import com.patrykandpatrick.vico.core.common.HorizontalPosition
 import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.LayeredComponent
-import com.patrykandpatrick.vico.core.common.VerticalPosition
+import com.patrykandpatrick.vico.core.common.Position
 import com.patrykandpatrick.vico.core.common.component.Shadow
 import com.patrykandpatrick.vico.core.common.component.ShapeComponent
 import com.patrykandpatrick.vico.core.common.component.TextComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
-import com.patrykandpatrick.vico.core.common.shape.Corner
+import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.tencent.mmkv.MMKV
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -211,27 +217,38 @@ fun ProfileScreen(
     }
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutLoaded by rememberSaveable { mutableStateOf(false) }
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val nestedScrollConnection = topAppBarScrollBehavior.nestedScrollConnection
 
-    if (withInitials && !initialLoaded) {
-        val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
-        val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
-        if (initialCytoidID != null && initialCacheTime != null) {
-            viewModel.setCytoidID(initialCytoidID)
-            viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
+    LaunchedEffect(Unit) {
+        if (withInitials && !initialLoaded) {
+            launch {
+                val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
+                val initialCacheTime =
+                    navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+                if (initialCytoidID != null && initialCacheTime != null) {
+                    viewModel.setCytoidID(initialCytoidID)
+                    viewModel.loadSpecificCacheProfileScreenDataModel(initialCacheTime)
+                    viewModel.setFoldTextFiled(true)
+                }
+                initialLoaded = true
+            }
         }
-        initialLoaded = true
-    }
-    if (withShortcut && !shortcutLoaded) {
-        val appUserID =
-            MMKV.mmkvWithID(MMKVId.AppSettings.id)
-                .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
-        if (appUserID != null) {
-            viewModel.setCytoidID(appUserID)
+        if (withShortcut && !shortcutLoaded) {
+            launch {
+                val appUserID =
+                    MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                        .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+                if (appUserID != null) {
+                    viewModel.setCytoidID(appUserID)
+                }
+                awaitFrame()
+                if (uiState.canQuery()) {
+                    viewModel.enqueueQuery()
+                }
+                shortcutLoaded = true
+            }
         }
-        if (uiState.canQuery()) {
-            viewModel.enqueueQuery()
-        }
-        shortcutLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {
@@ -244,44 +261,7 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = stringResource(id = R.string.profile)) },
-                actions = {
-                    if (uiState.foldTextFiled) {
-                        IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = "展开输入框"
-                            )
-                        }
-                    }
-                    IconButton(onClick = {
-                        viewModel.setExpandAnalyticsOptionsDropdownMenu(true)
-                    }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
-                        DropdownMenu(
-                            expanded = uiState.expandAnalyticsOptionsDropdownMenu,
-                            onDismissRequest = {
-                                viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
-                            }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(text = stringResource(id = R.string.history)) },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.History,
-                                        contentDescription = null
-                                    )
-                                },
-                                onClick = {
-                                    navController.navigate(MainActivity.Screen.ProfileHistory.route)
-                                    viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
-                                }
-                            )
-                        }
-                    }
-                }
-            )
+            TopBar(uiState, viewModel, navController, topAppBarScrollBehavior)
         },
         floatingActionButton = {
             AnimatedVisibility(visible = playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
@@ -319,12 +299,62 @@ fun ProfileScreen(
                         it.profileGraphQL,
                         it.commentList,
                         exoPlayer,
-                        playbackState
+                        playbackState,
+                        nestedScrollConnection
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TopBar(
+    uiState: ProfileUiState,
+    viewModel: ProfileViewModel,
+    navController: NavController,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior
+) {
+    CenterAlignedTopAppBar(
+        title = { Text(text = stringResource(id = R.string.profile)) },
+        actions = {
+            if (uiState.foldTextFiled) {
+                IconButton(onClick = { viewModel.setFoldTextFiled(false) }) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "展开输入框"
+                    )
+                }
+            }
+            IconButton(onClick = {
+                viewModel.setExpandAnalyticsOptionsDropdownMenu(true)
+            }) {
+                Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
+                DropdownMenu(
+                    expanded = uiState.expandAnalyticsOptionsDropdownMenu,
+                    onDismissRequest = {
+                        viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                    }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(id = R.string.history)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            navController.navigate(MainActivity.Screen.ProfileHistory.route)
+                            viewModel.setExpandAnalyticsOptionsDropdownMenu(false)
+                        }
+                    )
+                }
+            }
+        },
+        scrollBehavior = topAppBarScrollBehavior
+    )
 }
 
 @Composable
@@ -443,10 +473,13 @@ private fun ResultDisplayColumn(
     profileGraphQL: ProfileGraphQL?,
     profileCommentList: List<ProfileComment>?,
     exoPlayer: ExoPlayer,
-    playbackState: Int
+    playbackState: Int,
+    topAppBarNestedScrollConnection: NestedScrollConnection
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .nestedScroll(topAppBarNestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(
             top = 8.dp,
@@ -536,16 +569,7 @@ private fun BiographyCard(profileGraphQL: ProfileGraphQL) {
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
-                        IconButton(onClick = { folded = !folded }) {
-                            Icon(
-                                imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (folded) {
-                                    stringResource(R.string.unfold)
-                                } else {
-                                    stringResource(R.string.fold)
-                                }
-                            )
-                        }
+                        FoldExpandButton(folded) { folded = !folded }
                     }
                     AnimatedVisibility(visible = !folded) {
                         Column(
@@ -580,16 +604,7 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
+                    FoldExpandButton(folded) { folded = !folded }
                 }
                 AnimatedVisibility(visible = !folded) {
                     SelectionContainer {
@@ -606,7 +621,10 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
                                             text = it.title,
                                             style = MaterialTheme.typography.titleLarge
                                         )
-                                        it.description?.let { it1 -> Text(text = it1) }
+                                        it.description?.let { it1 ->
+                                            HorizontalDivider()
+                                            Text(text = it1)
+                                        }
                                     }
                                 }
                             }
@@ -617,53 +635,6 @@ private fun BadgesCard(profileGraphQL: ProfileGraphQL) {
         }
     }
 }
-/*
-@Composable
-private fun RecentRecordsCard(profileGraphQL: ProfileGraphQL, keep2DecimalPlace: Boolean) {
-    profileGraphQL.data.profile?.let { profile ->
-        Card {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
-            ) {
-                var folded by rememberSaveable { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "最新游玩纪录（共${profile.recentRecords.size}个）",
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.CenterVertically),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
-                }
-                AnimatedVisibility(visible = !folded) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        profile.recentRecords.forEach {
-                            RecordCard(record = it, keep2DecimalPlaces = keep2DecimalPlace)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-*/
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -849,6 +820,7 @@ private fun DetailsChart(
     dataTimeSeries: List<ProfileDetails.TimeSeriesItem>,
     keep2DecimalPlace: Boolean = true
 ) {
+    // vico示例项目中的点标志
     class ChartMarker {
         private val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
         private val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
@@ -858,40 +830,40 @@ private fun DetailsChart(
         fun rememberMarker(
             labelPosition: DefaultCartesianMarker.LabelPosition = DefaultCartesianMarker.LabelPosition.Top,
             showIndicator: Boolean = true,
-            valueFormatter: CartesianMarkerValueFormatter = DefaultCartesianMarkerValueFormatter()
+            valueFormatter: DefaultCartesianMarker.ValueFormatter = DefaultCartesianMarker.ValueFormatter.default()
         ): CartesianMarker {
-            val mLabelBackgroundShape = markerCorneredShape(Corner.FullyRounded)
+            val mLabelBackgroundShape = markerCorneredShape(CorneredShape.Pill)
             val mLabelBackground =
                 rememberShapeComponent(
-                    color = MaterialTheme.colorScheme.surfaceBright,
+                    fill = fill(MaterialTheme.colorScheme.surfaceBright),
                     shape = mLabelBackgroundShape,
                     shadow = shadow(
                         radius = LABEL_BACKGROUND_SHADOW_RADIUS_DP.dp,
-                        dy = LABEL_BACKGROUND_SHADOW_DY_DP.dp,
+                        y = LABEL_BACKGROUND_SHADOW_DY_DP.dp,
                     ),
                 )
             val mLabel =
                 rememberTextComponent(
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlignment = Layout.Alignment.ALIGN_CENTER,
-                    padding = dimensions(8.dp, 4.dp),
+                    padding = insets(8.dp, 4.dp),
                     background = mLabelBackground,
                     minWidth = TextComponent.MinWidth.fixed(40.dp),
                 )
             val mIndicatorFrontComponent =
-                rememberShapeComponent(MaterialTheme.colorScheme.surface, CorneredShape.Pill)
+                rememberShapeComponent(fill(MaterialTheme.colorScheme.surface), CorneredShape.Pill)
             val mIndicatorCenterComponent = rememberShapeComponent(shape = CorneredShape.Pill)
             val mIndicatorRearComponent = rememberShapeComponent(shape = CorneredShape.Pill)
             val mIndicator =
-                rememberLayeredComponent(
-                    rear = mIndicatorRearComponent,
+                LayeredComponent(
+                    back = mIndicatorRearComponent,
                     front =
-                    rememberLayeredComponent(
-                        rear = mIndicatorCenterComponent,
-                        front = mIndicatorFrontComponent,
-                        padding = dimensions(5.dp),
-                    ),
-                    padding = dimensions(10.dp),
+                        LayeredComponent(
+                            back = mIndicatorCenterComponent,
+                            front = mIndicatorFrontComponent,
+                            padding = insets(5.dp),
+                        ),
+                    padding = insets(10.dp),
                 )
             val mGuideline = rememberAxisGuidelineComponent()
             return remember(mLabel, labelPosition, mIndicator, showIndicator, mGuideline) {
@@ -900,36 +872,36 @@ private fun DetailsChart(
                         label = mLabel,
                         labelPosition = labelPosition,
                         indicator =
-                        if (showIndicator) {
-                            { color ->
-                                LayeredComponent(
-                                    rear = ShapeComponent(
-                                        Color(color).copy(alpha = 0.15f).toArgb(),
-                                        CorneredShape.Pill
-                                    ),
-                                    front =
+                            if (showIndicator) {
+                                { color ->
                                     LayeredComponent(
-                                        rear = ShapeComponent(
-                                            color = color,
-                                            shape = CorneredShape.Pill,
-                                            shadow = Shadow(radiusDp = 12f, color = color),
+                                        back = ShapeComponent(
+                                            fill(Color(color).copy(alpha = 0.15f)),
+                                            CorneredShape.Pill
                                         ),
-                                        front = mIndicatorFrontComponent,
-                                        padding = dimensions(5.dp),
-                                    ),
-                                    padding = dimensions(10.dp),
-                                )
-                            }
-                        } else null,
+                                        front =
+                                            LayeredComponent(
+                                                back = ShapeComponent(
+                                                    fill = fill(Color(color)),
+                                                    shape = CorneredShape.Pill,
+                                                    shadow = Shadow(radiusDp = 12f, color = color),
+                                                ),
+                                                front = mIndicatorFrontComponent,
+                                                padding = insets(5.dp),
+                                            ),
+                                        padding = insets(10.dp),
+                                    )
+                                }
+                            } else null,
                         indicatorSizeDp = 36f,
                         guideline = mGuideline,
                         valueFormatter = valueFormatter
                     ) {
-                    override fun updateInsets(
+                    override fun updateLayerMargins(
                         context: CartesianMeasuringContext,
-                        horizontalDimensions: HorizontalDimensions,
-                        model: CartesianChartModel,
-                        insets: Insets,
+                        layerMargins: CartesianLayerMargins,
+                        layerDimensions: CartesianLayerDimensions,
+                        model: CartesianChartModel
                     ) {
                         with(context) {
                             val baseShadowInsetDp =
@@ -944,8 +916,9 @@ private fun DetailsChart(
 
                                 LabelPosition.Bottom -> bottomInset += mLabel.getHeight(context) + tickSizeDp.pixels
                                 LabelPosition.AroundPoint -> {}
+                                LabelPosition.BelowPoint -> {}
                             }
-                            insets.ensureValuesAtLeast(top = topInset, bottom = bottomInset)
+                            layerMargins.ensureValuesAtLeast(top = topInset, bottom = bottomInset)
                         }
                     }
                 }
@@ -953,16 +926,26 @@ private fun DetailsChart(
         }
     }
 
+    // 当前查看的数据集
     var tabIndex by rememberSaveable { mutableIntStateOf(0) }
-    val timeSeries = dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } }
+    // 数据集映射
+    val timeSeries =
+        remember { dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } } }
     val ratingSeries =
-        timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
-    val countSeries = timeSeries.map { it.count }
-    val accuracySeries =
-        timeSeries.map { (it.accuracy * 100).apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
+        remember { timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } } }
+    val countSeries = remember { timeSeries.map { it.count } }
+    val accuracySeries = remember {
+        timeSeries.map {
+            (it.accuracy * 100).apply {
+                if (keep2DecimalPlace) setPrecision(2).toDouble()
+            }
+        }
+    }
+
     val cartesianChartModelProducer by remember { mutableStateOf(CartesianChartModelProducer()) }
     val context = LocalContext.current
 
+    // 更新展示的数据集
     LaunchedEffect(tabIndex) {
         if (timeSeries.isEmpty()) return@LaunchedEffect
         withContext(Dispatchers.Default) {
@@ -1010,46 +993,63 @@ private fun DetailsChart(
             }
         }
         ProvideVicoTheme(rememberM3VicoTheme()) {
+            val lineProvider =
+                LineCartesianLayer.LineProvider.series(vicoTheme.lineCartesianLayerColors.map { color ->
+                    LineCartesianLayer.rememberLine(
+                        // 折线下方的渐变颜色区域填充效果
+                        areaFill = LineCartesianLayer.AreaFill.single(
+                            fill(
+                                ShaderProvider.verticalGradient(
+                                    color.copy(alpha = 0.7f).toArgb(),
+                                    color.copy(alpha = 0f).toArgb()
+                                )
+                            )
+                        ),
+                        // 折现类型改为曲线
+                        pointConnector = LineCartesianLayer.PointConnector.cubic()
+                    )
+                })
+            val columnProvider =
+                ColumnCartesianLayer.ColumnProvider.series(vicoTheme.columnCartesianLayerColors.map { color ->
+                    rememberLineComponent(
+                        // 数据柱颜色改为主题色
+                        fill = fill(color),
+                        // 数据柱形状改为顶部圆角的矩形
+                        shape = CorneredShape.rounded(topLeftPercent = 50, topRightPercent = 50),
+                        // 数据柱宽度
+                        thickness = 16.dp
+                    )
+                })
+            // 让图表y轴底部从数据集的最小值开始而不是从0开始，避免数据都离0过远而挤在一起
+            val rangeProvider = object : CartesianLayerRangeProvider {
+                override fun getMinY(
+                    minY: Double,
+                    maxY: Double,
+                    extraStore: ExtraStore
+                ): Double {
+                    return minY
+                }
+            }
+
             CartesianChartHost(
                 modelProducer = cartesianChartModelProducer,
                 chart = rememberCartesianChart(
+                    // 针对不同的数据集，分别展示折线图和柱状图
                     layers = arrayOf(
                         rememberLineCartesianLayer(
-                            rangeProvider = object : CartesianLayerRangeProvider {
-                                override fun getMinY(
-                                    minY: Double,
-                                    maxY: Double,
-                                    extraStore: ExtraStore
-                                ): Double {
-                                    return minY
-                                }
-                            }
+                            lineProvider = lineProvider,
+                            rangeProvider = rangeProvider
                         ),
                         rememberColumnCartesianLayer(
-                            rangeProvider = object :
-                                CartesianLayerRangeProvider {
-                                override fun getMinY(
-                                    minY: Double,
-                                    maxY: Double,
-                                    extraStore: ExtraStore
-                                ): Double {
-                                    return minY
-                                }
-                            }
+                            columnProvider = columnProvider,
+                            rangeProvider = rangeProvider
                         ),
                         rememberLineCartesianLayer(
-                            rangeProvider = object :
-                                CartesianLayerRangeProvider {
-                                override fun getMinY(
-                                    minY: Double,
-                                    maxY: Double,
-                                    extraStore: ExtraStore
-                                ): Double {
-                                    return minY
-                                }
-                            }
+                            lineProvider = lineProvider,
+                            rangeProvider = rangeProvider
                         )
                     ),
+                    // 图表左边框
                     startAxis = VerticalAxis.rememberStart(
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
                         valueFormatter = { _, value, _ ->
@@ -1069,10 +1069,12 @@ private fun DetailsChart(
                             }
                         }
                     ),
+                    // 图表右边框
                     endAxis = VerticalAxis.rememberEnd(
                         horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Inside,
                         itemPlacer = VerticalAxis.ItemPlacer.count({ 0 })
                     ),
+                    // 图表底边框
                     bottomAxis = HorizontalAxis.rememberBottom(
                         valueFormatter = { _, value, _ ->
                             if (value.toInt() < timeSeries.size) {
@@ -1082,6 +1084,7 @@ private fun DetailsChart(
                         labelRotationDegrees = 90f,
                         label = rememberAxisLabelComponent(minWidth = TextComponent.MinWidth.text("YYYYwWW"))
                     ),
+                    // 选中数据点时展示的标志
                     marker = ChartMarker().rememberMarker(
                         valueFormatter = { _, targets ->
                             val xIndex = targets.first().x.toInt()
@@ -1107,6 +1110,7 @@ private fun DetailsChart(
                             }"
                         }
                     ),
+                    // 装饰线，这里展示的是平均值线
                     decorations = listOf(
                         HorizontalLine(
                             y = {
@@ -1118,7 +1122,7 @@ private fun DetailsChart(
                                 }
                             },
                             line = rememberLineComponent(
-                                color = MaterialTheme.colorScheme.primary,
+                                fill = fill(MaterialTheme.colorScheme.primary),
                                 thickness = 2.dp
                             ),
                             label = {
@@ -1152,13 +1156,13 @@ private fun DetailsChart(
                                     }.run { if (tabIndex == 2) "${this}%" else this }
                                 }"
                             },
-                            horizontalLabelPosition = HorizontalPosition.End,
-                            verticalLabelPosition = VerticalPosition.Bottom,
+                            horizontalLabelPosition = Position.Horizontal.End,
+                            verticalLabelPosition = Position.Vertical.Bottom,
                             labelComponent = TextComponent(
-                                margins = Dimensions(4f),
-                                padding = Dimensions(8f, 8f),
+                                margins = Insets(4f),
+                                padding = Insets(8f, 8f),
                                 background = ShapeComponent(
-                                    MaterialTheme.colorScheme.surfaceContainer.toArgb(),
+                                    fill(MaterialTheme.colorScheme.surfaceContainer),
                                     CorneredShape.rounded(8f)
                                 ),
                                 lineCount = 3,
@@ -1167,6 +1171,7 @@ private fun DetailsChart(
                         )
                     )
                 ),
+                // 滚动状态，初始滚动到最后一个点（时间上最新的数据）
                 scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End)
             )
         }
@@ -1177,52 +1182,44 @@ private fun DetailsChart(
 @Composable
 private fun CollectionsCard(profileGraphQL: ProfileGraphQL) {
     profileGraphQL.data.profile?.user?.let { user ->
-        Card {
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                var folded by rememberSaveable { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+        if (user.collectionsCount != 0) {
+            Card {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "${stringResource(R.string.uploaded_collections)}（${user.collectionsCount}）",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
-                }
+                    var folded by rememberSaveable { mutableStateOf(false) }
 
-                AnimatedVisibility(visible = !folded) {
-                    HorizontalMultiBrowseCarousel(
-                        state = rememberCarouselState { user.collectionsCount },
-                        preferredItemWidth = min(
-                            384.dp,
-                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
-                        ),
-                        itemSpacing = 8.dp
-                    ) { itemIndex ->
-                        CollectionCard(
-                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
-                            collection = user.collections[itemIndex]
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "${stringResource(R.string.uploaded_collections)}（${user.collectionsCount}）",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.align(Alignment.CenterVertically)
                         )
+                        FoldExpandButton(folded) { folded = !folded }
+                    }
+
+                    AnimatedVisibility(visible = !folded) {
+                        HorizontalMultiBrowseCarousel(
+                            state = rememberCarouselState { user.collectionsCount },
+                            preferredItemWidth = min(
+                                384.dp,
+                                LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                            ),
+                            itemSpacing = 8.dp
+                        ) { itemIndex ->
+                            CollectionCard(
+                                modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                                collection = user.collections[itemIndex]
+                            )
+                        }
                     }
                 }
             }
         }
-
     }
 }
 
@@ -1293,49 +1290,42 @@ private fun CollectionCard(
 @Composable
 private fun LevelsCard(profileGraphQL: ProfileGraphQL, exoPlayer: ExoPlayer, playbackState: Int) {
     profileGraphQL.data.profile?.user?.let { user ->
-        Card {
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                var folded by rememberSaveable { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+        if (user.levelsCount != 0) {
+            Card {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "${stringResource(R.string.uploaded_levels)}（${user.levelsCount}）",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                    IconButton(onClick = { folded = !folded }) {
-                        Icon(
-                            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (folded) {
-                                stringResource(R.string.unfold)
-                            } else {
-                                stringResource(R.string.fold)
-                            }
-                        )
-                    }
-                }
+                    var folded by rememberSaveable { mutableStateOf(false) }
 
-                AnimatedVisibility(visible = !folded) {
-                    HorizontalMultiBrowseCarousel(
-                        state = rememberCarouselState { user.levelsCount },
-                        preferredItemWidth = min(
-                            384.dp,
-                            LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
-                        ),
-                        itemSpacing = 8.dp
-                    ) { itemIndex ->
-                        LevelCard(
-                            modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
-                            level = user.levels[itemIndex],
-                            exoPlayer = exoPlayer,
-                            playbackState = playbackState
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "${stringResource(R.string.uploaded_levels)}（${user.levelsCount}）",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.align(Alignment.CenterVertically)
                         )
+                        FoldExpandButton(folded) { folded = !folded }
+                    }
+
+                    AnimatedVisibility(visible = !folded) {
+                        HorizontalMultiBrowseCarousel(
+                            state = rememberCarouselState { user.levelsCount },
+                            preferredItemWidth = min(
+                                384.dp,
+                                LocalConfiguration.current.screenWidthDp.dp.times(0.8f)
+                            ),
+                            itemSpacing = 8.dp
+                        ) { itemIndex ->
+                            LevelCard(
+                                modifier = Modifier.maskClip(MaterialTheme.shapes.medium),
+                                level = user.levels[itemIndex],
+                                exoPlayer = exoPlayer,
+                                playbackState = playbackState
+                            )
+                        }
                     }
                 }
             }
@@ -1414,7 +1404,7 @@ private fun LevelCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(8.dp)
                 ) {
-                    level.charts.forEach { chart ->
+                    level.charts.sortedBy { it.difficulty }.forEach { chart ->
                         item {
                             DifficultyPillText(
                                 difficultyName = chart.name,
@@ -1453,7 +1443,7 @@ private fun LevelCard(
                             BaseApplication.context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
-                                    Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(level.uid))
+                                    CytoidDeepLink.getCytoidLevelDeepLink(level.uid).toUri()
                                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             )
                         } else context
@@ -1466,7 +1456,7 @@ private fun LevelCard(
                     modifier = Modifier.clickable {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://cytoid.io/levels/${level.uid}")
+                            "https://cytoid.io/levels/${level.uid}".toUri()
                         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         BaseApplication.context.startActivity(intent)
                     }
@@ -1520,7 +1510,7 @@ private fun LevelCardMusicPreviewButton(
                                     .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
                             ).createMediaSource(
                                 MediaItem.Builder()
-                                    .setUri(Uri.parse(musicPreviewUrl)).build()
+                                    .setUri(musicPreviewUrl.toUri()).build()
                             )
                         )
                         prepare()
@@ -1542,74 +1532,86 @@ private fun LevelCardMusicPreviewButton(
 
 @Composable
 private fun CommentList(commentList: List<ProfileComment>) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        var folded by rememberSaveable { mutableStateOf(false) }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+    if (commentList.isNotEmpty()) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "${stringResource(R.string.comment)}（${commentList.size}）",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-            IconButton(onClick = { folded = !folded }) {
-                Icon(
-                    imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (folded) {
-                        stringResource(R.string.unfold)
-                    } else {
-                        stringResource(R.string.fold)
-                    }
+            var folded by rememberSaveable { mutableStateOf(false) }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "${stringResource(R.string.comment)}（${commentList.size}）",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
+                FoldExpandButton(folded) { folded = !folded }
+            }
+
+            AnimatedVisibility(visible = !folded) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    commentList.forEach { comment ->
+                        CommentCard(comment)
+                    }
+                }
             }
         }
+    }
+}
 
-        AnimatedVisibility(visible = !folded) {
+@Composable
+private fun FoldExpandButton(folded: Boolean, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = if (folded) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+            contentDescription = if (folded) {
+                stringResource(R.string.unfold)
+            } else {
+                stringResource(R.string.fold)
+            }
+        )
+    }
+}
+
+@Composable
+private fun CommentCard(comment: ProfileComment) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        UserAvatar(
+            size = 48.dp,
+            userUid = comment.owner.uid,
+            remoteAvatarUrl = comment.owner.avatar.large
+        )
+        Card {
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                Modifier.padding(8.dp)
             ) {
-                commentList.forEach { comment ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        UserAvatar(
-                            size = 48.dp,
-                            userUid = comment.owner.uid,
-                            remoteAvatarUrl = comment.owner.avatar.large
+                Row {
+                    Text(
+                        text = comment.owner.uid,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.days_ago,
+                            (System.currentTimeMillis() - DateParser.parseISO8601Date(
+                                comment.date
+                            ).time).milliseconds.inWholeDays
                         )
-                        Card {
-                            Column(
-                                Modifier.padding(8.dp)
-                            ) {
-                                Row {
-                                    Text(
-                                        text = comment.owner.uid,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(
-                                            R.string.days_ago,
-                                            (System.currentTimeMillis() - DateParser.parseISO8601Date(
-                                                comment.date
-                                            ).time).milliseconds.inWholeDays
-                                        )
-                                    )
-                                }
-                                SelectionContainer {
-                                    Text(
-                                        text = comment.content,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    )
+                }
+                SelectionContainer {
+                    Text(
+                        text = comment.content,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }

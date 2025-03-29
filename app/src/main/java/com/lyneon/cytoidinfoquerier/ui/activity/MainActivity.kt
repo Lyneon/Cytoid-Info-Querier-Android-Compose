@@ -15,9 +15,11 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -133,7 +135,7 @@ class MainActivity : BaseActivity() {
                             ) {
                                 RailContent(
                                     navHostController = navHostController
-                                ) { mainActivity.finish() }
+                                )
                             }
                             MainContent(
                                 navHostController = navHostController,
@@ -318,10 +320,10 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
 
 @Composable
 private fun RailContent(
-    navHostController: NavHostController,
-    onExitButtonClick: () -> Unit
+    navHostController: NavHostController
 ) {
     var currentScreenRoute by rememberSaveable { mutableStateOf(MainActivity.Screen.Home.route) }
+    val activity = LocalActivity.current as MainActivity
 
     navHostController.addOnDestinationChangedListener { _, destination, _ ->
         currentScreenRoute = destination.route.toString()
@@ -330,8 +332,7 @@ private fun RailContent(
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(
@@ -340,6 +341,7 @@ private fun RailContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
         ) {
+            Spacer(Modifier.height(0.dp))
             NavigationRailItem(
                 selected = currentScreenRoute == MainActivity.Screen.Home.route,
                 onClick = {
@@ -428,11 +430,11 @@ private fun RailContent(
                 },
                 label = { Text(text = stringResource(R.string.tool)) }
             )
+            Spacer(Modifier.height(0.dp))
         }
         HorizontalDivider(modifier = Modifier.width(64.dp))
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        Column {
+            Spacer(Modifier.height(8.dp))
             NavigationRailItem(
                 selected = currentScreenRoute == MainActivity.Screen.Settings.route,
                 onClick = {
@@ -450,7 +452,8 @@ private fun RailContent(
                 },
                 label = { Text(text = stringResource(R.string.settings)) }
             )
-            Button(onClick = onExitButtonClick) {
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = { activity.finish() }) {
                 Column {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,

@@ -14,8 +14,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 21
-        versionName = "2.7.0-${getCurrentBranchName()}-${getCurrentCommitHash()}"
+        versionCode = 22
+        versionName = "2.7.1-${getCurrentCommitHash()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -38,6 +38,11 @@ android {
             )
             signingConfig = signingConfigs.getByName("debug")
         }
+
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -48,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        aidl = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
@@ -60,27 +66,27 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2025.02.00"
+    val composeBomVersion = "2025.03.01"
 
-    implementation("io.sentry:sentry-android:8.2.0")
+    implementation("io.sentry:sentry-android:8.4.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.tencent:mmkv:2.0.2")
-    implementation("androidx.navigation:navigation-compose:2.8.8")
+    implementation("com.tencent:mmkv:2.1.0")
+    implementation("androidx.navigation:navigation-compose:2.8.9")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("dev.shreyaspatil:capturable:3.0.0")
-    implementation("com.patrykandpatrick.vico:compose:2.0.0-beta.2")
+    implementation("com.patrykandpatrick.vico:compose:2.1.1")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
-    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation("androidx.media3:media3-exoplayer:1.6.0")
     implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
     implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
     implementation("com.github.jeziellago:compose-markdown:0.5.4")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("com.google.android.material:material:1.12.0")
-    implementation("dev.rikka.shizuku:api:12.1.0")
-    implementation("dev.rikka.shizuku:provider:12.1.0")
+    implementation("dev.rikka.shizuku:api:13.1.0")
+    implementation("dev.rikka.shizuku:provider:13.1.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
@@ -99,21 +105,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
-
-fun getCurrentBranchName(): String {
-    return try {
-        val process = ProcessBuilder("git", "branch", "--show-current")
-            .directory(project.rootDir)
-            .redirectErrorStream(true)
-            .start()
-        process.inputStream.bufferedReader().use {
-            it.readLine()?.trim()?.takeIf { str -> str.isNotEmpty() } ?: "unknownBranch"
-        }
-    } catch (e: Exception) {
-        "unknownBranch"
-    }
-}
-
 
 fun getCurrentCommitHash(): String {
     return try {

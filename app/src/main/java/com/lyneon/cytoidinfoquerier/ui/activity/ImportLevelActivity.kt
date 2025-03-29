@@ -1,7 +1,11 @@
 package com.lyneon.cytoidinfoquerier.ui.activity
 
+import android.content.ComponentName
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Launch
 import androidx.compose.material.icons.filled.MoveToInbox
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -26,11 +31,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,21 +41,60 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import com.lyneon.cytoidinfoquerier.BaseApplication
+import com.lyneon.cytoidinfoquerier.IFileService
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.CytoidConstant
+import com.lyneon.cytoidinfoquerier.service.FileService
 import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
+import com.lyneon.cytoidinfoquerier.util.extension.contentUriToPath
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 class ImportLevelActivity : ComponentActivity() {
+    var fileService: IFileService? = null
+    private var fileServiceAvailable by mutableStateOf(false)
+    private var shizukuAvailable = false
+    private val serviceArgs = Shizuku.UserServiceArgs(
+        ComponentName(
+            BaseApplication.context.packageName,
+            FileService::class.java.name
+        )
+    ).processNameSuffix("CIQ_FileService")
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName?,
+            service: IBinder?
+        ) {
+            if (service != null && service.pingBinder()) {
+                fileService = IFileService.Stub.asInterface(service) as IFileService
+                fileServiceAvailable = true
+                Log.d("ImportLevelActivity", "FileService connected")
+            } else {
+                Log.d("ImportLevelActivity", "Invalid binder")
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            fileService = null
+            fileServiceAvailable = false
+            Log.d("ImportLevelActivity", "FileService disconnected")
+        }
+    }
+    private val shizukuBinderReceivedListener =
+        Shizuku.OnBinderReceivedListener { shizukuAvailable = true }
+    private val shizukuBinderDeadListener =
+        Shizuku.OnBinderDeadListener { shizukuAvailable = false }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+        Shizuku.addBinderReceivedListenerSticky(shizukuBinderReceivedListener)
+        Shizuku.addBinderDeadListener(shizukuBinderDeadListener)
+        bindFileService()
 
         val intent = intent
 
@@ -76,37 +118,50 @@ class ImportLevelActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         val data = intent.data
+                        Log.d("ImportLevelActivity", data.toString())
                         data?.let {
-                            var sourcePath by remember {
-                                mutableStateOf(data.toString().run {
-                                    this.substring(this.lastIndexOf("/storage/emulated/0/"))
-                                })
+                            Log.d("ImportLevelActivity", data.toString())
+                            var sourceFilePath by remember {
+                                mutableStateOf(
+                                    data.contentUriToPath() ?: ""
+                                )
                             }
-                            val targetPath =
+                            val targetDirectoryPath =
                                 "/storage/emulated/0/Android/data/me.tigerhix.cytoid/files/Cytoid/"
-                            var commandOutput by remember { mutableStateOf("") }
-                            val scope = rememberCoroutineScope()
 
                             Card(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(
-                                    modifier = Modifier.padding(12.dp)
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     val shizukuIntent =
                                         packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
 
                                     Text(
-                                        text = sourcePath.substringAfterLast("/"),
+                                        text = sourceFilePath.substringAfterLast("/"),
                                         style = MaterialTheme.typography.titleLarge
                                     )
-                                    Text(text = "Uri: $data")
-                                    TextField(
-                                        value = sourcePath,
-                                        onValueChange = { sourcePath = it },
+                                    Text(text = "原始Uri：$data")
+                                    OutlinedTextField(
+                                        value = sourceFilePath,
+                                        onValueChange = { sourceFilePath = it },
                                         label = { Text(text = "绝对路径") },
                                         modifier = Modifier.fillMaxWidth()
                                     )
+                                    Text(text = "Shizuku文件服务：${if (!fileServiceAvailable) "不" else ""}可用")
+                                    androidx.compose.animation.AnimatedVisibility(!fileServiceAvailable) {
+                                        Button(onClick = { bindFileService() }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Refresh,
+                                                contentDescription = "重试连接服务",
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(text = "重试连接服务")
+                                        }
+                                    }
                                     Button(
                                         onClick = {
                                             startActivity(shizukuIntent)
@@ -127,40 +182,18 @@ class ImportLevelActivity : ComponentActivity() {
                                     ) {
                                         Button(
                                             onClick = {
-                                                val shizuku = Shizuku.getBinder()
-                                                if (shizuku == null || !Shizuku.pingBinder()) {
-                                                    "未连接到Shizuku！".showToast()
-                                                    return@Button
-                                                }
-                                                if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                                                    Shizuku.requestPermission(1)
-                                                    return@Button
-                                                }
-                                                if (Shizuku.getVersion() < 14) {
-                                                    val process = Shizuku.newProcess(
-                                                        arrayOf("sh"),
-                                                        null,
-                                                        null
-                                                    )
-                                                    process.outputStream.use {
-                                                        it.write(("cp -v $sourcePath $targetPath\nexit\n").toByteArray())
-                                                        it.flush()
-                                                    }
-                                                    scope.launch(Dispatchers.IO) {
-                                                        val exitCode = process.waitFor()
-                                                        process.inputStream.use {
-                                                            it.reader().use { reader ->
-                                                                commandOutput =
-                                                                    "${reader.readText()}\n进程已结束，退出码为$exitCode"
-                                                            }
-                                                        }
-                                                    }
-                                                    "已执行导入操作！请自行进入游戏查看导入结果。".showToast()
+                                                val result = fileService?.copyFileTo(
+                                                    sourceFilePath,
+                                                    targetDirectoryPath
+                                                ) ?: false
+                                                if (result) {
+                                                    "已完成导入操作".showToast()
                                                 } else {
-                                                    // Shizuku 14 is still not released
+                                                    "导入失败".showToast()
                                                 }
                                             },
-                                            modifier = Modifier.weight(1f)
+                                            modifier = Modifier.weight(1f),
+                                            enabled = fileServiceAvailable && sourceFilePath.isNotEmpty()
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.MoveToInbox,
@@ -187,13 +220,6 @@ class ImportLevelActivity : ComponentActivity() {
                                             Text(text = "启动Cytoid")
                                         }
                                     }
-                                    OutlinedTextField(
-                                        value = commandOutput,
-                                        onValueChange = {},
-                                        label = { Text(text = "命令输出") },
-                                        readOnly = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
                                 }
                             }
                         } ?: run {
@@ -201,6 +227,43 @@ class ImportLevelActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Shizuku.removeBinderReceivedListener(shizukuBinderReceivedListener)
+        Shizuku.removeBinderDeadListener(shizukuBinderDeadListener)
+    }
+
+    private fun bindFileService() {
+        if (shizukuAvailable) {
+            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                Shizuku.requestPermission(1)
+            } else {
+                Shizuku.bindUserService(serviceArgs, serviceConnection)
+                Log.d("ImportLevelActivity", "bindUserService")
+            }
+        }
+    }
+
+    private fun unbindFileService() {
+        Shizuku.unbindUserService(serviceArgs, serviceConnection, true)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        deviceId: Int
+    ) {
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    getString(R.string.shizuku_needed).showToast()
+                }
+                bindFileService()
             }
         }
     }

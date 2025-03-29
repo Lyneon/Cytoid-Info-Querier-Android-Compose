@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Cytoid Info Querier</string>
     <string name="cytoid_id">Cytoid ID</string>
     <string name="copy">复制</string>
@@ -35,7 +35,7 @@
     <string name="enable_sentry">启用Sentry</string>
     <string name="changes_need_restart_to_enable">需要重启应用程序使更改生效</string>
     <string name="delete_cache_image">删除缓存图像</string>
-    <string name="delete_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等图像缓存</string>
+    <string name="delete_image_cache_confirm">确定要删除所有图像缓存吗？这包括用户头像，谱面曲绘等图像缓存</string>
     <string name="cytoid_resource_declare">本应用中的部分图片资源来自于Cytoid项目，数据来源于cytoid.io。在GNU General Public License v3.0许可证下使用</string>
     <string name="fail">操作失败</string>
     <string name="all_contents">全部内容</string>
@@ -180,7 +180,7 @@
     <string name="invalid_rank_count">无效的的排名数量</string>
     <string name="fetching_top_ranks">获取榜首排行前%s位排名(1/1)</string>
     <string name="unknown_error">未知错误</string>
-    <string name="fetching_user_id">获取%s的ID(1/2)</string>
+    <string name="fetching_user_id" tools:ignore="TypographyFractions">获取%s的ID(1/2)</string>
     <string name="fetching_user_ranks">获取%s及附近的%s位排名(2/2)</string>
     <string name="rating_calculator">Rating 计算器</string>
     <string name="difficulty_level">难度级别</string>
@@ -202,4 +202,12 @@
     <string name="not_installed">未安装</string>
     <string name="image_saved_into_media">图片已保存至媒体库</string>
     <string name="save_failed">保存失败</string>
+    <string name="check_update_failed">检查更新失败</string>
+    <string name="delete_query_cache_confirm">确定要删除所有查询缓存吗？</string>
+    <string name="shizuku_not_available">Shizuku服务不可用！</string>
+    <string name="shizuku_needed">使用此功能需要Shizuku权限！</string>
+    <string name="local_levels">本地关卡</string>
+    <string name="import_level">导入关卡</string>
+    <string name="select_file">选择文件</string>
+    <string name="no_username">无用户名称</string>
 </resources>

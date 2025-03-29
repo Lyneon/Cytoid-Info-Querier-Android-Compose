@@ -2,7 +2,6 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -28,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -68,9 +68,11 @@ fun WebViewScreen(navController: NavController, navBackStackEntry: NavBackStackE
                 },
                 actions = {
                     IconButton(onClick = {
-                        CustomTabsIntent.Builder().setShowTitle(true)
-                            .setShareState(CustomTabsIntent.SHARE_STATE_OFF).build()
-                            .launchUrl(localContext, Uri.parse(currentUrl))
+                        currentUrl?.let {
+                            CustomTabsIntent.Builder().setShowTitle(true)
+                                .setShareState(CustomTabsIntent.SHARE_STATE_OFF).build()
+                                .launchUrl(localContext, it.toUri())
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.Default.OpenInBrowser,

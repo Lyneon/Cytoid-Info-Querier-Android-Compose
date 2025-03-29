@@ -29,11 +29,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,6 +50,8 @@ import java.net.URL
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(navController: NavController) {
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -59,7 +63,8 @@ fun AboutScreen(navController: NavController) {
                             contentDescription = stringResource(id = R.string.back)
                         )
                     }
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         }
     ) { paddingValues ->
@@ -67,6 +72,7 @@ fun AboutScreen(navController: NavController) {
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(horizontal = 12.dp)
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

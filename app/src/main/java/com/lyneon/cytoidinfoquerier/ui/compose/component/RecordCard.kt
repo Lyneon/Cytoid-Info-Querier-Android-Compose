@@ -1,8 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.component
 
-import android.content.ContentValues
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,7 +33,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -79,7 +77,7 @@ import java.net.URL
 import java.util.Locale
 import kotlin.concurrent.thread
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RecordCard(
     cytoidId: String,
@@ -114,7 +112,9 @@ fun RecordCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         LevelBackgroundImage(
-                            modifier = Modifier.fillMaxWidth().aspectRatio(1.6f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1.6f),
                             levelID = level.uid,
                             backgroundImageSize = ImageSize.Thumbnail,
                             remoteUrl = level.bundle?.backgroundImage?.thumbnail
@@ -161,7 +161,8 @@ fun RecordCard(
                                     BaseApplication.context.startActivity(
                                         Intent(
                                             Intent.ACTION_VIEW,
-                                            Uri.parse(CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid))
+                                            CytoidDeepLink.getCytoidLevelDeepLink(record.chart.level.uid)
+                                                .toUri()
                                         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     )
                                 } else BaseApplication.context
@@ -177,7 +178,7 @@ fun RecordCard(
                             } else {
                                 val intent = Intent(
                                     Intent.ACTION_VIEW,
-                                    Uri.parse("https://cytoid.io/levels/${record.chart.level.uid}")
+                                    "https://cytoid.io/levels/${record.chart.level.uid}".toUri()
                                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 BaseApplication.context.startActivity(intent)
                             }
@@ -296,13 +297,14 @@ private fun RecordCardMusicPreviewButton(
                             DefaultHttpDataSource.Factory()
                                 .setDefaultRequestProperties(mapOf("User-Agent" to "CytoidClient/2.1.1"))
                         ).createMediaSource(
-                            MediaItem.Builder().setUri(Uri.parse(musicPreviewUrl)).build()
+                            MediaItem.Builder().setUri(musicPreviewUrl!!.toUri()).build()
                         )
                     )
                     prepare()
                     play()
                 }
             },
+            enabled = musicPreviewUrl != null && (playbackState == ExoPlayer.STATE_IDLE || playbackState == ExoPlayer.STATE_ENDED),
             modifier = Modifier.padding(4.dp),
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {

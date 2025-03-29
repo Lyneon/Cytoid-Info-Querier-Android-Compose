@@ -6,6 +6,8 @@
 
     <queries>
         <package android:name="me.tigerhix.cytoid" />
+        <package android:name="moe.shizuku.privileged.api" />
+
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
@@ -19,11 +21,11 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locale_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CytoidInfoQuerierCompose"
-        tools:targetApi="upside_down_cake"
-        android:localeConfig="@xml/locale_config">
+        tools:targetApi="upside_down_cake">
 
         <meta-data
             android:name="io.sentry.auto-init"

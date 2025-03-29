@@ -50,6 +50,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -94,6 +97,7 @@ import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -129,54 +133,63 @@ fun AnalyticsScreen(
     }
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutPresetLoaded by rememberSaveable { mutableStateOf(false) }
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    if (withInitials && !initialLoaded) {
-        val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
-        val initialCacheType = navBackStackEntry.arguments?.getString("initialCacheType")
-        val initialCacheTime = navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
-        if (initialCytoidID != null && initialCacheType != null && initialCacheTime != null) {
-            viewModel.setCytoidID(initialCytoidID)
-            viewModel.updateProfileDetailsWithInnerScope()
-            if (initialCacheType == "BestRecords") {
-                viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords)
-                viewModel.loadSpecificCacheBestRecords(initialCacheTime)
-            } else {
-                viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords)
-                viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
+    LaunchedEffect(Unit) {
+        if (withInitials && !initialLoaded) {
+            launch {
+                val initialCytoidID = navBackStackEntry.arguments?.getString("initialCytoidID")
+                val initialCacheType = navBackStackEntry.arguments?.getString("initialCacheType")
+                val initialCacheTime =
+                    navBackStackEntry.arguments?.getString("initialCacheTime")?.toLong()
+                if (initialCytoidID != null && initialCacheType != null && initialCacheTime != null) {
+                    viewModel.setCytoidID(initialCytoidID)
+                    viewModel.updateProfileDetailsWithInnerScope()
+                    if (initialCacheType == "BestRecords") {
+                        viewModel.setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                        viewModel.loadSpecificCacheBestRecords(initialCacheTime)
+                    } else {
+                        viewModel.setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                        viewModel.loadSpecificCacheRecentRecords(initialCacheTime)
+                    }
+                }
+                initialLoaded = true
             }
         }
-        initialLoaded = true
-    }
-    if (withShortcutPreset && !shortcutPresetLoaded) {
-        val shortcutPreset = navBackStackEntry.arguments?.getString("shortcutPreset")
-        val appUserID =
-            MMKV.mmkvWithID(MMKVId.AppSettings.id)
-                .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
-        when (shortcutPreset) {
-            AnalyticsPreset.B30.name -> {
-                viewModel.run {
-                    setQueryType(AnalyticsUIState.QueryType.BestRecords)
-                    setQueryCount("30")
-                    setQueryOrder(RecordQueryOrder.DESC)
-                }
-            }
+        if (withShortcutPreset && !shortcutPresetLoaded) {
+            launch {
+                val shortcutPreset = navBackStackEntry.arguments?.getString("shortcutPreset")
+                val appUserID =
+                    MMKV.mmkvWithID(MMKVId.AppSettings.id)
+                        .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
+                when (shortcutPreset) {
+                    AnalyticsPreset.B30.name -> {
+                        viewModel.run {
+                            setQueryType(AnalyticsUIState.QueryType.BestRecords)
+                            setQueryCount("30")
+                            setQueryOrder(RecordQueryOrder.DESC)
+                        }
+                    }
 
-            AnalyticsPreset.R10.name -> {
-                viewModel.run {
-                    setQueryType(AnalyticsUIState.QueryType.RecentRecords)
-                    setQueryCount("10")
-                    setQuerySort(RecordQuerySort.RecentRating)
-                    setQueryOrder(RecordQueryOrder.DESC)
+                    AnalyticsPreset.R10.name -> {
+                        viewModel.run {
+                            setQueryType(AnalyticsUIState.QueryType.RecentRecords)
+                            setQueryCount("10")
+                            setQuerySort(RecordQuerySort.RecentRating)
+                            setQueryOrder(RecordQueryOrder.DESC)
+                        }
+                    }
                 }
+                if (appUserID != null) {
+                    viewModel.setCytoidID(appUserID)
+                }
+                awaitFrame()
+                if (uiState.canQuery()) {
+                    viewModel.enqueueQuery()
+                }
+                shortcutPresetLoaded = true
             }
         }
-        if (appUserID != null) {
-            viewModel.setCytoidID(appUserID)
-        }
-        if (uiState.canQuery()) {
-            viewModel.enqueueQuery()
-        }
-        shortcutPresetLoaded = true
     }
 
     LaunchedEffect(exoPlayer) {
@@ -230,7 +243,8 @@ fun AnalyticsScreen(
                             )
                         }
                     }
-                }
+                },
+                scrollBehavior = topAppBarScrollBehavior
             )
         },
         floatingActionButton = {
@@ -265,7 +279,8 @@ fun AnalyticsScreen(
                 recentRecords,
                 profileDetails,
                 exoPlayer,
-                playbackState
+                playbackState,
+                topAppBarScrollBehavior
             )
         }
     }
@@ -509,6 +524,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResultDisplayList(
     uiState: AnalyticsUIState,
@@ -516,7 +532,8 @@ private fun ResultDisplayList(
     recentRecords: RecentRecords?,
     profileDetails: ProfileDetails?,
     exoPlayer: ExoPlayer,
-    playbackState: Int
+    playbackState: Int,
+    topAppBarScrollBehavior: TopAppBarScrollBehavior
 ) {
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
@@ -533,7 +550,8 @@ private fun ResultDisplayList(
                 bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             ),
             verticalItemSpacing = 8.dp,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
         ) {
             profileDetails?.let {
                 item(span = StaggeredGridItemSpan.FullLine) {

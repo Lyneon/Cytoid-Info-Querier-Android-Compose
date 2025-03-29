@@ -1,5 +1,9 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
+import android.content.Intent
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.MoveToInbox
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -24,17 +29,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
+import com.lyneon.cytoidinfoquerier.ui.activity.ImportLevelActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ToolUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.ToolViewModel
 
@@ -44,10 +52,14 @@ fun ToolScreen(
     viewModel: ToolViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text(text = stringResource(id = R.string.tool)) })
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(id = R.string.tool)) },
+                scrollBehavior = topAppBarScrollBehavior
+            )
         }
     ) { paddingValues ->
         Column(
@@ -55,11 +67,13 @@ fun ToolScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 12.dp)
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             RatingCalculatorCard(uiState = uiState, viewModel = viewModel)
             PingSettingCard(uiState = uiState, viewModel = viewModel)
+            ImportLevelCard()
         }
     }
 }
@@ -80,7 +94,10 @@ fun RatingCalculatorCard(uiState: ToolUIState, viewModel: ToolViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(imageVector = Icons.Default.Calculate, contentDescription = null)
-                Text(text = stringResource(R.string.rating_calculator), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(R.string.rating_calculator),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
             OutlinedTextField(
                 value = uiState.ratingCalculatorAccuracy,
@@ -161,6 +178,49 @@ private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
             }
             if (uiState.pingResult.isNotEmpty()) {
                 Text(text = uiState.pingResult, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImportLevelCard() {
+    val activity = LocalActivity.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            val intent = Intent(activity!!, ImportLevelActivity::class.java).apply {
+                data = it
+            }
+            activity.startActivity(intent)
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(imageVector = Icons.Default.MoveToInbox, contentDescription = null)
+                Text(
+                    text = stringResource(R.string.import_level),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            Text(text = stringResource(R.string.shizuku_needed))
+            Button(onClick = {
+                launcher.launch(arrayOf("*/*"))
+            }) {
+                Text(text = stringResource(R.string.select_file))
             }
         }
     }

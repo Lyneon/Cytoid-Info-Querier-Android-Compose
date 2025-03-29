@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Cytoid Info Querier</string>
     <string name="cytoid_id">Cytoid ID</string>
     <string name="copy">Copy</string>
@@ -35,7 +35,7 @@
     <string name="enable_sentry">Enable Sentry</string>
     <string name="changes_need_restart_to_enable">Restart required to apply changes</string>
     <string name="delete_cache_image">Clear Image Cache</string>
-    <string name="delete_confirm">Confirm to delete all cached images? This includes avatars, level illustrations, etc.</string>
+    <string name="delete_image_cache_confirm">Confirm to delete all cached images? This includes avatars, level illustrations, etc.</string>
     <string name="cytoid_resource_declare">Some image resources are from Cytoid project. Data sourced from cytoid.io. Used under GNU General Public License v3.0</string>
     <string name="fail">Operation Failed</string>
     <string name="all_contents">All Contents</string>
@@ -180,7 +180,7 @@
     <string name="invalid_rank_count">Invalid rank count</string>
     <string name="fetching_top_ranks">Fetching top %s ranks (1/1)</string>
     <string name="unknown_error">Unknown error</string>
-    <string name="fetching_user_id">Fetching %s\'s ID (1/2)</string>
+    <string name="fetching_user_id" tools:ignore="TypographyFractions">Fetching %s\'s ID (1/2)</string>
     <string name="fetching_user_ranks">Fetching %s and nearby %s ranks (2/2)</string>
     <string name="rating_calculator">Rating Calculator</string>
     <string name="difficulty_level">Difficulty level</string>
@@ -202,4 +202,12 @@
     <string name="not_installed">Not installed</string>
     <string name="image_saved_into_media">Image saved to media library</string>
     <string name="save_failed">Save failed</string>
+    <string name="check_update_failed">检查更新失败</string>
+    <string name="delete_query_cache_confirm">确定要删除所有查询缓存吗？</string>
+    <string name="shizuku_not_available">Shizuku服务不可用！</string>
+    <string name="shizuku_needed">使用此功能需要Shizuku权限！</string>
+    <string name="local_levels">本地关卡</string>
+    <string name="import_level">导入关卡</string>
+    <string name="select_file">选择文件</string>
+    <string name="no_username">无用户名称</string>
 </resources>

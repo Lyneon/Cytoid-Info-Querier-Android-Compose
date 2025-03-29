@@ -10,6 +10,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.provider.MediaStore
 import androidx.core.content.contentValuesOf
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.graphics.drawable.toBitmap
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -57,7 +58,7 @@ fun Bitmap.getRoundedCornerBitmap(cornerRadius: Float): Bitmap {
     val width = this.width
     val height = this.height
 
-    val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val output = createBitmap(width, height)
     val canvas = Canvas(output)
     val paint = Paint().apply {
         isAntiAlias = true
