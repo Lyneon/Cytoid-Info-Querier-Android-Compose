@@ -7,7 +7,7 @@ data class LevelComment(
     val id: Int,
     val content: String,
     val date: String,
-    val owner: Owner
+    val owner: Owner? = null
 ) {
     @Serializable
     data class Owner(

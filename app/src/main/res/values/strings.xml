@@ -206,4 +206,8 @@
     <string name="delete_query_cache_confirm">确定要删除所有查询缓存吗？</string>
     <string name="shizuku_not_available">Shizuku服务不可用！</string>
     <string name="shizuku_needed">使用此功能需要Shizuku权限！</string>
+    <string name="local_levels">本地关卡</string>
+    <string name="import_level">导入关卡</string>
+    <string name="select_file">选择文件</string>
+    <string name="no_username">无用户名称</string>
 </resources>

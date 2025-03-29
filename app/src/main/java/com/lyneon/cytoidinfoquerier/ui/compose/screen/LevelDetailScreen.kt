@@ -1023,13 +1023,21 @@ private fun CommentListItem(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        UserAvatar(
-            modifier = Modifier.size(48.dp),
-            userUid = comment.owner.uid ?: comment.owner.id,
-            avatarSize = AvatarSize.Large,
-            remoteAvatarUrl = comment.owner.avatar.large ?: "",
-            size = 64.dp
-        )
+        comment.owner?.let {
+            UserAvatar(
+                modifier = Modifier.size(48.dp),
+                userUid = it.uid ?: it.id,
+                avatarSize = AvatarSize.Large,
+                remoteAvatarUrl = it.avatar.large ?: "",
+                size = 64.dp
+            )
+        } ?: Unit.also {
+            Image(
+                painter = painterResource(id = R.drawable.sayakacry),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+        }
         Card(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -1040,7 +1048,8 @@ private fun CommentListItem(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = comment.owner.uid ?: comment.owner.id,
+                    text = comment.owner?.let { it.uid ?: it.id }
+                        ?: stringResource(R.string.no_username),
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(text = comment.content)

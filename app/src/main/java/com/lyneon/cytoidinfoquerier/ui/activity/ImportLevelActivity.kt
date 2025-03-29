@@ -120,6 +120,7 @@ class ImportLevelActivity : ComponentActivity() {
                         val data = intent.data
                         Log.d("ImportLevelActivity", data.toString())
                         data?.let {
+                            Log.d("ImportLevelActivity", data.toString())
                             var sourceFilePath by remember {
                                 mutableStateOf(
                                     data.contentUriToPath() ?: ""
@@ -142,6 +143,7 @@ class ImportLevelActivity : ComponentActivity() {
                                         text = sourceFilePath.substringAfterLast("/"),
                                         style = MaterialTheme.typography.titleLarge
                                     )
+                                    Text(text = "原始Uri：$data")
                                     OutlinedTextField(
                                         value = sourceFilePath,
                                         onValueChange = { sourceFilePath = it },
@@ -150,20 +152,7 @@ class ImportLevelActivity : ComponentActivity() {
                                     )
                                     Text(text = "Shizuku文件服务：${if (!fileServiceAvailable) "不" else ""}可用")
                                     androidx.compose.animation.AnimatedVisibility(!fileServiceAvailable) {
-                                        Button(
-                                            onClick = {
-                                                bindFileService()
-                                                Log.d(
-                                                    "ImportLevelActivity",
-                                                    (fileService == null).toString()
-                                                )
-                                                Log.d(
-                                                    "ILA",
-                                                    fileServiceAvailable.toString()
-                                                )
-                                            },
-                                            enabled = shizukuIntent != null
-                                        ) {
+                                        Button(onClick = { bindFileService() }) {
                                             Icon(
                                                 imageVector = Icons.Default.Refresh,
                                                 contentDescription = "重试连接服务",

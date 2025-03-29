@@ -929,12 +929,18 @@ private fun DetailsChart(
     // 当前查看的数据集
     var tabIndex by rememberSaveable { mutableIntStateOf(0) }
     // 数据集映射
-    val timeSeries = dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } }
+    val timeSeries =
+        remember { dataTimeSeries.apply { sortedBy { it.date.replace("-", "").toInt() } } }
     val ratingSeries =
-        timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
-    val countSeries = timeSeries.map { it.count }
-    val accuracySeries =
-        timeSeries.map { (it.accuracy * 100).apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } }
+        remember { timeSeries.map { it.rating.apply { if (keep2DecimalPlace) setPrecision(2).toDouble() } } }
+    val countSeries = remember { timeSeries.map { it.count } }
+    val accuracySeries = remember {
+        timeSeries.map {
+            (it.accuracy * 100).apply {
+                if (keep2DecimalPlace) setPrecision(2).toDouble()
+            }
+        }
+    }
 
     val cartesianChartModelProducer by remember { mutableStateOf(CartesianChartModelProducer()) }
     val context = LocalContext.current
