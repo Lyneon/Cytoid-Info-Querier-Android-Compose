@@ -14,8 +14,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 22
-        versionName = "2.7.1-${getCurrentCommitHash()}"
+        versionCode = 23
+        versionName = "2.7.2-${getCurrentCommitHash()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -68,7 +68,7 @@ android {
 dependencies {
     val composeBomVersion = "2025.03.01"
 
-    implementation("io.sentry:sentry-android:8.4.0")
+    implementation("io.sentry:sentry-android:8.5.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")

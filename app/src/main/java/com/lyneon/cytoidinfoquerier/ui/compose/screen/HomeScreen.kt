@@ -82,7 +82,6 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
         MMKV.mmkvWithID(MMKVId.AppSettings.id)
             .decodeString(AppSettingsMMKVKeys.APP_USER_CYTOID_ID.name)
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -150,7 +149,7 @@ fun WelcomeCard(cytoidID: String) {
                 profileDetails?.let { details ->
                     Column {
                         Spacer(modifier = Modifier.height(8.dp))
-                        UserDetailsHeader(details, false)
+                        UserDetailsHeader(details, true)
                     }
                 }
             }
