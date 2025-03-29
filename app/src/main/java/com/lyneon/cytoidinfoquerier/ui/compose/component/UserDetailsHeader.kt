@@ -89,6 +89,19 @@ fun UserDetailsHeader(
                 }
             }
             Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = profileDetails.exp.totalExp.toString(),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = profileDetails.exp.nextLevelExp.toString(),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
                     progress = { currentExpProgress },
@@ -98,18 +111,14 @@ fun UserDetailsHeader(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = profileDetails.exp.currentLevelExp.toString(),
+                        text = "${(currentExpProgress * 100).toInt()}%",
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        text = "${(currentExpProgress * 100).toInt()}% " + stringResource(
+                        text = stringResource(
                             R.string.level_up_exp_remaining,
                             profileDetails.exp.nextLevelExp - profileDetails.exp.totalExp
                         ),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        text = profileDetails.exp.nextLevelExp.toString(),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }

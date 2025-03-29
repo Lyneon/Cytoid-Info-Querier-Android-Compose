@@ -44,8 +44,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -107,6 +105,7 @@ import com.lyneon.cytoidinfoquerier.util.CytoidLevelUtils
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoClipboard
+import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -719,8 +718,7 @@ private fun LevelHeaderCard(
                 )
         ) {
             Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(8.dp)
             ) {
                 Card {
                     LevelBackgroundImage(
@@ -822,6 +820,7 @@ private fun LevelChartsDifficultiesFlowRow(
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
         charts.sortedBy {
@@ -860,33 +859,18 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                var showRatingDistribution by remember { mutableStateOf(false) }
-
                 Text(text = stringResource(R.string.average_rating))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = if (levelRating.total <= 0) "N/A" else (levelRating.average / 2).toString(),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                    IconButton(
-                        onClick = { showRatingDistribution = !showRatingDistribution }
-                    ) {
-                        Icon(
-                            imageVector = if (showRatingDistribution) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = null
-                        )
-                    }
-                }
-                AnimatedVisibility(visible = showRatingDistribution) {
-                    Column {
-                        Text(text = stringResource(R.string.rating_distribution))
-                        HorizontalDivider()
-                        levelRating.distribution.forEachIndexed { index, i ->
-                            if (i != 0) Text(text = "${((index + 1) / 2f)}: $i")
-                        }
+                Text(
+                    text = if (levelRating.total <= 0) "N/A" else (levelRating.average / 2).setPrecision(
+                        2
+                    ),
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Column {
+                    Text(text = stringResource(R.string.rating_distribution))
+                    HorizontalDivider()
+                    levelRating.distribution.forEachIndexed { index, i ->
+                        if (i != 0) Text(text = "${((index + 1) / 2f)}: $i")
                     }
                 }
                 Text(
