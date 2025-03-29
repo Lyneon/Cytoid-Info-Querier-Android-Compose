@@ -66,7 +66,7 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2025.03.00"
+    val composeBomVersion = "2025.03.01"
 
     implementation("io.sentry:sentry-android:8.4.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -79,7 +79,7 @@ dependencies {
     implementation("dev.shreyaspatil:capturable:3.0.0")
     implementation("com.patrykandpatrick.vico:compose:2.1.1")
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
-    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation("androidx.media3:media3-exoplayer:1.6.0")
     implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
     implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
     implementation("com.github.jeziellago:compose-markdown:0.5.4")
