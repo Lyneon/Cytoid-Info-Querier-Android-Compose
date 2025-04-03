@@ -9,7 +9,7 @@ data class LevelLeaderboard(
 ) {
     @Serializable
     data class LevelLeaderboardData(
-        val chart: Chart?
+        val chart: Chart? = null
     ) {
         @Serializable
         data class Chart(
@@ -26,19 +26,19 @@ data class LevelLeaderboard(
                 val score: Int,
                 val mods: List<String>,
                 val details: UserRecord.RecordDetails,
-                val owner: User?
+                val owner: User? = null
             ) {
                 @Serializable
                 data class User(
                     val id: String,
-                    val uid: String?,
+                    val uid: String? = null,
                     val avatar: Avatar
                 ) {
                     @Serializable
                     data class Avatar(
-                        val original: String?,
-                        val large: String?,
-                        val small: String?
+                        val original: String? = null,
+                        val large: String? = null,
+                        val small: String? = null
                     )
                 }
             }

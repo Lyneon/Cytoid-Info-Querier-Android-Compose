@@ -9,16 +9,16 @@ data class BestRecords(
 ) {
     @Serializable
     data class BestRecordsData(
-        val profile: Profile?
+        val profile: Profile? = null
     ) {
         @Serializable
         data class Profile(
-            val user: User?,
+            val user: User? = null,
             val bestRecords: List<UserRecord>
         ) {
             @Serializable
             data class User(
-                val uid: String?
+                val uid: String? = null
             )
         }
     }
