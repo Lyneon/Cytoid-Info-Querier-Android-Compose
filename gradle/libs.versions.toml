@@ -4,9 +4,8 @@ androidbrowserhelper = "2.5.0"
 shizuku = "13.1.0"
 capturable = "3.0.0"
 coilCompose = "2.7.0"
-compose = "2.1.1"
 composeBom = "2025.03.01"
-composeM3 = "2.0.0-beta.2"
+vico = "2.1.2"
 composeMarkdown = "0.5.4"
 coreKtx = "1.15.0"
 documentfile = "1.0.1"
@@ -32,8 +31,8 @@ shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 capturable = { module = "dev.shreyaspatil:capturable", version.ref = "capturable" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "composeM3" }
-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "compose" }
+compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
+compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
