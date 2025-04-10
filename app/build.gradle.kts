@@ -66,44 +66,42 @@ android {
 }
 
 dependencies {
-    val composeBomVersion = "2025.03.01"
+    implementation(libs.sentry.android)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.coil.compose)
+    implementation(libs.mmkv)
+    implementation(libs.navigation.compose)
+    implementation(libs.material.icons.extended)
+    implementation(libs.capturable)
+    implementation(libs.compose)
+    implementation(libs.compose.m3)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.material3.window.size.class1)
+    implementation(libs.androidbrowserhelper)
+    implementation(libs.compose.markdown)
+    implementation(libs.documentfile)
+    implementation(libs.material)
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 
-    implementation("io.sentry:sentry-android:8.5.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.tencent:mmkv:2.1.0")
-    implementation("androidx.navigation:navigation-compose:2.8.9")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    implementation("dev.shreyaspatil:capturable:3.0.0")
-    implementation("com.patrykandpatrick.vico:compose:2.1.1")
-    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-beta.2")
-    implementation("androidx.media3:media3-exoplayer:1.6.0")
-    implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
-    implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
-    implementation("com.github.jeziellago:compose-markdown:0.5.4")
-    implementation("androidx.documentfile:documentfile:1.0.1")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("dev.rikka.shizuku:api:13.1.0")
-    implementation("dev.rikka.shizuku:provider:13.1.0")
-
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation(libs.core.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.activity.compose)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.material3)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
 
 fun getCurrentCommitHash(): String {
@@ -115,7 +113,7 @@ fun getCurrentCommitHash(): String {
         process.inputStream.bufferedReader().use {
             it.readLine()?.trim()?.takeIf { str -> str.isNotEmpty() } ?: "unknownCommit"
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "unknownCommit"
     }
 }
