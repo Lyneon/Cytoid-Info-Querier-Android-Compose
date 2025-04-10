@@ -99,6 +99,18 @@ class AnalyticsViewModel(
         updateUIState { copy(isQuerying = isQuerying) }
     }
 
+    fun setIsGenerating(isGenerating: Boolean) {
+        updateUIState { copy(isGenerating = isGenerating) }
+    }
+
+    fun setGeneratingProgress(generatingProgress: Int) {
+        updateUIState { copy(generatingProgress = generatingProgress) }
+    }
+
+    fun addGeneratingProgress() {
+        updateUIState { copy(generatingProgress = generatingProgress + 1) }
+    }
+
     fun enqueueQuery() {
         setIsQuerying(true)
         viewModelScope.launch(
@@ -224,7 +236,9 @@ class AnalyticsViewModel(
     fun saveRecordsAsPicture() {
         viewModelScope.launch(Dispatchers.IO) {
             if (profileDetails.value != null) withContext(Dispatchers.IO) {
-                AnalyticsImageHandler.getRecordsImage(
+                setIsGenerating(true)
+                setGeneratingProgress(0)
+                AnalyticsImageHandler.getRecordsImageWithProgress(
                     profileDetails = profileDetails.value!!,
                     records = (if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords)
                         bestRecords.value!!.data.profile?.bestRecords
@@ -233,8 +247,12 @@ class AnalyticsViewModel(
                     ) ?: return@withContext,
                     recordsType = uiState.value.queryType,
                     columnsCount = uiState.value.imageGenerationColumns.toInt(),
-                    keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
+                    keep2DecimalPlaces = uiState.value.keep2DecimalPlaces,
+                    onProgressChanged = { _ ->
+                        addGeneratingProgress()
+                    }
                 ).saveIntoMediaStore()
+                setIsGenerating(false)
                 context.getString(R.string.image_saved_into_media).showToast()
             } else context.getString(R.string.save_failed).showToast()
         }
@@ -254,7 +272,9 @@ data class AnalyticsUIState(
     val keep2DecimalPlaces: Boolean = true,
     val imageGenerationColumns: String = "6",
     val errorMessage: String = "",
-    val isQuerying: Boolean = false
+    val isQuerying: Boolean = false,
+    val isGenerating: Boolean = false,
+    val generatingProgress: Int = 0
 ) {
     enum class QueryType(val displayName: String) {
         BestRecords("Best Records"),

@@ -1,6 +1,5 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -75,7 +74,6 @@ import java.net.URL
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
     val appUserCytoidID =
