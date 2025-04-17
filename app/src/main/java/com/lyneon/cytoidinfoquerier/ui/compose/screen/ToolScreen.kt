@@ -187,7 +187,7 @@ private fun PingSettingCard(uiState: ToolUIState, viewModel: ToolViewModel) {
 private fun ImportLevelCard() {
     val activity = LocalActivity.current
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
+        contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
             val intent = Intent(activity!!, ImportLevelActivity::class.java).apply {
@@ -218,7 +218,7 @@ private fun ImportLevelCard() {
             }
             Text(text = stringResource(R.string.shizuku_needed))
             Button(onClick = {
-                launcher.launch(arrayOf("*/*"))
+                launcher.launch("*/*")
             }) {
                 Text(text = stringResource(R.string.select_file))
             }
