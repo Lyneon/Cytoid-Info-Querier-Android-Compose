@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 class AnalyticsViewModel(
     private val bestRecordsRepository: BestRecordsRepository = BestRecordsRepository(),
@@ -97,6 +98,18 @@ class AnalyticsViewModel(
 
     fun setIsQuerying(isQuerying: Boolean) {
         updateUIState { copy(isQuerying = isQuerying) }
+    }
+
+    fun setIsGenerating(isGenerating: Boolean) {
+        updateUIState { copy(isGenerating = isGenerating) }
+    }
+
+    fun setGeneratingProgress(generatingProgress: Int) {
+        updateUIState { copy(generatingProgress = generatingProgress) }
+    }
+
+    fun addGeneratingProgress() {
+        updateUIState { copy(generatingProgress = generatingProgress + 1) }
     }
 
     fun enqueueQuery() {
@@ -224,17 +237,30 @@ class AnalyticsViewModel(
     fun saveRecordsAsPicture() {
         viewModelScope.launch(Dispatchers.IO) {
             if (profileDetails.value != null) withContext(Dispatchers.IO) {
-                AnalyticsImageHandler.getRecordsImage(
+                val records =
+                    if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords) bestRecords.value!!.data.profile?.bestRecords
+                    else recentRecords.value!!.data.profile?.recentRecords
+                if (records == null) {
+                    context.getString(R.string.save_failed).showToast()
+                    return@withContext
+                }
+
+                setIsGenerating(true)
+                setGeneratingProgress(0)
+                AnalyticsImageHandler.getRecordsImageWithProgress(
                     profileDetails = profileDetails.value!!,
-                    records = (if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords)
-                        bestRecords.value!!.data.profile?.bestRecords
-                    else recentRecords.value!!.data.profile?.recentRecords)?.subList(
-                        0, uiState.value.queryCount.toInt()
-                    ) ?: return@withContext,
+                    records = records.subList(
+                        0,
+                        min(uiState.value.queryCount.toInt(), records.size)
+                    ),
                     recordsType = uiState.value.queryType,
                     columnsCount = uiState.value.imageGenerationColumns.toInt(),
-                    keep2DecimalPlaces = uiState.value.keep2DecimalPlaces
+                    keep2DecimalPlaces = uiState.value.keep2DecimalPlaces,
+                    onProgressChanged = { _ ->
+                        addGeneratingProgress()
+                    }
                 ).saveIntoMediaStore()
+                setIsGenerating(false)
                 context.getString(R.string.image_saved_into_media).showToast()
             } else context.getString(R.string.save_failed).showToast()
         }
@@ -254,7 +280,9 @@ data class AnalyticsUIState(
     val keep2DecimalPlaces: Boolean = true,
     val imageGenerationColumns: String = "6",
     val errorMessage: String = "",
-    val isQuerying: Boolean = false
+    val isQuerying: Boolean = false,
+    val isGenerating: Boolean = false,
+    val generatingProgress: Int = 0
 ) {
     enum class QueryType(val displayName: String) {
         BestRecords("Best Records"),

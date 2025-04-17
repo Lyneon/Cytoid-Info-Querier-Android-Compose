@@ -11,8 +11,8 @@ data class ProfileDetails(
     val exp: Exp,
     val rating: Double,
     val timeSeries: ArrayList<TimeSeriesItem>,
-    val lastActive: String?,
-    val tier: Tier?,
+    val lastActive: String? = null,
+    val tier: Tier? = null,
     val character: Character
 ) {
     @Serializable
@@ -96,7 +96,7 @@ data class ProfileDetails(
     @Serializable
     data class Character(
         val name: String,
-        val variantName: String?,
+        val variantName: String? = null,
         val exp: Exp
     ) {
         @Serializable

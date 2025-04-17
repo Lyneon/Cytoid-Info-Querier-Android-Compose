@@ -44,6 +44,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
@@ -358,6 +359,7 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
 @Composable
 private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: AnalyticsViewModel) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     DropdownMenu(
         modifier = Modifier
@@ -507,20 +509,31 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                 TextButton(
                     onClick = {
                         if (uiState.imageGenerationColumns.isEmpty()) {
-                            "列数不能为空".showToast()
+                            context.getString(R.string.empty_columnsCount).showToast()
                             return@TextButton
                         }
-                        "正在保存图片".showToast()
+                        context.getString(R.string.saving).showToast()
                         scope.launch {
                             viewModel.saveRecordsAsPicture()
                         }
                     },
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = 8.dp),
+                    enabled = !uiState.isGenerating
                 ) {
                     Text(text = stringResource(id = R.string.save_as_picture))
                 }
             }
         )
+        AnimatedVisibility(visible = uiState.isGenerating) {
+            LinearProgressIndicator(
+                progress = {
+                    uiState.generatingProgress.toFloat() / (uiState.queryCount.toIntOrNull()
+                        ?: Int.MAX_VALUE)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(text = "${uiState.generatingProgress}/${uiState.queryCount}")
+        }
     }
 }
 

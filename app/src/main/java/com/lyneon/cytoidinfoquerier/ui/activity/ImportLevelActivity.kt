@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import com.lyneon.cytoidinfoquerier.BaseActivity
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.IFileService
 import com.lyneon.cytoidinfoquerier.R
@@ -52,7 +52,7 @@ import com.lyneon.cytoidinfoquerier.util.extension.contentUriToPath
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import rikka.shizuku.Shizuku
 
-class ImportLevelActivity : ComponentActivity() {
+class ImportLevelActivity : BaseActivity() {
     var fileService: IFileService? = null
     private var fileServiceAvailable by mutableStateOf(false)
     private var shizukuAvailable = false
@@ -143,23 +143,28 @@ class ImportLevelActivity : ComponentActivity() {
                                         text = sourceFilePath.substringAfterLast("/"),
                                         style = MaterialTheme.typography.titleLarge
                                     )
-                                    Text(text = "原始Uri：$data")
+                                    Text(text = stringResource(R.string.original_uri, data))
                                     OutlinedTextField(
                                         value = sourceFilePath,
                                         onValueChange = { sourceFilePath = it },
-                                        label = { Text(text = "绝对路径") },
+                                        label = { Text(text = stringResource(R.string.absolute_path)) },
                                         modifier = Modifier.fillMaxWidth()
                                     )
-                                    Text(text = "Shizuku文件服务：${if (!fileServiceAvailable) "不" else ""}可用")
+                                    Text(
+                                        text = stringResource(
+                                            R.string.shizuku_file_service_status,
+                                            if (!fileServiceAvailable) stringResource(R.string.not) else ""
+                                        )
+                                    )
                                     androidx.compose.animation.AnimatedVisibility(!fileServiceAvailable) {
                                         Button(onClick = { bindFileService() }) {
                                             Icon(
                                                 imageVector = Icons.Default.Refresh,
-                                                contentDescription = "重试连接服务",
+                                                contentDescription = stringResource(R.string.retry_bind_shizuku),
                                                 modifier = Modifier.size(24.dp)
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
-                                            Text(text = "重试连接服务")
+                                            Text(text = stringResource(R.string.retry_bind_shizuku))
                                         }
                                     }
                                     Button(
@@ -170,11 +175,11 @@ class ImportLevelActivity : ComponentActivity() {
                                     ) {
                                         Icon(
                                             imageVector = ImageVector.vectorResource(R.drawable.ic_shizuku),
-                                            contentDescription = "Shizuku设置",
+                                            contentDescription = stringResource(R.string.shizuku_settings),
                                             modifier = Modifier.size(24.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text(text = "Shizuku设置")
+                                        Text(text = stringResource(R.string.shizuku_settings))
                                     }
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -185,11 +190,11 @@ class ImportLevelActivity : ComponentActivity() {
                                                 val result = fileService?.copyFileTo(
                                                     sourceFilePath,
                                                     targetDirectoryPath
-                                                ) ?: false
+                                                ) == true
                                                 if (result) {
-                                                    "已完成导入操作".showToast()
+                                                    getString(R.string.import_finished).showToast()
                                                 } else {
-                                                    "导入失败".showToast()
+                                                    getString(R.string.import_failed).showToast()
                                                 }
                                             },
                                             modifier = Modifier.weight(1f),
@@ -197,10 +202,10 @@ class ImportLevelActivity : ComponentActivity() {
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.MoveToInbox,
-                                                contentDescription = "确认导入"
+                                                contentDescription = stringResource(R.string.start_import)
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
-                                            Text(text = "确认导入")
+                                            Text(text = stringResource(R.string.start_import))
                                         }
                                         Button(
                                             onClick = {
@@ -214,16 +219,16 @@ class ImportLevelActivity : ComponentActivity() {
                                         ) {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Filled.Launch,
-                                                contentDescription = "启动Cytoid"
+                                                contentDescription = stringResource(R.string.launch_cytoid)
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
-                                            Text(text = "启动Cytoid")
+                                            Text(text = stringResource(R.string.launch_cytoid))
                                         }
                                     }
                                 }
                             }
                         } ?: run {
-                            ErrorMessageCard("未接收到关卡数据！")
+                            ErrorMessageCard(stringResource(R.string.no_level_data_received))
                         }
                     }
                 }

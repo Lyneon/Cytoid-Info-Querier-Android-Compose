@@ -28,7 +28,7 @@
     <string name="view_in_cytoid">在 Cytoid 中查看</string>
     <string name="copy_content">复制内容</string>
     <string name="choose_copy_content">选择要复制的内容</string>
-    <string name="ignore_cache">忽略已缓存数据</string>
+    <string name="ignore_cache">忽略6小时内的已缓存数据</string>
     <string name="view_in_cytoid_io">在 cytoid.io 中查看</string>
     <string name="current_installed_cytoid">已安装的Cytoid信息</string>
     <string name="sentry_declare">本应用使用Sentry进行错误信息收集，收集到的错误信息将仅用于修复漏洞。如果您不希望被收集这些数据，您可以选择在设置界面中关闭Sentry数据收集，或者退出本应用</string>
@@ -210,4 +210,16 @@
     <string name="import_level">导入关卡</string>
     <string name="select_file">选择文件</string>
     <string name="no_username">无用户名称</string>
+    <string name="loading_local_cache">正在加载%1$s分钟前的本地缓存数据</string>
+    <string name="original_uri">原始Uri：%1$s</string>
+    <string name="absolute_path">绝对路径</string>
+    <string name="shizuku_file_service_status">Shizuku文件服务：%1$s可用</string>
+    <string name="not">不</string>
+    <string name="retry_bind_shizuku">重试连接服务</string>
+    <string name="shizuku_settings">Shizuku设置</string>
+    <string name="import_finished">已完成导入操作</string>
+    <string name="import_failed">导入失败</string>
+    <string name="start_import">开始导入</string>
+    <string name="launch_cytoid">启动Cytoid</string>
+    <string name="no_level_data_received">未接收到关卡数据！</string>
 </resources>

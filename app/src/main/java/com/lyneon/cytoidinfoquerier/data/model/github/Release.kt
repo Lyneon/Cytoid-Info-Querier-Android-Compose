@@ -8,7 +8,7 @@ data class Release(
     val name: String,
     @SerialName("published_at") val publishDate: String,
     val assets: List<Asset>,
-    val body: String?
+    val body: String? = null
 ) {
     @Serializable
     data class Asset(

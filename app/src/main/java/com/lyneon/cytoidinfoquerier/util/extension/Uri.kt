@@ -16,7 +16,7 @@ fun Uri.contentUriToPath(): String? {
         }
 
         // QQ
-        "com.tencent.mobileqq" -> {
+        "com.tencent.mobileqq.fileprovider" -> {
             val string = this.toString()
             string.substring(string.lastIndexOf("/storage/emulated/0/"))
         }
