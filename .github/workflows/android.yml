@@ -1,0 +1,57 @@
+name: Android CI
+
+on:
+  pull_request:
+    branches: [ "release" ]
+
+jobs:
+  build-and-sign:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v3.2.1
+        with:
+          packages: "build-tools;34.0.0"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew --no-daemon app:assembleRelease
+
+      - name: create apk outputs dir
+        run: mkdir out
+
+      - name: move and rename built apk to out dir
+        run: mv app/build/outputs/apk/release/app-release-unsigned.apk out/release-unsigned.apk
+
+      - name: Zipalign apk
+        run: $ANDROID_SDK_ROOT/build-tools/34.0.0/zipalign -p -f -v 4 out/release-unsigned.apk out/release-unsigned-aligned.apk
+
+      - name: Decode jks
+        env:
+          BASE64_ENCODED_KEYSTORE: ${{ secrets.KEYSTORE_FILE }}
+        run: echo "$BASE64_ENCODED_KEYSTORE" | base64 --decode > app.keystore
+
+      - name: Sign apk
+        env:
+          ALIAS_NAME: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: $ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner sign --ks app.keystore --ks-key-alias $ALIAS_NAME --ks-pass pass:"$KEYSTORE_PASSWORD" --key-pass pass:"$KEY_PASSWORD" --out out/release-signed-aligned.apk out/release-unsigned-aligned.apk
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          path: |
+            out/release-signed-aligned.apk
