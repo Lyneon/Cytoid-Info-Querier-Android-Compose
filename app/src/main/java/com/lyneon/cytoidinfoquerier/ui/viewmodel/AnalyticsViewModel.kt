@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 class AnalyticsViewModel(
     private val bestRecordsRepository: BestRecordsRepository = BestRecordsRepository(),
@@ -236,15 +237,22 @@ class AnalyticsViewModel(
     fun saveRecordsAsPicture() {
         viewModelScope.launch(Dispatchers.IO) {
             if (profileDetails.value != null) withContext(Dispatchers.IO) {
+                val records =
+                    if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords) bestRecords.value!!.data.profile?.bestRecords
+                    else recentRecords.value!!.data.profile?.recentRecords
+                if (records == null) {
+                    context.getString(R.string.save_failed).showToast()
+                    return@withContext
+                }
+
                 setIsGenerating(true)
                 setGeneratingProgress(0)
                 AnalyticsImageHandler.getRecordsImageWithProgress(
                     profileDetails = profileDetails.value!!,
-                    records = (if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords)
-                        bestRecords.value!!.data.profile?.bestRecords
-                    else recentRecords.value!!.data.profile?.recentRecords)?.subList(
-                        0, uiState.value.queryCount.toInt()
-                    ) ?: return@withContext,
+                    records = records.subList(
+                        0,
+                        min(uiState.value.queryCount.toInt(), records.size)
+                    ),
                     recordsType = uiState.value.queryType,
                     columnsCount = uiState.value.imageGenerationColumns.toInt(),
                     keep2DecimalPlaces = uiState.value.keep2DecimalPlaces,
