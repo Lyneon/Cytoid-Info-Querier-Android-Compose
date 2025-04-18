@@ -486,6 +486,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                     setQuerySort(RecordQuerySort.Rating)
                     setIgnoreLocalCacheData(false)
                     setKeep2DecimalPlaces(true)
+                    setImageGenerationColumns("6")
                 }
             }) {
                 Text(text = stringResource(id = R.string.b30))
@@ -498,6 +499,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                     setQueryOrder(RecordQueryOrder.DESC)
                     setIgnoreLocalCacheData(false)
                     setKeep2DecimalPlaces(true)
+                    setImageGenerationColumns("5")
                 }
             }) {
                 Text(text = stringResource(id = R.string.r10))
@@ -518,6 +520,7 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                                 setQueryOrder(RecordQueryOrder.valueOf(preset.queryOrder))
                                 setIgnoreLocalCacheData(preset.ignoreLocalCacheData)
                                 setKeep2DecimalPlaces(preset.keep2DecimalPlaces)
+                                setImageGenerationColumns(preset.imageGenerationColumns.toString())
                             }
                         }
                     },
@@ -749,7 +752,8 @@ private fun BottomSheet(
                         querySort = analyticsUIState.querySort.name,
                         queryOrder = analyticsUIState.queryOrder.name,
                         ignoreLocalCacheData = analyticsUIState.ignoreLocalCacheData,
-                        keep2DecimalPlaces = analyticsUIState.keep2DecimalPlaces
+                        keep2DecimalPlaces = analyticsUIState.keep2DecimalPlaces,
+                        imageGenerationColumns = analyticsUIState.imageGenerationColumns.toInt()
                     )
                     scope.launch {
                         LocalDataSource.saveAnalyticsPreset(preset)
@@ -769,6 +773,7 @@ private fun BottomSheet(
             Text(text = "排序顺序 - ${analyticsUIState.queryOrder.name}")
             Text(text = "忽略缓存数据 - ${analyticsUIState.ignoreLocalCacheData}")
             Text(text = "保留两位小数 - ${analyticsUIState.keep2DecimalPlaces}")
+            Text(text = "图片生成列数 - ${analyticsUIState.imageGenerationColumns}")
         }
     }
 }
