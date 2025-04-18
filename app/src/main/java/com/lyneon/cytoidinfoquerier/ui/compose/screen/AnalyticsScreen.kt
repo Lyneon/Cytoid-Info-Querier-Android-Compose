@@ -19,21 +19,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,17 +47,23 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,6 +94,7 @@ import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort.Companion.displayName
+import com.lyneon.cytoidinfoquerier.data.datasource.LocalDataSource
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
@@ -135,6 +147,8 @@ fun AnalyticsScreen(
     var initialLoaded by rememberSaveable { mutableStateOf(false) }
     var shortcutPresetLoaded by rememberSaveable { mutableStateOf(false) }
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         if (withInitials && !initialLoaded) {
@@ -284,6 +298,19 @@ fun AnalyticsScreen(
                 topAppBarScrollBehavior
             )
         }
+
+        if (uiState.showBottomSheet.value) {
+            BottomSheet(
+                sheetState = sheetState,
+                onDismissRequest = { uiState.showBottomSheet.value = false },
+                analyticsUIState = uiState,
+                onUpdatePresetsList = {
+                    scope.launch {
+                        viewModel.extraPresets.value = LocalDataSource.getAllAnalyticsPresets()
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -360,10 +387,19 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
 private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: AnalyticsViewModel) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var extraPresets = viewModel.extraPresets
+    var isRemovingPreset by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            extraPresets.value = LocalDataSource.getAllAnalyticsPresets()
+        }
+    }
 
     DropdownMenu(
         modifier = Modifier
-            .padding(MenuDefaults.DropdownMenuItemContentPadding),
+            .padding(MenuDefaults.DropdownMenuItemContentPadding)
+            .widthIn(max = 480.dp),
         expanded = uiState.expandQueryOptionsDropdownMenu,
         onDismissRequest = { viewModel.setExpandQueryOptionsDropdownMenu(false) }
     ) {
@@ -439,13 +475,17 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
             color = Color.Gray
         )
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            maxItemsInEachRow = 3
         ) {
             Button(onClick = {
                 viewModel.run {
                     setQueryType(AnalyticsUIState.QueryType.BestRecords)
                     setQueryCount("30")
                     setQueryOrder(RecordQueryOrder.DESC)
+                    setQuerySort(RecordQuerySort.Rating)
+                    setIgnoreLocalCacheData(false)
+                    setKeep2DecimalPlaces(true)
                 }
             }) {
                 Text(text = stringResource(id = R.string.b30))
@@ -456,9 +496,48 @@ private fun QuerySettingsDropDownMenu(uiState: AnalyticsUIState, viewModel: Anal
                     setQueryCount("10")
                     setQuerySort(RecordQuerySort.RecentRating)
                     setQueryOrder(RecordQueryOrder.DESC)
+                    setIgnoreLocalCacheData(false)
+                    setKeep2DecimalPlaces(true)
                 }
             }) {
                 Text(text = stringResource(id = R.string.r10))
+            }
+            extraPresets.value.forEach { preset ->
+                Button(
+                    onClick = {
+                        if (isRemovingPreset) {
+                            scope.launch {
+                                LocalDataSource.deleteAnalyticsPreset(preset.name)
+                                extraPresets.value = LocalDataSource.getAllAnalyticsPresets()
+                            }
+                        } else {
+                            viewModel.run {
+                                setQueryType(AnalyticsUIState.QueryType.valueOf(preset.queryType))
+                                setQueryCount(preset.queryCount.toString())
+                                setQuerySort(RecordQuerySort.valueOf(preset.querySort))
+                                setQueryOrder(RecordQueryOrder.valueOf(preset.queryOrder))
+                                setIgnoreLocalCacheData(preset.ignoreLocalCacheData)
+                                setKeep2DecimalPlaces(preset.keep2DecimalPlaces)
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = if (isRemovingPreset) MaterialTheme.colorScheme.error else Color.Unspecified)
+                ) {
+                    Text(text = preset.name)
+                }
+            }
+            OutlinedIconButton(onClick = {
+                uiState.showBottomSheet.value = true
+            }) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            }
+            OutlinedIconButton(onClick = {
+                isRemovingPreset = !isRemovingPreset
+            }) {
+                Icon(
+                    imageVector = if (isRemovingPreset) Icons.Default.Done else Icons.Default.Remove,
+                    contentDescription = null
+                )
             }
         }
         Text(
@@ -615,6 +694,81 @@ private fun ResultDisplayList(
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BottomSheet(
+    sheetState: SheetState,
+    onDismissRequest: () -> Unit,
+    analyticsUIState: AnalyticsUIState,
+    onUpdatePresetsList: () -> Unit
+) {
+    var presetName by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismissRequest) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.save_preset),
+                style = MaterialTheme.typography.titleLarge
+            )
+            HorizontalDivider(modifier = Modifier.fillMaxWidth())
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = presetName,
+                    onValueChange = {
+                        presetName = it
+                    },
+                    label = {
+                        Text(text = stringResource(R.string.preset_name))
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                Button(onClick = {
+                    if (presetName.isEmpty()) {
+                        context.getString(R.string.preset_name_empty).showToast()
+                        return@Button
+                    }
+                    val preset = com.lyneon.cytoidinfoquerier.data.model.local.AnalyticsPreset(
+                        name = presetName,
+                        queryType = analyticsUIState.queryType.name,
+                        queryCount = analyticsUIState.queryCount.toInt(),
+                        querySort = analyticsUIState.querySort.name,
+                        queryOrder = analyticsUIState.queryOrder.name,
+                        ignoreLocalCacheData = analyticsUIState.ignoreLocalCacheData,
+                        keep2DecimalPlaces = analyticsUIState.keep2DecimalPlaces
+                    )
+                    scope.launch {
+                        LocalDataSource.saveAnalyticsPreset(preset)
+                        context.getString(R.string.saved).showToast()
+                        onDismissRequest()
+                        onUpdatePresetsList()
+                    }
+                }) { Text(text = stringResource(R.string.save)) }
+            }
+            Text(
+                text = stringResource(R.string.preset_info),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(text = "查询类型 - ${analyticsUIState.queryType.name}")
+            Text(text = "查询数量 - ${analyticsUIState.queryCount}")
+            Text(text = "排序方式 - ${analyticsUIState.querySort.name}")
+            Text(text = "排序顺序 - ${analyticsUIState.queryOrder.name}")
+            Text(text = "忽略缓存数据 - ${analyticsUIState.ignoreLocalCacheData}")
+            Text(text = "保留两位小数 - ${analyticsUIState.keep2DecimalPlaces}")
         }
     }
 }

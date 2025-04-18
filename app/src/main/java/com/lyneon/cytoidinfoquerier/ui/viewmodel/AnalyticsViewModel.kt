@@ -1,5 +1,9 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -8,6 +12,7 @@ import com.lyneon.cytoidinfoquerier.data.constant.RecordQueryOrder
 import com.lyneon.cytoidinfoquerier.data.constant.RecordQuerySort
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.data.model.local.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
 import com.lyneon.cytoidinfoquerier.data.repository.BestRecordsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileDetailsRepository
@@ -42,6 +47,8 @@ class AnalyticsViewModel(
 
     private val _uiState = MutableStateFlow(AnalyticsUIState())
     val uiState: StateFlow<AnalyticsUIState> get() = _uiState.asStateFlow()
+
+    var extraPresets = mutableStateOf<List<AnalyticsPreset>>(emptyList())
 
     val context = BaseApplication.context
 
@@ -282,7 +289,8 @@ data class AnalyticsUIState(
     val errorMessage: String = "",
     val isQuerying: Boolean = false,
     val isGenerating: Boolean = false,
-    val generatingProgress: Int = 0
+    val generatingProgress: Int = 0,
+    var showBottomSheet: MutableState<Boolean> = mutableStateOf(false)
 ) {
     enum class QueryType(val displayName: String) {
         BestRecords("Best Records"),

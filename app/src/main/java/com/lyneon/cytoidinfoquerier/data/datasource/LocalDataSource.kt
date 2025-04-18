@@ -2,12 +2,14 @@ package com.lyneon.cytoidinfoquerier.data.datasource
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.data.enums.AvatarSize
 import com.lyneon.cytoidinfoquerier.data.enums.ImageSize
 import com.lyneon.cytoidinfoquerier.data.model.graphql.BestRecords
 import com.lyneon.cytoidinfoquerier.data.model.graphql.ProfileGraphQL
 import com.lyneon.cytoidinfoquerier.data.model.graphql.RecentRecords
+import com.lyneon.cytoidinfoquerier.data.model.local.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileComment
 import com.lyneon.cytoidinfoquerier.data.model.webapi.ProfileDetails
@@ -20,6 +22,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 object LocalDataSource {
     suspend fun loadBestRecords(cytoidID: String, timeStamp: Long): BestRecords =
@@ -202,8 +206,48 @@ object LocalDataSource {
         ProfileDetails,
         ProfileCommentList,
         ProfileScreenDataModel,
-        CollectionCoverImage;
+        CollectionCoverImage,
+        AnalyticsPresets;
 
         fun clearLocalCache() = clearLocalData(this)
+    }
+
+    suspend fun saveAnalyticsPreset(preset: AnalyticsPreset) {
+        val jsonString = json.encodeToString(preset)
+        withContext(Dispatchers.IO) {
+            val localDir =
+                BaseApplication.context.getExternalFilesDir(LocalDataType.AnalyticsPresets.name)
+            val targetFile = File(
+                localDir,
+                "${URLEncoder.encode(preset.name, StandardCharsets.UTF_8.toString())}.json"
+            )
+            localDir?.mkdirs()
+            targetFile.writeText(jsonString)
+        }
+    }
+
+    suspend fun getAllAnalyticsPresets(): List<AnalyticsPreset> = withContext(Dispatchers.IO) {
+        val localDir =
+            BaseApplication.context.getExternalFilesDir(LocalDataType.AnalyticsPresets.name)
+        localDir?.listFiles()?.mapNotNull {
+            try {
+                json.decodeFromString<AnalyticsPreset>(it.readText())
+            } catch (e: Exception) {
+                Log.e("AnalyticsPreset", e.message ?: "")
+                null
+            }
+        } ?: emptyList()
+    }
+
+    suspend fun deleteAnalyticsPreset(presetName: String) {
+        withContext(Dispatchers.IO) {
+            val localDir =
+                BaseApplication.context.getExternalFilesDir(LocalDataType.AnalyticsPresets.name)
+            val targetFile = File(
+                localDir,
+                "${URLEncoder.encode(presetName, StandardCharsets.UTF_8.toString())}.json"
+            )
+            targetFile.delete()
+        }
     }
 }
