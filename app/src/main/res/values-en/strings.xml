@@ -222,4 +222,8 @@
     <string name="start_import">Start Import</string>
     <string name="launch_cytoid">Launch Cytoid</string>
     <string name="no_level_data_received">No level data received!</string>
+    <string name="save_preset">保存当前预设</string>
+    <string name="preset_name">预设名</string>
+    <string name="preset_info">预设信息</string>
+    <string name="preset_name_empty">预设名不能为空</string>
 </resources>
