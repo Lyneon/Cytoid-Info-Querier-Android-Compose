@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.RemoteException
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -35,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +54,8 @@ import com.lyneon.cytoidinfoquerier.ui.compose.component.ErrorMessageCard
 import com.lyneon.cytoidinfoquerier.ui.theme.CytoidInfoQuerierComposeTheme
 import com.lyneon.cytoidinfoquerier.util.extension.contentUriToPath
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 class ImportLevelActivity : BaseActivity() {
@@ -64,12 +68,13 @@ class ImportLevelActivity : BaseActivity() {
             BaseApplication.context.packageName,
             FileService::class.java.name
         )
-    ).processNameSuffix("CIQ_FileService")
+    ).processNameSuffix("CIQ_FileService").daemon(false)
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(
             name: ComponentName?,
             service: IBinder?
         ) {
+            Log.d("ImportLevelActivity", name.toString())
             if (service != null && service.pingBinder()) {
                 fileService = IFileService.Stub.asInterface(service) as IFileService
                 fileServiceAvailable = true
@@ -145,6 +150,7 @@ class ImportLevelActivity : BaseActivity() {
                             }
                             val targetDirectoryPath =
                                 "/storage/emulated/0/Android/data/me.tigerhix.cytoid/files/Cytoid/"
+                            val scope = rememberCoroutineScope()
 
                             Card(
                                 modifier = Modifier.fillMaxWidth()
@@ -204,14 +210,21 @@ class ImportLevelActivity : BaseActivity() {
                                     ) {
                                         Button(
                                             onClick = {
-                                                val result = fileService?.copyFileTo(
-                                                    sourceFilePath,
-                                                    targetDirectoryPath
-                                                ) == true
-                                                if (result) {
-                                                    getString(R.string.import_finished).showToast()
-                                                } else {
-                                                    getString(R.string.import_failed).showToast()
+                                                scope.launch(Dispatchers.IO) {
+                                                    try {
+                                                        val result = fileService?.copyFileTo(
+                                                            sourceFilePath,
+                                                            targetDirectoryPath
+                                                        ) == true
+                                                        if (result) {
+                                                            getString(R.string.import_finished).showToast()
+                                                        } else {
+                                                            getString(R.string.import_failed).showToast()
+                                                        }
+                                                    } catch (e: RemoteException) {
+                                                        Log.e("ImportLevelActivity", e.message, e)
+                                                        (getString(R.string.import_failed) + e.message).showToast()
+                                                    }
                                                 }
                                             },
                                             modifier = Modifier.weight(1f),
