@@ -4,7 +4,9 @@ import android.content.ComponentName
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -54,6 +56,7 @@ import rikka.shizuku.Shizuku
 
 class ImportLevelActivity : BaseActivity() {
     var fileService: IFileService? = null
+    private val requestShizukuPermissionCode = 1
     private var fileServiceAvailable by mutableStateOf(false)
     private var shizukuAvailable = false
     private val serviceArgs = Shizuku.UserServiceArgs(
@@ -80,12 +83,25 @@ class ImportLevelActivity : BaseActivity() {
             fileService = null
             fileServiceAvailable = false
             Log.d("ImportLevelActivity", "FileService disconnected")
+            Handler(Looper.getMainLooper()).postDelayed({
+                bindFileService()
+            }, 1000)
         }
     }
     private val shizukuBinderReceivedListener =
         Shizuku.OnBinderReceivedListener { shizukuAvailable = true }
     private val shizukuBinderDeadListener =
         Shizuku.OnBinderDeadListener { shizukuAvailable = false }
+    private val permissionResultListener =
+        Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+            if (requestCode == requestShizukuPermissionCode) {
+                if (grantResult == PackageManager.PERMISSION_DENIED) {
+                    getString(R.string.shizuku_needed).showToast()
+                } else {
+                    bindFileService()
+                }
+            }
+        }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +110,7 @@ class ImportLevelActivity : BaseActivity() {
         enableEdgeToEdge()
         Shizuku.addBinderReceivedListenerSticky(shizukuBinderReceivedListener)
         Shizuku.addBinderDeadListener(shizukuBinderDeadListener)
+        Shizuku.addRequestPermissionResultListener(permissionResultListener)
         bindFileService()
 
         val intent = intent
@@ -240,36 +257,25 @@ class ImportLevelActivity : BaseActivity() {
         super.onDestroy()
         Shizuku.removeBinderReceivedListener(shizukuBinderReceivedListener)
         Shizuku.removeBinderDeadListener(shizukuBinderDeadListener)
+        Shizuku.removeRequestPermissionResultListener(permissionResultListener)
+        unbindFileService()
     }
 
     private fun bindFileService() {
         if (shizukuAvailable) {
+            if (Shizuku.isPreV11()) {
+                getString(R.string.warn_shizuku_v11).showToast()
+                return
+            }
             if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                Shizuku.requestPermission(1)
+                Shizuku.requestPermission(requestShizukuPermissionCode)
             } else {
                 Shizuku.bindUserService(serviceArgs, serviceConnection)
-                Log.d("ImportLevelActivity", "bindUserService")
             }
         }
     }
 
     private fun unbindFileService() {
         Shizuku.unbindUserService(serviceArgs, serviceConnection, true)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-        deviceId: Int
-    ) {
-        when (requestCode) {
-            1 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                    getString(R.string.shizuku_needed).showToast()
-                }
-                bindFileService()
-            }
-        }
     }
 }
