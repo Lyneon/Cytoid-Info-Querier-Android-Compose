@@ -89,6 +89,7 @@ class ToolViewModel : ViewModel() {
                         .build()
                 ).execute()
                 setPingResult("Result:\ncytoid.io: ${response.code} ${response.getStatusMessageFromCode()}")
+                response.close()
             } catch (e: Exception) {
                 setPingResult("Connect to cytoid.io failed:\n${e.message}")
             }

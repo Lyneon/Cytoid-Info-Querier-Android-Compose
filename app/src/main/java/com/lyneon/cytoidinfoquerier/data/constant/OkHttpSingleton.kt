@@ -7,3 +7,5 @@ object OkHttpSingleton {
         OkHttpClient()
     }
 }
+
+val okHttpClient = OkHttpSingleton.instance

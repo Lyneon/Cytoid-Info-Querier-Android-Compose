@@ -4,17 +4,19 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.core.net.toUri
 import com.lyneon.cytoidinfoquerier.BaseApplication
-import okhttp3.OkHttpClient
+import com.lyneon.cytoidinfoquerier.data.constant.okHttpClient
 import okhttp3.Request
 import java.net.URL
 
 fun URL.toBitmap() = BitmapFactory.decodeStream(
-    OkHttpClient().newCall(
+    okHttpClient.newCall(
         Request.Builder()
             .url(this)
             .removeHeader("User-Agent").addHeader("User-Agent", "CytoidClient/2.1.1")
             .build()
-    ).execute().body?.byteStream()
+    ).execute().use {
+        it.body?.byteStream()
+    }
 ) ?: throw Exception()
 
 fun URL.openInBrowser() {

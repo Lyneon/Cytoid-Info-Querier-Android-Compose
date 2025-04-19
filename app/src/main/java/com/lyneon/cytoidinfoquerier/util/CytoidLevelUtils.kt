@@ -17,7 +17,7 @@ object CytoidLevelUtils {
             .addHeader("User-Agent", CytoidConstant.clientUA)
             .build()
         val response = OkHttpSingleton.instance.newCall(request).execute()
-        return response.headers["X-Total-Entries"]?.toInt() ?: -1
+        return response.use { it.headers["X-Total-Entries"]?.toInt() ?: -1 }
     }
 
     fun getLevelRating(levelUid: String): LevelRating {
