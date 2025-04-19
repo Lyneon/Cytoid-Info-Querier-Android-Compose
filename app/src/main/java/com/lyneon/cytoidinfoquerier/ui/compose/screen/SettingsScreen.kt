@@ -1,7 +1,9 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.graphics.Bitmap.CompressFormat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
@@ -40,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -373,7 +377,7 @@ private fun TestCrashSettingCard(snackBarHostState: SnackbarHostState) {
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun PictureCompressSettingCard() {
     val mmkv = remember { MMKV.mmkvWithID(MMKVId.AppSettings.id) }
@@ -394,6 +398,7 @@ private fun PictureCompressSettingCard() {
             )
         )
     }
+    val sliderInteractionSource = remember { MutableInteractionSource() }
 
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -451,10 +456,22 @@ private fun PictureCompressSettingCard() {
                             compressQuality
                         )
                     },
+                    interactionSource = sliderInteractionSource,
                     valueRange = 0f..100f,
-                    steps = 101,
+                    thumb = {
+                        Text(
+                            text = compressQuality.toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.inverseOnSurface,
+                            modifier = Modifier
+                                .background(
+                                    color = SliderDefaults.colors().thumbColor,
+                                    shape = RoundedCornerShape(percent = 50)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 )
-                Text(text = compressQuality.toString())
             }
         }
     }

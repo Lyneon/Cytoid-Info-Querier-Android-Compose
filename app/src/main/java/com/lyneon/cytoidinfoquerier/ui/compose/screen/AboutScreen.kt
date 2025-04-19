@@ -5,7 +5,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Upgrade
 import androidx.compose.material.icons.filled.Warning
@@ -92,6 +92,20 @@ fun AboutScreen(navController: NavController) {
                     Text(text = stringResource(R.string.app_test_desc))
                 }
             }
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(imageVector = Icons.Default.ColorLens, contentDescription = null)
+                    Text(text = "应用图标由@xixeilm绘制并授权使用，在此表示感谢")
+                }
+            }
         }
     }
 }
@@ -115,19 +129,16 @@ private fun AppInfoCard() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                modifier = Modifier.size(64.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = null,
-                    modifier = Modifier.clip(CircleShape)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = null
-                )
-            }
+            Image(
+                bitmap = (packageInfo.applicationInfo?.loadIcon(BaseApplication.context.packageManager)
+                    ?.toBitmap() ?: AppCompatResources.getDrawable(
+                    BaseApplication.context,
+                    R.drawable.sayakacry
+                )!!.toBitmap()).asImageBitmap(), contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+            )
             Text(
                 text = stringResource(id = R.string.app_name)
             )

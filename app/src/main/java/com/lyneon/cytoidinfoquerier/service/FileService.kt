@@ -21,8 +21,21 @@ class FileService : IFileService.Stub() {
 
         val runtime = Runtime.getRuntime()
         val process =
-            runtime.exec("cp ${sourceFilePath.toSafeShellPath()} ${targetDirectoryPath.toSafeShellPath()}")
+            runtime.exec(
+                arrayOf(
+                    "cp",
+                    "-fv",
+                    sourceFilePath,
+                    targetDirectoryPath
+                )
+            )
         val exitValue = process.waitFor()
+        val output = BufferedReader(InputStreamReader(process.inputStream)).use { it.readText() }
+        val error = BufferedReader(InputStreamReader(process.errorStream)).use { it.readText() }
+        Log.i("FileService", "copy file result: $output")
+        if (exitValue != 0) {
+            Log.e("FileService", "Failed to copy file: $error")
+        }
         return exitValue == 0
     }
 
