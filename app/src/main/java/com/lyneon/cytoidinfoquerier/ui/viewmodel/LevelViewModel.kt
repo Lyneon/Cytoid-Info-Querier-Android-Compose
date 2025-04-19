@@ -113,11 +113,13 @@ class LevelViewModel(
             .addHeader("User-Agent", CytoidConstant.clientUA)
             .build()
         val response = OkHttpSingleton.instance.newCall(request).execute()
-        if (response.isSuccessful) response.body?.let {
-            val jsonString = it.string()
-            val searchResult: List<SearchLevelsResult> = json.decodeFromString(jsonString)
-            updateUIState { copy(isSearching = false, queryPage = 0, totalPages = 1) }
-            _searchResult.update { searchResult }
+        if (response.isSuccessful) response.use {
+            it.body?.let {
+                val jsonString = it.string()
+                val searchResult: List<SearchLevelsResult> = json.decodeFromString(jsonString)
+                updateUIState { copy(isSearching = false, queryPage = 0, totalPages = 1) }
+                _searchResult.update { searchResult }
+            }
         }
     }
 

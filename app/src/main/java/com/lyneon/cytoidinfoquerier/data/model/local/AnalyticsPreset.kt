@@ -10,5 +10,6 @@ data class AnalyticsPreset(
     val querySort: String,
     val queryOrder: String,
     val ignoreLocalCacheData: Boolean,
-    val keep2DecimalPlaces: Boolean
+    val keep2DecimalPlaces: Boolean,
+    val imageGenerationColumns: Int = 6
 )

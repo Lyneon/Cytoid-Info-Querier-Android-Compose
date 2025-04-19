@@ -14,8 +14,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 25
-        versionName = "2.7.4-${getCurrentCommitHash()}"
+        versionCode = 26
+        versionName = "2.7.5-${getCurrentCommitHash()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -31,6 +31,7 @@ android {
 
     buildTypes {
         release {
+            isShrinkResources = true
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -10,7 +10,6 @@ import kotlin.system.exitProcess
 class FileService : IFileService.Stub() {
 
     override fun destroy() {
-        Log.i("FileService", "destroy")
         exitProcess(0)
     }
 

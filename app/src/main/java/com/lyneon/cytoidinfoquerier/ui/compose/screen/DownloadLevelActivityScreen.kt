@@ -175,22 +175,25 @@ fun DownloadLevelActivityScreen(
                                                     call: Call,
                                                     response: Response
                                                 ) {
-                                                    if (response.isSuccessful) {
-                                                        val inputStream: InputStream? =
-                                                            response.body?.byteStream()
+                                                    try {
+                                                        if (response.isSuccessful) {
+                                                            val inputStream: InputStream? =
+                                                                response.body?.byteStream()
 
-                                                        documentFile?.let {
-                                                            context.contentResolver.openOutputStream(
-                                                                it.uri
-                                                            )
-                                                                ?.use { outputStream ->
+                                                            documentFile?.let { docFile ->
+                                                                context.contentResolver.openOutputStream(
+                                                                    docFile.uri
+                                                                )?.use { outputStream ->
                                                                     inputStream?.copyTo(outputStream)
                                                                 }
-                                                        }
+                                                            }
 
-                                                        "下载成功：${documentFile?.uri?.path}".showToast()
-                                                    } else {
-                                                        "下载失败：${response.code}".showToast()
+                                                            "下载成功：${documentFile?.uri?.path}".showToast()
+                                                        } else {
+                                                            "下载失败：${response.code}".showToast()
+                                                        }
+                                                    } finally {
+                                                        response.close()
                                                     }
                                                 }
                                             })
