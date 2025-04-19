@@ -1,9 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.BaseApplication
@@ -28,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.min
 
 class AnalyticsViewModel(
@@ -242,34 +239,35 @@ class AnalyticsViewModel(
     }
 
     fun saveRecordsAsPicture() {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (profileDetails.value != null) withContext(Dispatchers.IO) {
-                val records =
-                    if (uiState.value.queryType == AnalyticsUIState.QueryType.BestRecords) bestRecords.value!!.data.profile?.bestRecords
-                    else recentRecords.value!!.data.profile?.recentRecords
-                if (records == null) {
-                    context.getString(R.string.save_failed).showToast()
-                    return@withContext
+        profileDetails.value?.let { profileDetails ->
+            val queryType = uiState.value.queryType
+            val recordsList = when (queryType) {
+                AnalyticsUIState.QueryType.BestRecords -> bestRecords.value?.data?.profile?.bestRecords
+                AnalyticsUIState.QueryType.RecentRecords -> recentRecords.value?.data?.profile?.recentRecords
+            }
+            if (recordsList == null) {
+                context.getString(R.string.save_failed).showToast()
+            } else {
+                viewModelScope.launch(Dispatchers.IO) {
+                    setIsGenerating(true)
+                    setGeneratingProgress(0)
+                    AnalyticsImageHandler.getRecordsImageWithProgress(
+                        profileDetails = profileDetails,
+                        records = recordsList.subList(
+                            0,
+                            min(uiState.value.queryCount.toInt(), recordsList.size)
+                        ),
+                        recordsType = uiState.value.queryType,
+                        columnsCount = uiState.value.imageGenerationColumns.toInt(),
+                        keep2DecimalPlaces = uiState.value.keep2DecimalPlaces,
+                        onProgressChanged = { _ ->
+                            addGeneratingProgress()
+                        }
+                    ).saveIntoMediaStore()
+                    setIsGenerating(false)
+                    context.getString(R.string.image_saved_into_media).showToast()
                 }
-
-                setIsGenerating(true)
-                setGeneratingProgress(0)
-                AnalyticsImageHandler.getRecordsImageWithProgress(
-                    profileDetails = profileDetails.value!!,
-                    records = records.subList(
-                        0,
-                        min(uiState.value.queryCount.toInt(), records.size)
-                    ),
-                    recordsType = uiState.value.queryType,
-                    columnsCount = uiState.value.imageGenerationColumns.toInt(),
-                    keep2DecimalPlaces = uiState.value.keep2DecimalPlaces,
-                    onProgressChanged = { _ ->
-                        addGeneratingProgress()
-                    }
-                ).saveIntoMediaStore()
-                setIsGenerating(false)
-                context.getString(R.string.image_saved_into_media).showToast()
-            } else context.getString(R.string.save_failed).showToast()
+            }
         }
     }
 }

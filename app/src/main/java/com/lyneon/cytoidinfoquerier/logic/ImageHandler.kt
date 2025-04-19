@@ -160,12 +160,17 @@ object AnalyticsImageHandler {
                 BitmapFactory.decodeStream(it)
             }
         } else {
-            URL(profileDetails.user.avatar.large).toBitmap().also { _bitmap ->
-                LocalDataSource.saveAvatarBitmap(
-                    profileDetails.user.uid,
-                    AvatarSize.Large,
-                    _bitmap
-                )
+            try {
+                URL(profileDetails.user.avatar.large).toBitmap().also { _bitmap ->
+                    LocalDataSource.saveAvatarBitmap(
+                        profileDetails.user.uid,
+                        AvatarSize.Large,
+                        _bitmap
+                    )
+                }
+            } catch (_: Exception) {
+                AppCompatResources.getDrawable(BaseApplication.context, R.drawable.sayakacry)!!
+                    .toBitmap()
             }
         }.scale(avatarDiameter, avatarDiameter, false).roundBitmap()
         addBitmap(avatarBitmap)

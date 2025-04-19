@@ -15,6 +15,11 @@ import kotlin.contracts.contract
 
 operator fun String.times(n: Int) = this.repeat(n)
 
+/**
+ * 扩展函数，用于在任何字符串上调用 showToast 方法，显示 Toast 消息
+ *
+ * 此函数会确保在主线程中显示 Toast 消息，因此可以在任何线程中调用该函数
+ */
 fun String.showToast(duration: Int = Toast.LENGTH_SHORT) {
     CoroutineScope(Dispatchers.Main).launch {
         Toast.makeText(BaseApplication.context, this@showToast, duration).show()
