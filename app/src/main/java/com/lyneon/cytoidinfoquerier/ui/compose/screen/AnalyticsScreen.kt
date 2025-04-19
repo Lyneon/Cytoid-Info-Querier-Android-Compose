@@ -302,7 +302,12 @@ fun AnalyticsScreen(
         if (uiState.showBottomSheet.value) {
             BottomSheet(
                 sheetState = sheetState,
-                onDismissRequest = { uiState.showBottomSheet.value = false },
+                onDismissRequest = {
+                    scope.launch {
+                        sheetState.hide()
+                        uiState.showBottomSheet.value = false
+                    }
+                },
                 analyticsUIState = uiState,
                 onUpdatePresetsList = {
                     scope.launch {
