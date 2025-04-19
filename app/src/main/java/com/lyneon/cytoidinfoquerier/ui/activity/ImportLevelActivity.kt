@@ -224,22 +224,24 @@ class ImportLevelActivity : BaseActivity() {
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(text = stringResource(R.string.start_import))
                                         }
-                                        Button(
-                                            onClick = {
-                                                startActivity(
-                                                    packageManager.getLaunchIntentForPackage(
-                                                        CytoidConstant.gamePackageName
+                                        if (BaseApplication.cytoidIsInstalled) {
+                                            Button(
+                                                onClick = {
+                                                    startActivity(
+                                                        packageManager.getLaunchIntentForPackage(
+                                                            CytoidConstant.gamePackageName
+                                                        )
                                                     )
+                                                },
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Filled.Launch,
+                                                    contentDescription = stringResource(R.string.launch_cytoid)
                                                 )
-                                            },
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Filled.Launch,
-                                                contentDescription = stringResource(R.string.launch_cytoid)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(text = stringResource(R.string.launch_cytoid))
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(text = stringResource(R.string.launch_cytoid))
+                                            }
                                         }
                                     }
                                 }
