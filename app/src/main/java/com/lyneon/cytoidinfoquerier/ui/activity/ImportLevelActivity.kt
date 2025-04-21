@@ -273,7 +273,6 @@ class ImportLevelActivity : BaseActivity() {
         Shizuku.removeBinderReceivedListener(shizukuBinderReceivedListener)
         Shizuku.removeBinderDeadListener(shizukuBinderDeadListener)
         Shizuku.removeRequestPermissionResultListener(permissionResultListener)
-        unbindFileService()
     }
 
     private fun bindFileService() {

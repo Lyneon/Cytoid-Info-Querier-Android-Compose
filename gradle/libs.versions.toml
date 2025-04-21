@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.10.1"
-androidbrowserhelper = "2.5.0"
+androidbrowserhelper = "2.6.0"
 shizuku = "13.1.0"
 capturable = "3.0.0"
 coilCompose = "2.7.0"

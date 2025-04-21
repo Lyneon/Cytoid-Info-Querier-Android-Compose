@@ -7,15 +7,15 @@ plugins {
 
 android {
     namespace = "com.lyneon.cytoidinfoquerier"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.lyneon.cytoidinfoquerier"
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 28
-        versionName = "2.7.7-${getCurrentCommitHash()}"
+        versionCode = 29
+        versionName = "2.7.8-${getCurrentCommitHash()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -37,7 +37,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
         }
 
         debug {
