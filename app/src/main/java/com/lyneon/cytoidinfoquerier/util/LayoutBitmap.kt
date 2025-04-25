@@ -22,7 +22,13 @@ abstract class LayoutBitmap {
     val componentsList: MutableList<LayoutBitmapComponent> = mutableListOf()
     abstract fun getBitmap(): Bitmap
 
-    fun drawComponent(component: LayoutBitmapComponent, x: Float, y: Float, canvas: Canvas) {
+    fun drawComponent(
+        component: LayoutBitmapComponent,
+        x: Float,
+        y: Float,
+        canvas: Canvas,
+        releaseChildrenBitmapAfterDraw: Boolean
+    ) {
         when (component) {
             is TextComponent -> canvas.drawText(
                 component.text,
@@ -31,7 +37,12 @@ abstract class LayoutBitmap {
                 component.paint
             )
 
-            is ImageComponent -> canvas.drawBitmap(component.bitmap, x, y, component.paint)
+            is ImageComponent -> {
+                canvas.drawBitmap(component.bitmap, x, y, component.paint)
+                if (releaseChildrenBitmapAfterDraw) {
+                    component.bitmap.recycle()
+                }
+            }
 
             is SpaceComponent -> {}
             is RectComponent -> canvas.drawRect(
@@ -161,22 +172,36 @@ class BackgroundColorComponent(val a: Int, val r: Int, val g: Int, val b: Int) :
 
 class RowBitmap(
     val padding: Int? = null,
-    val contentSpacing: Int? = null
+    val contentSpacing: Int? = null,
+    val config: Bitmap.Config = Bitmap.Config.ARGB_8888,
+    val releaseChildrenBitmapAfterDraw: Boolean = false
 ) : LayoutBitmap() {
     override fun getBitmap(): Bitmap {
         val width = componentsList.sumOf { it.width } + 2 * (padding ?: 0) +
                 (contentSpacing?.times((componentsList.size - 1)) ?: 0)
         val height = componentsList.maxOf { it.height } + 2 * (padding ?: 0)
 
-        val bitmap = createBitmap(width, height)
+        val bitmap = createBitmap(width, height, config)
         val canvas = Canvas(bitmap).apply { enableAntiAlias() }
         var x = 0f
         padding?.let { x += it }
         componentsList.forEach {
-            drawComponent(it, x, 0f + (padding?.toFloat() ?: 0f), canvas)
+            drawComponent(
+                it,
+                x,
+                0f + (padding?.toFloat() ?: 0f),
+                canvas,
+                releaseChildrenBitmapAfterDraw
+            )
             x += it.width
             if (contentSpacing != null) {
-                drawComponent(SpaceComponent(contentSpacing), x, 0f, canvas)
+                drawComponent(
+                    SpaceComponent(contentSpacing),
+                    x,
+                    0f,
+                    canvas,
+                    releaseChildrenBitmapAfterDraw
+                )
                 x += contentSpacing
             }
         }
@@ -186,21 +211,35 @@ class RowBitmap(
 
 class ColumnBitmap(
     val padding: Int? = null,
-    val contentSpacing: Int? = null
+    val contentSpacing: Int? = null,
+    val config: Bitmap.Config = Bitmap.Config.ARGB_8888,
+    val releaseChildrenBitmapAfterDraw: Boolean = false
 ) : LayoutBitmap() {
     override fun getBitmap(): Bitmap {
         val width = componentsList.maxOf { it.width } + 2 * (padding ?: 0)
         val height = componentsList.sumOf { it.height } + 2 * (padding ?: 0) +
                 (contentSpacing?.times((componentsList.size - 1)) ?: 0)
-        val bitmap = createBitmap(width, height)
+        val bitmap = createBitmap(width, height, config)
         val canvas = Canvas(bitmap).apply { enableAntiAlias() }
         var y = 0f
         padding?.let { y += it }
         componentsList.forEach {
-            drawComponent(it, 0f + (padding?.toFloat() ?: 0f), y, canvas)
+            drawComponent(
+                it,
+                0f + (padding?.toFloat() ?: 0f),
+                y,
+                canvas,
+                releaseChildrenBitmapAfterDraw
+            )
             y += it.height
             if (contentSpacing != null) {
-                drawComponent(SpaceComponent(contentSpacing), 0f, y, canvas)
+                drawComponent(
+                    SpaceComponent(contentSpacing),
+                    0f,
+                    y,
+                    canvas,
+                    releaseChildrenBitmapAfterDraw
+                )
                 y += contentSpacing
             }
         }
