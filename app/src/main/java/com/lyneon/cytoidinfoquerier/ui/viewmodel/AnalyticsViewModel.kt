@@ -251,7 +251,7 @@ class AnalyticsViewModel(
                 viewModelScope.launch(Dispatchers.IO) {
                     setIsGenerating(true)
                     setGeneratingProgress(0)
-                    AnalyticsImageHandler.getRecordsImageWithProgress(
+                    val bitmap = AnalyticsImageHandler.getRecordsImageWithProgress(
                         profileDetails = profileDetails,
                         records = recordsList.subList(
                             0,
@@ -263,7 +263,10 @@ class AnalyticsViewModel(
                         onProgressChanged = { _ ->
                             addGeneratingProgress()
                         }
-                    ).saveIntoMediaStore()
+                    )
+                    bitmap.saveIntoMediaStore()
+                    bitmap.recycle()
+                    System.gc()
                     setIsGenerating(false)
                     context.getString(R.string.image_saved_into_media).showToast()
                 }
