@@ -3,6 +3,7 @@ package com.lyneon.cytoidinfoquerier.ui.activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -143,7 +144,12 @@ class MainActivity : BaseActivity() {
                             )
                         } else
                             ModalNavigationDrawer(
-                                drawerContent = { DrawerContent(navHostController) { mainActivity.finish() } },
+                                drawerContent = {
+                                    DrawerContent(
+                                        navHostController,
+                                        mainActivityUIState
+                                    ) { mainActivity.finish() }
+                                },
                                 modifier = Modifier.fillMaxSize(),
                                 drawerState = mainActivityUIState.drawerState
                             ) {
@@ -177,11 +183,22 @@ class MainActivity : BaseActivity() {
 }
 
 @Composable
-private fun DrawerContent(navHostController: NavHostController, onExitButtonClick: () -> Unit) {
+private fun DrawerContent(
+    navHostController: NavHostController,
+    uiState: MainActivityUIState,
+    onExitButtonClick: () -> Unit
+) {
     var currentScreenRoute by rememberSaveable { mutableStateOf(MainActivity.Screen.Home.route) }
+    val scope = rememberCoroutineScope()
 
     navHostController.addOnDestinationChangedListener { _, destination, _ ->
         currentScreenRoute = destination.route.toString()
+    }
+
+    BackHandler(enabled = uiState.drawerState.isOpen) {
+        scope.launch {
+            uiState.drawerState.close()
+        }
     }
 
     ModalDrawerSheet {
@@ -203,6 +220,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Home.route)
                         }
+                        scope.launch {
+                            uiState.drawerState.close()
+                        }
                     }
                 )
                 NavigationDrawerItem(
@@ -218,6 +238,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                         navHostController.navigate(MainActivity.Screen.Analytics.route) {
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Analytics.route)
+                        }
+                        scope.launch {
+                            uiState.drawerState.close()
                         }
                     }
                 )
@@ -235,6 +258,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Profile.route)
                         }
+                        scope.launch {
+                            uiState.drawerState.close()
+                        }
                     }
                 )
                 NavigationDrawerItem(
@@ -251,6 +277,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Level.route)
                         }
+                        scope.launch {
+                            uiState.drawerState.close()
+                        }
                     }
                 )
                 NavigationDrawerItem(
@@ -263,6 +292,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                         navHostController.navigate(MainActivity.Screen.Leaderboard.route) {
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Leaderboard.route)
+                        }
+                        scope.launch {
+                            uiState.drawerState.close()
                         }
                     }
                 )
@@ -280,6 +312,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                             launchSingleTop = true
                             popUpTo(MainActivity.Screen.Tool.route)
                         }
+                        scope.launch {
+                            uiState.drawerState.close()
+                        }
                     }
                 )
             }
@@ -292,6 +327,9 @@ private fun DrawerContent(navHostController: NavHostController, onExitButtonClic
                     navHostController.navigate(MainActivity.Screen.Settings.name) {
                         launchSingleTop = true
                         this.popUpTo(MainActivity.Screen.Settings.name)
+                    }
+                    scope.launch {
+                        uiState.drawerState.close()
                     }
                 }) {
                     Column {
