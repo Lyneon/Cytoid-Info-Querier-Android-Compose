@@ -1,6 +1,7 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +30,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -53,6 +56,7 @@ import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.HistoryUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.HistoryViewModel
 import com.lyneon.cytoidinfoquerier.util.DateParser.timeStampToString
+import com.lyneon.cytoidinfoquerier.util.extension.showToast
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +68,8 @@ fun HistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var fileToDelete: File? by rememberSaveable { mutableStateOf(null) }
 
     navBackStackEntry.arguments?.getString("type").let {
         when (it) {
@@ -107,7 +113,11 @@ fun HistoryScreen(
                                         HistoryUserCard(
                                             historyType = type,
                                             userHistoryDir = userRecordHistoryDir,
-                                            navController = navController
+                                            navController = navController,
+                                            onLongClickToDelete = { file ->
+                                                fileToDelete = file
+                                                showDeleteDialog = true
+                                            }
                                         )
                                     }
                                 }
@@ -133,7 +143,11 @@ fun HistoryScreen(
                                         HistoryUserCard(
                                             historyType = type,
                                             userHistoryDir = userProfileDetailsHistoryDir,
-                                            navController = navController
+                                            navController = navController,
+                                            onLongClickToDelete = { file ->
+                                                fileToDelete = file
+                                                showDeleteDialog = true
+                                            }
                                         )
                                     }
                                 }
@@ -141,6 +155,29 @@ fun HistoryScreen(
                     }
                 }
             }
+        }
+
+        if (showDeleteDialog && fileToDelete != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDeleteDialog = false
+                },
+                text = { Text(stringResource(R.string.delete_history_confirm)) },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                    }) { Text(stringResource(id = R.string.cancel)) }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val result = fileToDelete?.delete()
+                        if (result != true) {
+                            BaseApplication.context.getString(R.string.delete_failed).showToast()
+                        }
+                        showDeleteDialog = false
+                    }) { Text(stringResource(id = R.string.confirm)) }
+                }
+            )
         }
     }
 }
@@ -150,7 +187,8 @@ fun HistoryScreen(
 private fun HistoryUserCard(
     userHistoryDir: File,
     historyType: HistoryUIState.HistoryType,
-    navController: NavController
+    navController: NavController,
+    onLongClickToDelete: (File) -> Unit = {}
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val userHistoryFiles = userHistoryDir.listFiles()
@@ -196,7 +234,10 @@ private fun HistoryUserCard(
                                     historyItemFile = file,
                                     historyType = historyType,
                                     navController = navController,
-                                    cytoidID = userHistoryDir.name
+                                    cytoidID = userHistoryDir.name,
+                                    onLongClickToDelete = { file ->
+                                        onLongClickToDelete(file)
+                                    }
                                 )
                             }
                         }
@@ -212,7 +253,8 @@ private fun HistoryItemCard(
     historyItemFile: File,
     historyType: HistoryUIState.HistoryType,
     navController: NavController,
-    cytoidID: String
+    cytoidID: String,
+    onLongClickToDelete: (File) -> Unit = {}
 ) {
     val jsonObject = historyItemFile.readText().run {
         when (historyType) {
@@ -228,38 +270,43 @@ private fun HistoryItemCard(
         }
     }
 
-    Card(
-        onClick = {
-            repeat(2) { navController.navigateUp() }
-            when (historyType) {
-                HistoryUIState.HistoryType.AnalyticsBestRecords -> {
-                    navController.navigate(
-                        MainActivity.Screen.Analytics.route + "/${cytoidID}/BestRecords/${
-                            historyItemFile.name.removeSuffix(".json")
-                        }"
-                    )
-                }
-
-                HistoryUIState.HistoryType.AnalyticsRecentRecords -> {
-                    navController.navigate(
-                        MainActivity.Screen.Analytics.route + "/${cytoidID}/RecentRecords/${
-                            historyItemFile.name.removeSuffix(".json")
-                        }"
-                    )
-                }
-
-                HistoryUIState.HistoryType.Profile -> {
-                    navController.navigate(
-                        MainActivity.Screen.Profile.route + "/${cytoidID}/${
-                            historyItemFile.name.removeSuffix(".json")
-                        }"
-                    )
-                }
-            }
-        }
-    ) {
+    Card {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .combinedClickable(
+                    onClick = {
+                        repeat(2) { navController.navigateUp() }
+                        when (historyType) {
+                            HistoryUIState.HistoryType.AnalyticsBestRecords -> {
+                                navController.navigate(
+                                    MainActivity.Screen.Analytics.route + "/${cytoidID}/BestRecords/${
+                                        historyItemFile.name.removeSuffix(".json")
+                                    }"
+                                )
+                            }
+
+                            HistoryUIState.HistoryType.AnalyticsRecentRecords -> {
+                                navController.navigate(
+                                    MainActivity.Screen.Analytics.route + "/${cytoidID}/RecentRecords/${
+                                        historyItemFile.name.removeSuffix(".json")
+                                    }"
+                                )
+                            }
+
+                            HistoryUIState.HistoryType.Profile -> {
+                                navController.navigate(
+                                    MainActivity.Screen.Profile.route + "/${cytoidID}/${
+                                        historyItemFile.name.removeSuffix(".json")
+                                    }"
+                                )
+                            }
+                        }
+                    },
+                    onLongClick = {
+                        onLongClickToDelete(historyItemFile)
+                    }
+                )
+                .padding(16.dp)
         ) {
             Text(text = historyItemFile.name.removeSuffix(".json").toLong().timeStampToString())
             when (historyType) {
