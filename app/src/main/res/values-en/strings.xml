@@ -227,4 +227,6 @@
     <string name="preset_info">预设信息</string>
     <string name="preset_name_empty">预设名不能为空</string>
     <string name="warn_shizuku_v11">请更新Shizuku至v11以上版本</string>
+    <string name="delete_failed">删除失败</string>
+    <string name="delete_history_confirm">确定删除这条历史记录吗？</string>
 </resources>

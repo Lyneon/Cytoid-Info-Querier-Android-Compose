@@ -15,6 +15,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -870,7 +871,16 @@ private fun LevelDetailsCard(level: Level, levelRating: LevelRating) {
                     Text(text = stringResource(R.string.rating_distribution))
                     HorizontalDivider()
                     levelRating.distribution.forEachIndexed { index, i ->
-                        if (i != 0) Text(text = "${((index + 1) / 2f)}: $i")
+                        if (i != 0) Text(
+                            text = "${((index + 1) / 2f)}: $i",
+                            color = Color(
+                                if (isSystemInDarkTheme()) {
+                                    if (index >= 5) 0xFF93C5FD else 0xFFFDBA74
+                                } else {
+                                    if (index >= 5) 0xFF2CA9E1 else 0xFFC83C23
+                                }
+                            )
+                        )
                     }
                 }
                 Text(
