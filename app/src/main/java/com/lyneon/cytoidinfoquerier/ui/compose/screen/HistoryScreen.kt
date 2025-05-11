@@ -109,16 +109,20 @@ fun HistoryScreen(
                         ) {
                             localHistoryTypeDir?.listFiles().orEmpty()
                                 .forEach { userRecordHistoryDir ->
-                                    item {
-                                        HistoryUserCard(
-                                            historyType = type,
-                                            userHistoryDir = userRecordHistoryDir,
-                                            navController = navController,
-                                            onLongClickToDelete = { file ->
-                                                fileToDelete = file
-                                                showDeleteDialog = true
+                                    userRecordHistoryDir.listFiles()?.let { files ->
+                                        if (files.isNotEmpty()) {
+                                            item {
+                                                HistoryUserCard(
+                                                    historyType = type,
+                                                    userHistoryDir = userRecordHistoryDir,
+                                                    navController = navController,
+                                                    onLongClickToDelete = { file ->
+                                                        fileToDelete = file
+                                                        showDeleteDialog = true
+                                                    }
+                                                )
                                             }
-                                        )
+                                        }
                                     }
                                 }
                         }
@@ -139,16 +143,20 @@ fun HistoryScreen(
                         ) {
                             localHistoryTypeDir?.listFiles().orEmpty()
                                 .forEach { userProfileDetailsHistoryDir ->
-                                    item {
-                                        HistoryUserCard(
-                                            historyType = type,
-                                            userHistoryDir = userProfileDetailsHistoryDir,
-                                            navController = navController,
-                                            onLongClickToDelete = { file ->
-                                                fileToDelete = file
-                                                showDeleteDialog = true
+                                    userProfileDetailsHistoryDir.listFiles()?.let { files ->
+                                        if (files.isNotEmpty()) {
+                                            item {
+                                                HistoryUserCard(
+                                                    historyType = type,
+                                                    userHistoryDir = userProfileDetailsHistoryDir,
+                                                    navController = navController,
+                                                    onLongClickToDelete = { file ->
+                                                        fileToDelete = file
+                                                        showDeleteDialog = true
+                                                    }
+                                                )
                                             }
-                                        )
+                                        }
                                     }
                                 }
                         }
