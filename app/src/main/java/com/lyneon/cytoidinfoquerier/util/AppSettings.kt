@@ -1,7 +1,5 @@
 package com.lyneon.cytoidinfoquerier.util
 
-import android.content.res.Configuration
-import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.tencent.mmkv.MMKV
 
 object AppSettings {
@@ -33,16 +31,5 @@ object AppSettings {
         set(value) {
             MMKV.mmkvWithID(MMKVId.AppSettings.id)
                 .encode(AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, value)
-        }
-
-    var currentOrientationGridColumnsCount: Int
-        get() =
-            if (BaseApplication.context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-                portraitGridColumnsCount
-            else landscapeGridColumnsCount
-        set(value) {
-            if (BaseApplication.context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-                portraitGridColumnsCount = value
-            else landscapeGridColumnsCount = value
         }
 }

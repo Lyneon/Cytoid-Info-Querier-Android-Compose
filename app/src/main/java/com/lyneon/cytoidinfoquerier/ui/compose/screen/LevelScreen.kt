@@ -83,6 +83,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -400,6 +401,8 @@ private fun ResultDisplayList(
     animatedContentScope: AnimatedContentScope,
     topAppBarScrollBehavior: TopAppBarScrollBehavior
 ) {
+    val orientation = LocalConfiguration.current.orientation
+
     if (uiState.errorMessage.isNotEmpty()) {
         ErrorMessageCard(errorMessage = uiState.errorMessage)
     } else if (searchResult.isEmpty()) {
@@ -408,7 +411,7 @@ private fun ResultDisplayList(
         val columnsCount by remember {
             mutableIntStateOf(
                 MMKV.mmkvWithID(MMKVId.AppSettings.id).decodeInt(
-                    if (BaseApplication.context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
+                    if (orientation == Configuration.ORIENTATION_PORTRAIT) AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_PORTRAIT.name
                     else AppSettingsMMKVKeys.GRID_COLUMNS_COUNT_LANDSCAPE.name, 1
                 )
             )
