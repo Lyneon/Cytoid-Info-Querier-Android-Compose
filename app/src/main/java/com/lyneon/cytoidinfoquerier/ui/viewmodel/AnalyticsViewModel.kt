@@ -177,38 +177,53 @@ class AnalyticsViewModel(
 
     private suspend fun updateBestRecords() {
         uiState.value.let { uiState ->
-            updateBestRecords(
-                bestRecordsRepository.getBestRecords(
-                    cytoidID = uiState.cytoidID,
-                    count = uiState.queryCount.toInt(),
-                    disableLocalCache = uiState.ignoreLocalCacheData
+            try {
+                updateBestRecords(
+                    bestRecordsRepository.getBestRecords(
+                        cytoidID = uiState.cytoidID,
+                        count = uiState.queryCount.toInt(),
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                updateBestRecords(null)
+                updateUIState { copy(errorMessage = e.message.toString()) }
+            }
         }
     }
 
     private suspend fun updateRecentRecords() {
         uiState.value.let { uiState ->
-            updateRecentRecords(
-                recentRecordsRepository.getRecentRecords(
-                    cytoidID = uiState.cytoidID,
-                    count = uiState.queryCount.toInt(),
-                    sort = uiState.querySort,
-                    order = uiState.queryOrder,
-                    disableLocalCache = uiState.ignoreLocalCacheData
+            try {
+                updateRecentRecords(
+                    recentRecordsRepository.getRecentRecords(
+                        cytoidID = uiState.cytoidID,
+                        count = uiState.queryCount.toInt(),
+                        sort = uiState.querySort,
+                        order = uiState.queryOrder,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                updateRecentRecords(null)
+                updateUIState { copy(errorMessage = e.message.toString()) }
+            }
         }
     }
 
     suspend fun updateProfileDetails() {
         uiState.value.let { uiState ->
-            updateProfileDetails(
-                profileDetailsRepository.getProfileDetails(
-                    cytoidID = uiState.cytoidID,
-                    disableLocalCache = uiState.ignoreLocalCacheData
+            try {
+                updateProfileDetails(
+                    profileDetailsRepository.getProfileDetails(
+                        cytoidID = uiState.cytoidID,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                updateProfileDetails(null)
+                updateUIState { copy(errorMessage = e.message.toString()) }
+            }
         }
     }
 
