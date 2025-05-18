@@ -1,5 +1,6 @@
 package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -62,7 +64,6 @@ import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
 import com.lyneon.cytoidinfoquerier.util.DateParser
 import com.lyneon.cytoidinfoquerier.util.DateParser.formatToTimeString
 import com.lyneon.cytoidinfoquerier.util.MMKVId
-import com.lyneon.cytoidinfoquerier.util.OrientationUtils
 import com.lyneon.cytoidinfoquerier.util.extension.openInBrowser
 import com.lyneon.cytoidinfoquerier.util.extension.setPrecision
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
@@ -86,7 +87,7 @@ fun HomeScreen(navController: NavController, onDrawerButtonClick: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.home)) },
                 navigationIcon = {
-                    if (!OrientationUtils.isLandscape) {
+                    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
                         IconButton(onClick = onDrawerButtonClick) {
                             Icon(
                                 Icons.Default.Menu,

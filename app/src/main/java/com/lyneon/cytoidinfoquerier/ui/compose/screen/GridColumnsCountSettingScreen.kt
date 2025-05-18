@@ -2,6 +2,7 @@ package com.lyneon.cytoidinfoquerier.ui.compose.screen
 
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -36,10 +37,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.lyneon.cytoidinfoquerier.BaseApplication
 import com.lyneon.cytoidinfoquerier.R
 import com.lyneon.cytoidinfoquerier.ui.activity.MainActivity
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
@@ -53,7 +54,9 @@ fun GridColumnsCountSettingScreen(
 ) {
     val mainActivity = LocalActivity.current as MainActivity
     val mmkv = MMKV.mmkvWithID(MMKVId.AppSettings.id)
-    val orientation = BaseApplication.context.resources.configuration.orientation
+    val orientation = LocalConfiguration.current.orientation.also {
+        Log.d("Orientation", "Orientation: $it")
+    }
     var columnsCount by remember {
         mutableIntStateOf(
             mmkv.decodeInt(

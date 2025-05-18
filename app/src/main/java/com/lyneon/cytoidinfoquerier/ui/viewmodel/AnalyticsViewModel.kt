@@ -16,6 +16,7 @@ import com.lyneon.cytoidinfoquerier.data.repository.BestRecordsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileDetailsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.RecentRecordsRepository
 import com.lyneon.cytoidinfoquerier.logic.AnalyticsImageHandler
+import com.lyneon.cytoidinfoquerier.util.CytoidIdAutoFillUtils
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
@@ -177,38 +178,53 @@ class AnalyticsViewModel(
 
     private suspend fun updateBestRecords() {
         uiState.value.let { uiState ->
-            updateBestRecords(
-                bestRecordsRepository.getBestRecords(
-                    cytoidID = uiState.cytoidID,
-                    count = uiState.queryCount.toInt(),
-                    disableLocalCache = uiState.ignoreLocalCacheData
+            try {
+                updateBestRecords(
+                    bestRecordsRepository.getBestRecords(
+                        cytoidID = uiState.cytoidID,
+                        count = uiState.queryCount.toInt(),
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                updateBestRecords(null)
+                updateUIState { copy(errorMessage = e.message.toString()) }
+            }
         }
     }
 
     private suspend fun updateRecentRecords() {
         uiState.value.let { uiState ->
-            updateRecentRecords(
-                recentRecordsRepository.getRecentRecords(
-                    cytoidID = uiState.cytoidID,
-                    count = uiState.queryCount.toInt(),
-                    sort = uiState.querySort,
-                    order = uiState.queryOrder,
-                    disableLocalCache = uiState.ignoreLocalCacheData
+            try {
+                updateRecentRecords(
+                    recentRecordsRepository.getRecentRecords(
+                        cytoidID = uiState.cytoidID,
+                        count = uiState.queryCount.toInt(),
+                        sort = uiState.querySort,
+                        order = uiState.queryOrder,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                updateRecentRecords(null)
+                updateUIState { copy(errorMessage = e.message.toString()) }
+            }
         }
     }
 
     suspend fun updateProfileDetails() {
         uiState.value.let { uiState ->
-            updateProfileDetails(
-                profileDetailsRepository.getProfileDetails(
-                    cytoidID = uiState.cytoidID,
-                    disableLocalCache = uiState.ignoreLocalCacheData
+            try {
+                updateProfileDetails(
+                    profileDetailsRepository.getProfileDetails(
+                        cytoidID = uiState.cytoidID,
+                        disableLocalCache = uiState.ignoreLocalCacheData
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                updateProfileDetails(null)
+                updateUIState { copy(errorMessage = e.message.toString()) }
+            }
         }
     }
 
@@ -291,7 +307,9 @@ data class AnalyticsUIState(
     val isQuerying: Boolean = false,
     val isGenerating: Boolean = false,
     val generatingProgress: Int = 0,
-    var showBottomSheet: MutableState<Boolean> = mutableStateOf(false)
+    var showBottomSheet: MutableState<Boolean> = mutableStateOf(false),
+    var autoFillList: MutableState<List<String>> = mutableStateOf(
+        CytoidIdAutoFillUtils.getSavedCytoidIds().filter { it.isValidCytoidID() })
 ) {
     enum class QueryType(val displayName: String) {
         BestRecords("Best Records"),
