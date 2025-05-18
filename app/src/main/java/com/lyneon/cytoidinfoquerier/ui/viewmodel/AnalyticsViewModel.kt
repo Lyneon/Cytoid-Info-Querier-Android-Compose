@@ -16,6 +16,7 @@ import com.lyneon.cytoidinfoquerier.data.repository.BestRecordsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileDetailsRepository
 import com.lyneon.cytoidinfoquerier.data.repository.RecentRecordsRepository
 import com.lyneon.cytoidinfoquerier.logic.AnalyticsImageHandler
+import com.lyneon.cytoidinfoquerier.util.CytoidIdAutoFillUtils
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.saveIntoMediaStore
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
@@ -306,7 +307,9 @@ data class AnalyticsUIState(
     val isQuerying: Boolean = false,
     val isGenerating: Boolean = false,
     val generatingProgress: Int = 0,
-    var showBottomSheet: MutableState<Boolean> = mutableStateOf(false)
+    var showBottomSheet: MutableState<Boolean> = mutableStateOf(false),
+    var autoFillList: MutableState<List<String>> = mutableStateOf(
+        CytoidIdAutoFillUtils.getSavedCytoidIds().filter { it.isValidCytoidID() })
 ) {
     enum class QueryType(val displayName: String) {
         BestRecords("Best Records"),

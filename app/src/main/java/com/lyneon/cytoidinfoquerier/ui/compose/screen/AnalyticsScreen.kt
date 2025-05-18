@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -28,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -50,6 +54,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -107,6 +112,7 @@ import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsPreset
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsUIState
 import com.lyneon.cytoidinfoquerier.ui.viewmodel.AnalyticsViewModel
 import com.lyneon.cytoidinfoquerier.util.AppSettingsMMKVKeys
+import com.lyneon.cytoidinfoquerier.util.CytoidIdAutoFillUtils
 import com.lyneon.cytoidinfoquerier.util.MMKVId
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import com.lyneon.cytoidinfoquerier.util.extension.showToast
@@ -321,7 +327,10 @@ fun AnalyticsScreen(
 }
 
 @Composable
-private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsViewModel) {
+private fun AnalyticsInputField(
+    uiState: AnalyticsUIState,
+    viewModel: AnalyticsViewModel
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -331,60 +340,93 @@ private fun AnalyticsInputField(uiState: AnalyticsUIState, viewModel: AnalyticsV
         enter = expandIn(expandFrom = Alignment.TopCenter),
         exit = shrinkOut(shrinkTowards = Alignment.TopCenter)
     ) {
-        TextField(
-            value = uiState.cytoidID,
-            onValueChange = {
-                if (it.isValidCytoidID(checkLengthMin = false)) {
-                    viewModel.setCytoidID(it)
-                    viewModel.clearBestRecords()
-                    viewModel.clearRecentRecords()
-                    viewModel.clearProfileDetails()
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            isError = !uiState.cytoidID.isValidCytoidID() && uiState.cytoidID.isNotEmpty(),
-            label = { Text(text = stringResource(id = R.string.cytoid_id)) },
-            trailingIcon = {
-                Row(
-                    modifier = Modifier.padding(end = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = stringResource(R.string.fold_input_field)
-                        )
+        Column {
+            TextField(
+                value = uiState.cytoidID,
+                onValueChange = {
+                    if (it.isValidCytoidID(checkLengthMin = false)) {
+                        viewModel.setCytoidID(it)
+                        viewModel.clearBestRecords()
+                        viewModel.clearRecentRecords()
+                        viewModel.clearProfileDetails()
                     }
-                    IconButton(onClick = { viewModel.setExpandQueryOptionsDropdownMenu(true) }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.query_settings)
-                        )
-                        QuerySettingsDropDownMenu(uiState = uiState, viewModel = viewModel)
-                    }
-                    if (uiState.isQuerying) {
-                        CircularProgressIndicator(modifier = Modifier.scale(0.8f))
-                    } else {
-                        TextButton(onClick = {
-                            viewModel.setErrorMessage("")
-                            if (!uiState.cytoidID.isValidCytoidID()) {
-                                viewModel.setErrorMessage(context.getString(R.string.invalid_cytoid_id))
-                            } else if (uiState.queryCount.isEmpty()) {
-                                viewModel.setErrorMessage(context.getString(R.string.empty_query_count))
-                            } else {
-                                scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
-                                    viewModel.setIsQuerying(true)
-                                    viewModel.enqueueQuery()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = !uiState.cytoidID.isValidCytoidID() && uiState.cytoidID.isNotEmpty(),
+                label = { Text(text = stringResource(id = R.string.cytoid_id)) },
+                trailingIcon = {
+                    Row(
+                        modifier = Modifier.padding(end = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { viewModel.setFoldTextFiled(true) }) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowUp,
+                                contentDescription = stringResource(R.string.fold_input_field)
+                            )
+                        }
+                        IconButton(onClick = { viewModel.setExpandQueryOptionsDropdownMenu(true) }) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = stringResource(R.string.query_settings)
+                            )
+                            QuerySettingsDropDownMenu(uiState = uiState, viewModel = viewModel)
+                        }
+                        if (uiState.isQuerying) {
+                            CircularProgressIndicator(modifier = Modifier.scale(0.8f))
+                        } else {
+                            TextButton(onClick = {
+                                viewModel.setErrorMessage("")
+                                if (!uiState.cytoidID.isValidCytoidID()) {
+                                    viewModel.setErrorMessage(context.getString(R.string.invalid_cytoid_id))
+                                } else if (uiState.queryCount.isEmpty()) {
+                                    viewModel.setErrorMessage(context.getString(R.string.empty_query_count))
+                                } else {
+                                    scope.launch {  // 此处不进行线程转换，在viewmodel层中再转换到IO线程
+                                        viewModel.setIsQuerying(true)
+                                        viewModel.enqueueQuery()
+                                        CytoidIdAutoFillUtils.saveCytoidId(uiState.cytoidID)
+                                        uiState.autoFillList.value =
+                                            CytoidIdAutoFillUtils.getSavedCytoidIds()
+                                    }
                                 }
+                            }) {
+                                Text(text = stringResource(id = R.string.query))
                             }
-                        }) {
-                            Text(text = stringResource(id = R.string.query))
                         }
                     }
                 }
+            )
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                uiState.autoFillList.value.filter { it.startsWith(uiState.cytoidID) }.sorted()
+                    .forEach {
+                        item {
+                            InputChip(
+                                selected = false,
+                                label = { Text(text = it) },
+                                onClick = {
+                                    viewModel.setCytoidID(it)
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove),
+                                        modifier = Modifier.clickable {
+                                            CytoidIdAutoFillUtils.forgetCytoidId(it)
+                                            uiState.autoFillList.value =
+                                                CytoidIdAutoFillUtils.getSavedCytoidIds()
+                                        }
+                                    )
+                                },
+                                modifier = Modifier.wrapContentWidth()
+                            )
+                        }
+                    }
             }
-        )
+        }
     }
 }
 

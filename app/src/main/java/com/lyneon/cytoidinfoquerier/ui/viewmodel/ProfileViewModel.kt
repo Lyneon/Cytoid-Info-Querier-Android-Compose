@@ -1,9 +1,12 @@
 package com.lyneon.cytoidinfoquerier.ui.viewmodel
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyneon.cytoidinfoquerier.data.model.screen.ProfileScreenDataModel
 import com.lyneon.cytoidinfoquerier.data.repository.ProfileScreenDataModelRepository
+import com.lyneon.cytoidinfoquerier.util.CytoidIdAutoFillUtils
 import com.lyneon.cytoidinfoquerier.util.extension.isValidCytoidID
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -109,7 +112,9 @@ data class ProfileUiState(
     val ignoreLocalCacheData: Boolean = false,
     val keep2DecimalPlaces: Boolean = true,
     val errorMessage: String = "",
-    val isQuerying: Boolean = false
+    val isQuerying: Boolean = false,
+    var autoFillList: MutableState<List<String>> = mutableStateOf(
+        CytoidIdAutoFillUtils.getSavedCytoidIds().filter { it.isValidCytoidID() })
 ) {
     fun canQuery(): Boolean = cytoidID.isValidCytoidID() && !isQuerying
 }
